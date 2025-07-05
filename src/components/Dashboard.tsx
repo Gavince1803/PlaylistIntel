@@ -1,14 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useSession, signIn, signOut } from 'next-auth/react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import PlaylistGrid from './PlaylistGrid';
+import { useToast } from './Toast';
 
 export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { data: session, status } = useSession();
+  const [showSignIn, setShowSignIn] = useState(false);
+  const { showToast } = useToast();
 
   // Show loading state while checking authentication
   if (status === 'loading') {
@@ -22,8 +25,8 @@ export default function Dashboard() {
     );
   }
 
-  // Show sign-in page if not authenticated
-  if (!session) {
+  // Show sign-in modal if requested
+  if (showSignIn) {
     return (
       <div className="flex h-screen bg-gradient-to-br from-[#191414] via-[#232323] to-[#1DB954] font-sans items-center justify-center">
         <div className="bg-[#232323] rounded-2xl p-12 shadow-2xl border border-[#282828] text-center max-w-md w-full mx-4">
@@ -42,6 +45,12 @@ export default function Dashboard() {
           >
             Connect with Spotify
           </button>
+          <button
+            onClick={() => setShowSignIn(false)}
+            className="mt-4 text-gray-400 hover:text-white underline"
+          >
+            Continue without connecting
+          </button>
         </div>
       </div>
     );
@@ -51,23 +60,26 @@ export default function Dashboard() {
     <div className="flex h-screen bg-gradient-to-br from-[#191414] via-[#232323] to-[#1DB954] font-sans">
       {/* Sidebar */}
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
         <Header onMenuClick={() => setSidebarOpen(true)} />
-        
+        {/* Warning banner if not authenticated */}
+        {!session && (
+          <div className="bg-yellow-500 text-yellow-900 text-center py-2 font-semibold">
+            You are viewing the dashboard in demo mode. <button className="underline hover:text-yellow-700" onClick={() => setShowSignIn(true)}>Connect Spotify</button> for your real playlists.
+          </div>
+        )}
         {/* Main content area */}
         <main className="flex-1 overflow-y-auto p-8">
           <div className="max-w-7xl mx-auto">
             {/* Welcome section */}
             <section className="mb-10">
               <h1 className="text-4xl font-extrabold text-white mb-2 tracking-tight">
-                Welcome back, {session.user?.name || 'User'}!
+                Welcome back{session?.user?.name ? `, ${session.user.name}` : ''}!
               </h1>
               <p className="text-lg text-gray-300">Create new playlists from your mixed collections</p>
             </section>
-
             {/* Quick actions */}
             <section className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
               <div className="bg-[#232323] rounded-2xl p-8 shadow-lg flex flex-col gap-2 border border-[#282828] hover:shadow-2xl transition-shadow cursor-pointer">
@@ -83,7 +95,6 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
-
               <div className="bg-[#232323] rounded-2xl p-8 shadow-lg flex flex-col gap-2 border border-[#282828] hover:shadow-2xl transition-shadow cursor-pointer">
                 <div className="flex items-center justify-between">
                   <div>
@@ -97,7 +108,6 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
-
               <div className="bg-[#232323] rounded-2xl p-8 shadow-lg flex flex-col gap-2 border border-[#282828] hover:shadow-2xl transition-shadow cursor-pointer">
                 <div className="flex items-center justify-between">
                   <div>
@@ -112,14 +122,13 @@ export default function Dashboard() {
                 </div>
               </div>
             </section>
-
             {/* Playlists section */}
             <section className="bg-[#232323] rounded-2xl shadow-lg border border-[#282828]">
               <div className="p-8 border-b border-[#282828]">
                 <h2 className="text-2xl font-bold text-white">Your Playlists</h2>
                 <p className="text-gray-400 text-base mt-1">Manage and organize your music collections</p>
               </div>
-              <PlaylistGrid />
+              <PlaylistGrid demoMode={!session} />
             </section>
           </div>
         </main>
