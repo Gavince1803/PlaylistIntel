@@ -1,11 +1,42 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
+
 interface SidebarProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
 }
 
 export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
+  const sidebarRef = useRef<HTMLDivElement>(null);
+
+  // Focus trap and ESC to close
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsOpen(false);
+      if (e.key === 'Tab' && sidebarRef.current) {
+        const focusable = sidebarRef.current.querySelectorAll<HTMLElement>(
+          'a, button, input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        } else if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    // Focus the sidebar on open
+    setTimeout(() => sidebarRef.current?.focus(), 0);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, setIsOpen]);
+
   const navigation = [
     { name: 'Dashboard', href: '#', icon: 'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z', current: true },
     { name: 'My Playlists', href: '#', icon: 'M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3', current: false },
@@ -20,17 +51,26 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
     <>
       {/* Mobile backdrop */}
       {isOpen && (
-        <div 
-          className="fixed inset-0 z-40 bg-black bg-opacity-40 lg:hidden"
+        <div
+          className="fixed inset-0 z-40 bg-black/60 transition-opacity duration-300 lg:hidden"
           onClick={() => setIsOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <aside aria-label="Sidebar navigation" className={`
-        fixed inset-y-0 left-0 z-50 w-64 bg-[#191414] shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0
-        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-      `}>
+      <aside
+        aria-label="Sidebar navigation"
+        className={`
+          fixed inset-y-0 left-0 z-50 w-64 bg-[#191414] shadow-lg transform transition-transform duration-300 ease-in-out
+          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+          lg:translate-x-0 lg:static lg:inset-0
+        `}
+        ref={sidebarRef}
+        tabIndex={isOpen ? 0 : -1}
+        onBlur={e => {
+          if (!e.currentTarget.contains(e.relatedTarget)) setIsOpen(false);
+        }}
+      >
         <div className="flex items-center justify-between h-20 px-6 border-b border-[#282828]">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-[#1DB954] rounded-full flex items-center justify-center">
