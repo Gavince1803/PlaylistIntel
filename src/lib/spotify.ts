@@ -68,9 +68,12 @@ export class SpotifyService {
         description: playlist.description || '',
         images: playlist.images,
         tracks: { total: playlist.tracks.total, items: [] },
-        owner: playlist.owner,
+        owner: {
+          display_name: playlist.owner.display_name ?? "Unknown",
+          id: playlist.owner.id
+        },
         collaborative: playlist.collaborative,
-        public: playlist.public,
+        public: playlist.public ?? false,
         snapshot_id: playlist.snapshot_id
       }));
     } catch (error) {
@@ -104,11 +107,10 @@ export class SpotifyService {
 
   async createPlaylist(userId: string, name: string, description?: string): Promise<string> {
     try {
-      const response = await this.api.createPlaylist(userId, {
-        name,
+      const response = await (this.api.createPlaylist as any)(userId, name, {
         description,
         public: false
-      });
+      }) as { body: { id: string } };
       return response.body.id;
     } catch (error) {
       console.error('Error creating playlist:', error);

@@ -31,19 +31,21 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      <div className="fixed top-6 right-6 z-50 space-y-2">
-        {toasts.map((toast) => (
-          <div
-            key={toast.id}
-            className={`px-6 py-3 rounded-lg shadow-lg text-white font-semibold transition-all animate-fade-in-down
-              ${toast.type === 'success' ? 'bg-green-600' : toast.type === 'error' ? 'bg-red-600' : 'bg-gray-800'}`}
-            role="alert"
-            aria-live="assertive"
-          >
-            {toast.message}
-          </div>
-        ))}
-      </div>
+      {toasts.length > 0 && (
+        <div className="fixed top-6 right-6 z-50 space-y-2">
+          {toasts.map((toast) => (
+            <div
+              key={toast.id}
+              className={`px-6 py-3 rounded-lg shadow-lg text-white font-semibold transition-all animate-fade-in-down
+                ${toast.type === 'success' ? 'bg-green-600' : toast.type === 'error' ? 'bg-red-600' : 'bg-gray-800'}`}
+              role="alert"
+              aria-live="assertive"
+            >
+              {toast.message}
+            </div>
+          ))}
+        </div>
+      )}
     </ToastContext.Provider>
   );
 }

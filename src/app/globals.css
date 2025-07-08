@@ -22,11 +22,14 @@
   }
 }
 
+/* Remove body background and color so Tailwind classes can control them */
+/*
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: 'Inter', 'Geist', Arial, Helvetica, sans-serif;
 }
+*/
 
 /* Custom utilities */
 .line-clamp-2 {

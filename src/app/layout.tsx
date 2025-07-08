@@ -26,14 +26,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="bg-white text-gray-900 dark:bg-[#191414] dark:text-white">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-white text-gray-900 dark:bg-[#191414] dark:text-white transition-colors`}
       >
         <ErrorBoundary>
           <ToastProvider>
             <Providers>
-              {children}
+        {children}
             </Providers>
           </ToastProvider>
         </ErrorBoundary>

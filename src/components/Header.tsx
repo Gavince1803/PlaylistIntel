@@ -67,7 +67,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
                     {session?.user?.name?.charAt(0) || 'U'}
                   </span>
                 </div>
-              )}
+              )} 
               <div className="hidden md:block text-left">
                 <p className="text-base font-semibold text-white">
                   {session?.user?.name || 'User Name'}
