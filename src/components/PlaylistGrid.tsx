@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback, Fragment } from 'react';
 import { useSession } from 'next-auth/react';
 import { useToast } from './Toast';
 import Modal from './Modal';
+import PlaylistCreator from './PlaylistCreator';
 
 interface SpotifyPlaylist {
   id: string;
@@ -25,64 +26,8 @@ interface SpotifyPlaylist {
   snapshot_id: string;
 }
 
-// Mock playlists for demo mode
-const mockPlaylists: SpotifyPlaylist[] = [
-  {
-    id: '1',
-    name: 'Chill Vibes',
-    description: 'Perfect for relaxing evenings',
-    images: [{ url: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&h=300&fit=crop' }],
-    tracks: { total: 45, items: [], duration_ms: 102 * 60000 },
-    owner: { display_name: 'Demo User', id: 'demo', avatar_url: 'https://ui-avatars.com/api/?name=Demo+User&background=1DB954&color=fff' },
-    collaborative: true,
-    public: true,
-    snapshot_id: 'demo1',
-  },
-  {
-    id: '2',
-    name: 'Workout Mix',
-    description: 'High energy tracks for your gym session',
-    images: [{ url: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=300&fit=crop' }],
-    tracks: { total: 32, items: [], duration_ms: 78 * 60000 },
-    owner: { display_name: 'Demo User', id: 'demo', avatar_url: 'https://ui-avatars.com/api/?name=Demo+User&background=1DB954&color=fff' },
-    collaborative: false,
-    public: true,
-    snapshot_id: 'demo2',
-  },
-  {
-    id: '3',
-    name: 'Road Trip Essentials',
-    description: 'The perfect soundtrack for your journey',
-    images: [{ url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=300&fit=crop' }],
-    tracks: { total: 67, items: [], duration_ms: 154 * 60000 },
-    owner: { display_name: 'Demo User', id: 'demo', avatar_url: 'https://ui-avatars.com/api/?name=Demo+User&background=1DB954&color=fff' },
-    collaborative: true,
-    public: true,
-    snapshot_id: 'demo3',
-  },
-  {
-    id: '4',
-    name: 'Late Night Coding',
-    description: 'Lo-fi beats for programming sessions',
-    images: [{ url: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=300&h=300&fit=crop' }],
-    tracks: { total: 28, items: [], duration_ms: 65 * 60000 },
-    owner: { display_name: 'Demo User', id: 'demo', avatar_url: 'https://ui-avatars.com/api/?name=Demo+User&background=1DB954&color=fff' },
-    collaborative: false,
-    public: true,
-    snapshot_id: 'demo4',
-  },
-];
-
-// Mock tracks for modal
-const mockTracks = [
-  { id: '1', name: 'Track One', artist: 'Artist A', duration: 210000 },
-  { id: '2', name: 'Track Two', artist: 'Artist B', duration: 180000 },
-  { id: '3', name: 'Track Three', artist: 'Artist C', duration: 240000 },
-  { id: '4', name: 'Track Four', artist: 'Artist D', duration: 200000 },
-];
-
 interface PlaylistGridProps {
-  demoMode?: boolean;
+  // Remove demoMode prop
 }
 
 function PlaylistContextMenu({ onEdit, onDelete, onShare, onClose, anchorRef }: any) {
@@ -104,16 +49,14 @@ function PlaylistContextMenu({ onEdit, onDelete, onShare, onClose, anchorRef }: 
   );
 }
 
-export default function PlaylistGrid({ demoMode }: PlaylistGridProps) {
+export default function PlaylistGrid({}: PlaylistGridProps) {
   const { data: session } = useSession();
   const { showToast } = useToast();
-  const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>(demoMode ? mockPlaylists : []);
-  const [loading, setLoading] = useState(!demoMode);
+  const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
+  const [playlistCreatorOpen, setPlaylistCreatorOpen] = useState(false);
   const [selectedPlaylist, setSelectedPlaylist] = useState<SpotifyPlaylist | null>(null);
-  const [selectedTracks, setSelectedTracks] = useState<string[]>(mockTracks.map(t => t.id));
-  const [newPlaylistName, setNewPlaylistName] = useState('');
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const menuButtonRefs = useRef<{ [id: string]: HTMLButtonElement | null }>({});
   // Edit modal state
@@ -132,10 +75,10 @@ export default function PlaylistGrid({ demoMode }: PlaylistGridProps) {
   const [typeFilter, setTypeFilter] = useState<'all' | 'mixed' | 'regular'>('all');
 
   useEffect(() => {
-    if (!demoMode && session?.accessToken) {
+    if (session?.accessToken) {
       fetchPlaylists();
     }
-  }, [session, demoMode]);
+  }, [session]);
 
   const fetchPlaylists = async () => {
     try {
@@ -160,22 +103,13 @@ export default function PlaylistGrid({ demoMode }: PlaylistGridProps) {
 
   const openCreateModal = (playlist: SpotifyPlaylist) => {
     setSelectedPlaylist(playlist);
-    setNewPlaylistName(`Copy of ${playlist.name}`);
-    setSelectedTracks(mockTracks.map(t => t.id));
-    setModalOpen(true);
+    setPlaylistCreatorOpen(true);
   };
 
-  const handleTrackToggle = (trackId: string) => {
-    setSelectedTracks(prev =>
-      prev.includes(trackId)
-        ? prev.filter(id => id !== trackId)
-        : [...prev, trackId]
-    );
-  };
-
-  const handleCreate = () => {
-    setModalOpen(false);
-    showToast('Playlist created! (mock)', 'success');
+  const handleCreateSuccess = (playlistId: string) => {
+    showToast('Playlist created successfully!', 'success');
+    // Optionally refresh the playlists list
+    fetchPlaylists();
   };
 
   const formatDuration = (ms: number) => {
@@ -210,7 +144,7 @@ export default function PlaylistGrid({ demoMode }: PlaylistGridProps) {
     if (editPlaylist) {
       setPlaylists(prev => prev.map(p => p.id === editPlaylist.id ? { ...p, name: editName, description: editDesc } : p));
       setEditModalOpen(false);
-      showToast('Playlist updated (mock)', 'success');
+      showToast('Playlist updated', 'success');
     }
   };
 
@@ -224,7 +158,7 @@ export default function PlaylistGrid({ demoMode }: PlaylistGridProps) {
     if (deletePlaylist) {
       setPlaylists(prev => prev.filter(p => p.id !== deletePlaylist.id));
       setDeleteConfirmOpen(false);
-      showToast('Playlist deleted (mock)', 'success');
+      showToast('Playlist deleted', 'success');
     }
   };
 
@@ -244,11 +178,11 @@ export default function PlaylistGrid({ demoMode }: PlaylistGridProps) {
   const allSelected = playlists.length > 0 && selectedIds.length === playlists.length;
   const someSelected = selectedIds.length > 0 && !allSelected;
 
-  // Bulk delete/share handlers (mock)
+  // Bulk delete/share handlers
   const handleBulkDelete = () => {
     setPlaylists(prev => prev.filter(p => !selectedIds.includes(p.id)));
     setSelectedIds([]);
-    showToast('Selected playlists deleted (mock)', 'success');
+    showToast('Selected playlists deleted', 'success');
   };
   const handleBulkShare = () => {
     setSharePlaylist(null);
@@ -563,64 +497,15 @@ export default function PlaylistGrid({ demoMode }: PlaylistGridProps) {
         })}
       </div>
 
-      {/* Modal for Create From This */}
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Create Playlist from This">
-        <form
-          onSubmit={e => {
-            e.preventDefault();
-            handleCreate();
-          }}
-        >
-          <label className="block text-white font-semibold mb-2">Playlist Name</label>
-          <input
-            className="w-full mb-4 px-4 py-2 rounded-lg bg-[#191414] text-white border border-[#282828] focus:ring-2 focus:ring-[#1DB954]"
-            value={newPlaylistName}
-            onChange={e => setNewPlaylistName(e.target.value)}
-            required
-          />
-          <label className="block text-white font-semibold mb-2">Tracks</label>
-          <div className="max-h-48 overflow-y-auto mb-4">
-            {mockTracks.map(track => (
-              <label key={track.id} className="flex items-center space-x-3 mb-2 cursor-pointer group">
-                <span className="relative flex items-center ml-1">
-                  <input
-                    type="checkbox"
-                    checked={selectedTracks.includes(track.id)}
-                    onChange={() => handleTrackToggle(track.id)}
-                    className="peer appearance-none w-5 h-5 border-2 border-[#1DB954] rounded-md bg-[#191414] checked:bg-[#1DB954] checked:border-[#1DB954] focus:ring-2 focus:ring-[#1DB954] transition-all duration-150"
-                  />
-                  <svg
-                    className="absolute left-0 top-0 w-5 h-5 text-white pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity duration-150"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </svg>
-                </span>
-                <span className="text-white">{track.name} <span className="text-gray-400">- {track.artist}</span></span>
-                <span className="ml-auto text-gray-400 text-xs">{Math.floor(track.duration / 60000)}:{(track.duration % 60000 / 1000).toFixed(0).padStart(2, '0')}</span>
-              </label>
-            ))}
-          </div>
-          <div className="flex justify-end gap-4">
-            <button
-              type="button"
-              className="px-4 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-600"
-              onClick={() => setModalOpen(false)}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-6 py-2 rounded-lg bg-[#1DB954] text-white font-semibold hover:bg-[#1ed760] shadow-md"
-              disabled={selectedTracks.length === 0 || !newPlaylistName.trim()}
-            >
-              Create Playlist
-            </button>
-          </div>
-        </form>
-      </Modal>
+      {/* Playlist Creator Modal */}
+      {playlistCreatorOpen && selectedPlaylist && (
+        <PlaylistCreator
+          sourcePlaylistId={selectedPlaylist.id}
+          sourcePlaylistName={selectedPlaylist.name}
+          onClose={() => setPlaylistCreatorOpen(false)}
+          onSuccess={handleCreateSuccess}
+        />
+      )}
 
       {/* Edit Modal */}
       <Modal open={editModalOpen} onClose={() => setEditModalOpen(false)} title="Edit Playlist">
@@ -684,7 +569,7 @@ export default function PlaylistGrid({ demoMode }: PlaylistGridProps) {
 
       {/* Share Modal */}
       <Modal open={shareModalOpen} onClose={() => setShareModalOpen(false)} title="Share Playlist{selectedIds.length > 1 ? 's' : ''}">
-        <div className="mb-6 text-white">Share these playlist links with your friends (mock):</div>
+        <div className="mb-6 text-white">Share these playlist links with your friends:</div>
         <div className="space-y-2 mb-4">
           {(selectedIds.length > 0 ? playlists.filter(p => selectedIds.includes(p.id)) : sharePlaylist ? [sharePlaylist] : []).map(p => (
             <div key={p.id} className="flex items-center gap-2">

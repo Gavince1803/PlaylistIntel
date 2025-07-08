@@ -64,12 +64,6 @@ export default function Dashboard() {
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
         <Header onMenuClick={() => setSidebarOpen(true)} />
-        {/* Warning banner if not authenticated */}
-        {!session && (
-          <div className="bg-yellow-500 text-yellow-900 text-center py-2 font-semibold">
-            You are viewing the dashboard in demo mode. <button className="underline hover:text-yellow-700" onClick={() => setShowSignIn(true)}>Connect Spotify</button> for your real playlists.
-          </div>
-        )}
         {/* Main content area */}
         <main className="flex-1 overflow-y-auto p-8">
           <div className="max-w-7xl mx-auto">
@@ -128,7 +122,7 @@ export default function Dashboard() {
                 <h2 className="text-2xl font-bold text-white">Your Playlists</h2>
                 <p className="text-gray-400 text-base mt-1">Manage and organize your music collections</p>
               </div>
-              <PlaylistGrid demoMode={!session} />
+              <PlaylistGrid />
             </section>
           </div>
         </main>

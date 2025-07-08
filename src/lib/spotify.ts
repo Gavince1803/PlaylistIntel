@@ -44,6 +44,30 @@ export interface SpotifyTrack {
   uri: string;
 }
 
+export interface SpotifyArtist {
+  id: string;
+  name: string;
+  genres: string[];
+  popularity: number;
+}
+
+export interface SpotifyAudioFeatures {
+  id: string;
+  danceability: number;
+  energy: number;
+  key: number;
+  loudness: number;
+  mode: number;
+  speechiness: number;
+  acousticness: number;
+  instrumentalness: number;
+  liveness: number;
+  valence: number;
+  tempo: number;
+  duration_ms: number;
+  time_signature: number;
+}
+
 export class SpotifyService {
   private api: SpotifyWebApi;
 
@@ -153,6 +177,78 @@ export class SpotifyService {
     } catch (error) {
       console.error('Error checking if playlist is mixed:', error);
       return false;
+    }
+  }
+
+  async getArtists(artistIds: string[]): Promise<SpotifyArtist[]> {
+    try {
+      if (artistIds.length === 0) return [];
+      
+      // Spotify API allows max 50 artists per request
+      const chunks = [];
+      for (let i = 0; i < artistIds.length; i += 50) {
+        chunks.push(artistIds.slice(i, i + 50));
+      }
+
+      const allArtists: SpotifyArtist[] = [];
+      
+      for (const chunk of chunks) {
+        const response = await this.api.getArtists(chunk);
+        const artists = response.body.artists.map(artist => ({
+          id: artist.id,
+          name: artist.name,
+          genres: artist.genres || [],
+          popularity: artist.popularity || 0
+        }));
+        allArtists.push(...artists);
+      }
+
+      return allArtists;
+    } catch (error) {
+      console.error('Error fetching artists:', error);
+      throw error;
+    }
+  }
+
+  async getAudioFeatures(trackIds: string[]): Promise<SpotifyAudioFeatures[]> {
+    try {
+      if (trackIds.length === 0) return [];
+      
+      // Spotify API allows max 100 tracks per request
+      const chunks = [];
+      for (let i = 0; i < trackIds.length; i += 100) {
+        chunks.push(trackIds.slice(i, i + 100));
+      }
+
+      const allFeatures: SpotifyAudioFeatures[] = [];
+      
+      for (const chunk of chunks) {
+        const response = await this.api.getAudioFeaturesForTracks(chunk);
+        const features = response.body.audio_features
+          .filter(feature => feature !== null)
+          .map(feature => ({
+            id: feature!.id,
+            danceability: feature!.danceability,
+            energy: feature!.energy,
+            key: feature!.key,
+            loudness: feature!.loudness,
+            mode: feature!.mode,
+            speechiness: feature!.speechiness,
+            acousticness: feature!.acousticness,
+            instrumentalness: feature!.instrumentalness,
+            liveness: feature!.liveness,
+            valence: feature!.valence,
+            tempo: feature!.tempo,
+            duration_ms: feature!.duration_ms,
+            time_signature: feature!.time_signature
+          }));
+        allFeatures.push(...features);
+      }
+
+      return allFeatures;
+    } catch (error) {
+      console.error('Error fetching audio features:', error);
+      throw error;
     }
   }
 }
