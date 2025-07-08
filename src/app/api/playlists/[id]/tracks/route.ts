@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { SpotifyService } from '@/lib/spotify';
 import { authOptions } from '../../../auth/authOptions';
 
-export async function GET(request: NextRequest, context: { params: { id: string } }) {
+export async function GET(request: NextRequest, context: any) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.accessToken) {
