@@ -3,14 +3,14 @@ import { getServerSession } from 'next-auth/next';
 import { SpotifyService } from '@/lib/spotify';
 import { authOptions } from '../../../auth/authOptions';
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, context: { params: { id: string } }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.accessToken) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
     
-    const playlistId = params.id;
+    const playlistId = context.params.id;
     const spotifyService = new SpotifyService(session.accessToken);
     
     // Fetch tracks for the playlist
