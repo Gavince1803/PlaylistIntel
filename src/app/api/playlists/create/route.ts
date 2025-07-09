@@ -57,7 +57,14 @@ export async function POST(request: NextRequest) {
     
     // Fetch audio features
     const trackIds = tracks.map(track => track.id);
-    const audioFeatures = await spotifyService.getAudioFeatures(trackIds);
+    console.log('Track IDs for audio features:', trackIds);
+    let audioFeatures;
+    try {
+      audioFeatures = await spotifyService.getAudioFeatures(trackIds);
+    } catch (err: any) {
+      console.error('Error from getAudioFeatures:', err && (err.body || err.message || err));
+      throw err;
+    }
     const audioFeaturesMap: Record<string, any> = {};
     audioFeatures.forEach(feature => {
       audioFeaturesMap[feature.id] = feature;
@@ -127,8 +134,8 @@ export async function POST(request: NextRequest) {
       originalTrackCount: tracks.length
     });
     
-  } catch (error) {
-    console.error('Error creating filtered playlist:', error);
-    return NextResponse.json({ error: 'Failed to create playlist' }, { status: 500 });
+  } catch (error: any) {
+    console.error('Error creating filtered playlist:', error && (error.body || error.message || error));
+    return NextResponse.json({ error: 'Failed to create playlist', details: error && (error.body || error.message || error) }, { status: 500 });
   }
 } 

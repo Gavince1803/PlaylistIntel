@@ -223,26 +223,32 @@ export class SpotifyService {
       const allFeatures: SpotifyAudioFeatures[] = [];
       
       for (const chunk of chunks) {
-        const response = await this.api.getAudioFeaturesForTracks(chunk);
-        const features = response.body.audio_features
-          .filter(feature => feature !== null)
-          .map(feature => ({
-            id: feature!.id,
-            danceability: feature!.danceability,
-            energy: feature!.energy,
-            key: feature!.key,
-            loudness: feature!.loudness,
-            mode: feature!.mode,
-            speechiness: feature!.speechiness,
-            acousticness: feature!.acousticness,
-            instrumentalness: feature!.instrumentalness,
-            liveness: feature!.liveness,
-            valence: feature!.valence,
-            tempo: feature!.tempo,
-            duration_ms: feature!.duration_ms,
-            time_signature: feature!.time_signature
-          }));
-        allFeatures.push(...features);
+        console.log('Requesting audio features for track IDs:', chunk);
+        try {
+          const response = await this.api.getAudioFeaturesForTracks(chunk);
+          const features = response.body.audio_features
+            .filter(feature => feature !== null)
+            .map(feature => ({
+              id: feature!.id,
+              danceability: feature!.danceability,
+              energy: feature!.energy,
+              key: feature!.key,
+              loudness: feature!.loudness,
+              mode: feature!.mode,
+              speechiness: feature!.speechiness,
+              acousticness: feature!.acousticness,
+              instrumentalness: feature!.instrumentalness,
+              liveness: feature!.liveness,
+              valence: feature!.valence,
+              tempo: feature!.tempo,
+              duration_ms: feature!.duration_ms,
+              time_signature: feature!.time_signature
+            }));
+          allFeatures.push(...features);
+        } catch (err: any) {
+          console.error('Spotify API error in getAudioFeaturesForTracks:', err && (err.body || err.message || err));
+          throw err;
+        }
       }
 
       return allFeatures;
