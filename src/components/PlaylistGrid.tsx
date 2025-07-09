@@ -73,6 +73,8 @@ export default function PlaylistGrid({}: PlaylistGridProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | 'mixed' | 'regular'>('all');
+  const [genresModalOpen, setGenresModalOpen] = useState(false);
+  const [genresModalData, setGenresModalData] = useState<{playlistName: string, genres: Record<string, number>} | null>(null);
 
   useEffect(() => {
     if (session?.accessToken) {
@@ -202,6 +204,29 @@ export default function PlaylistGrid({}: PlaylistGridProps) {
     }
     return matchesSearch && matchesType;
   });
+
+  // Show genres for a playlist
+  const showGenresForPlaylist = async (playlist: SpotifyPlaylist) => {
+    try {
+      // Fetch enriched tracks for the playlist (with genres)
+      const response = await fetch(`/api/playlists/${playlist.id}/tracks`);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to fetch tracks');
+      // Aggregate genres
+      const genreCounts: Record<string, number> = {};
+      for (const track of data.tracks) {
+        if (track.genres && Array.isArray(track.genres)) {
+          for (const genre of track.genres) {
+            genreCounts[genre] = (genreCounts[genre] || 0) + 1;
+          }
+        }
+      }
+      setGenresModalData({ playlistName: playlist.name, genres: genreCounts });
+      setGenresModalOpen(true);
+    } catch (err: any) {
+      showToast(err.message || 'Failed to fetch genres', 'error');
+    }
+  };
 
   if (loading) {
     return (
@@ -478,6 +503,13 @@ export default function PlaylistGrid({}: PlaylistGridProps) {
                   >
                     Create From This
                   </button>
+                  <button
+                    className="text-gray-400 hover:text-white text-xs font-semibold font-sans underline ml-4"
+                    aria-label="Show genres in this playlist"
+                    onClick={() => showGenresForPlaylist(playlist)}
+                  >
+                    Show Genres
+                  </button>
                   <div className="flex items-center space-x-2">
                     <button className="p-1 text-gray-400 hover:text-white hover:bg-[#282828] rounded-full" aria-label="Like playlist">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -596,6 +628,36 @@ export default function PlaylistGrid({}: PlaylistGridProps) {
           </button>
         </div>
       </Modal>
+
+      {/* Genres Modal */}
+      {genresModalOpen && genresModalData && (
+        <Modal open={genresModalOpen} onClose={() => setGenresModalOpen(false)} title={`Genres in "${genresModalData.playlistName}"`}>
+          <div className="max-h-96 overflow-y-auto">
+            {Object.keys(genresModalData.genres).length === 0 ? (
+              <div className="text-gray-300">No genres found in this playlist.</div>
+            ) : (
+              <ul className="space-y-2">
+                {Object.entries(genresModalData.genres)
+                  .sort((a, b) => b[1] - a[1])
+                  .map(([genre, count]) => (
+                    <li key={genre} className="flex justify-between items-center">
+                      <span className="text-white font-medium">{genre}</span>
+                      <span className="text-gray-400">{count} track{count > 1 ? 's' : ''}</span>
+                    </li>
+                  ))}
+              </ul>
+            )}
+          </div>
+          <div className="flex justify-end mt-6">
+            <button
+              className="px-4 py-2 rounded-lg bg-[#1DB954] text-white font-semibold hover:bg-[#1ed760] shadow-md"
+              onClick={() => setGenresModalOpen(false)}
+            >
+              Close
+            </button>
+          </div>
+        </Modal>
+      )}
 
       {/* Empty state */}
       {playlists.length === 0 && !loading && (

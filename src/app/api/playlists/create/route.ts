@@ -57,10 +57,11 @@ export async function POST(request: NextRequest) {
     
     // Fetch audio features
     const trackIds = tracks.map(track => track.id);
-    console.log('Track IDs for audio features:', trackIds);
+    const uniqueTrackIds = Array.from(new Set(trackIds));
+    console.log('Track IDs for audio features:', uniqueTrackIds);
     let audioFeatures;
     try {
-      audioFeatures = await spotifyService.getAudioFeatures(trackIds);
+      audioFeatures = await spotifyService.getAudioFeatures(uniqueTrackIds);
     } catch (err: any) {
       console.error('Error from getAudioFeatures:', err && (err.body || err.message || err));
       throw err;
