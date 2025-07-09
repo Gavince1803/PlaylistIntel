@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { useSession } from 'next-auth/react';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -8,6 +9,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
+  const { data: session } = useSession();
   const sidebarRef = useRef<HTMLDivElement>(null);
 
   // Focus trap and ESC to close
@@ -136,8 +138,8 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
               </svg>
             </div>
             <div>
-              <p className="text-base font-semibold text-white">User Name</p>
-              <p className="text-xs text-gray-400">user@example.com</p>
+              <p className="text-base font-semibold text-white">{session?.user?.name || 'User Name'}</p>
+              <p className="text-xs text-gray-400">{session?.user?.email || 'user@example.com'}</p>
             </div>
           </div>
         </div>

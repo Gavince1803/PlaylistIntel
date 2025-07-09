@@ -94,6 +94,7 @@ export default function PlaylistGrid({}: PlaylistGridProps) {
       
       const data = await response.json();
       setPlaylists(data.playlists || []);
+      console.log('Playlist images:', (data.playlists || []).map((p: any) => p.images));
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'An error occurred';
       setError(msg);
@@ -677,4 +678,4 @@ export default function PlaylistGrid({}: PlaylistGridProps) {
       )}
     </section>
   );
-} 
+}

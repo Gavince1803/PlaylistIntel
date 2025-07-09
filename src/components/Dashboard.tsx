@@ -92,19 +92,6 @@ export default function Dashboard() {
               <div className="bg-[#232323] rounded-2xl p-8 shadow-lg flex flex-col gap-2 border border-[#282828] hover:shadow-2xl transition-shadow cursor-pointer">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-xl font-bold text-white">Import Playlist</h3>
-                    <p className="text-gray-400 text-sm mt-1">Connect your Spotify account</p>
-                  </div>
-                  <div className="w-12 h-12 bg-[#1DB954]/20 rounded-lg flex items-center justify-center">
-                    <svg className="w-6 h-6 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-[#232323] rounded-2xl p-8 shadow-lg flex flex-col gap-2 border border-[#282828] hover:shadow-2xl transition-shadow cursor-pointer">
-                <div className="flex items-center justify-between">
-                  <div>
                     <h3 className="text-xl font-bold text-white">Recent Activity</h3>
                     <p className="text-gray-400 text-sm mt-1">View your latest creations</p>
                   </div>
