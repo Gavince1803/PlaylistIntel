@@ -411,19 +411,19 @@ export default function PlaylistGrid({}: PlaylistGridProps) {
               </label>
               {/* Playlist image */}
               <div className="relative aspect-square bg-gray-800">
-                {playlist.images && playlist.images.length > 0 && !(
-                  playlist.images[0].url.includes('pl.scdn.co/images/pl/default')
-                ) ? (
+                {playlist.images && playlist.images.length > 0 && typeof playlist.images[0].url === 'string' && playlist.images[0].url ? (
                   <img
                     src={playlist.images[0].url}
                     alt={playlist.name}
                     className="w-full h-full object-cover"
+                    style={{ border: '2px solid red' }} // Debug border
                   />
                 ) : (
                   <img
                     src="/globe.svg"
                     alt="Default playlist cover"
                     className="w-full h-full object-cover opacity-60"
+                    style={{ border: '2px solid blue' }} // Debug border
                   />
                 )}
                 {/* Overlay play/quick actions on hover */}
