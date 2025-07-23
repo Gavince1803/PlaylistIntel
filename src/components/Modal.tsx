@@ -38,19 +38,19 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
       onClick={onClose}
     >
       <div
-        className="bg-[#232323] rounded-2xl shadow-2xl border border-[#282828] p-8 max-w-lg w-full relative focus:outline-none"
+        className="bg-[#232323] rounded-2xl shadow-2xl border border-[#282828] p-2 sm:p-8 max-w-full sm:max-w-lg w-full relative focus:outline-none"
         ref={dialogRef}
         tabIndex={0}
         onClick={e => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl font-bold focus:outline-none"
+          className="absolute top-2 right-2 sm:top-4 sm:right-4 text-gray-400 hover:text-white text-2xl font-bold focus:outline-none p-2"
           aria-label="Close modal"
         >
           &times;
         </button>
-        {title && <h2 className="text-2xl font-bold text-white mb-6">{title}</h2>}
+        {title && <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">{title}</h2>}
         {children}
       </div>
     </div>

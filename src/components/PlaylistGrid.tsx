@@ -26,7 +26,8 @@ interface SpotifyPlaylist {
 }
 
 interface PlaylistGridProps {
-  // Remove demoMode prop
+  playlists?: SpotifyPlaylist[];
+  customTitle?: string | null;
 }
 
 function PlaylistContextMenu({ onEdit, onDelete, onShare, onClose, anchorRef }: any) {
@@ -48,11 +49,11 @@ function PlaylistContextMenu({ onEdit, onDelete, onShare, onClose, anchorRef }: 
   );
 }
 
-export default function PlaylistGrid({}: PlaylistGridProps) {
+export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: PlaylistGridProps) {
   const { data: session } = useSession();
   const { showToast } = useToast();
-  const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>(propPlaylists || []);
+  const [loading, setLoading] = useState(!propPlaylists);
   const [error, setError] = useState<string | null>(null);
   const [playlistCreatorOpen, setPlaylistCreatorOpen] = useState(false);
   const [selectedPlaylist, setSelectedPlaylist] = useState<SpotifyPlaylist | null>(null);
@@ -76,10 +77,13 @@ export default function PlaylistGrid({}: PlaylistGridProps) {
   const [genresModalData, setGenresModalData] = useState<{playlistName: string, genres: Record<string, number>} | null>(null);
 
   useEffect(() => {
-    if (session?.accessToken) {
+    if (!propPlaylists && session?.accessToken) {
       fetchPlaylists();
+    } else if (propPlaylists) {
+      setPlaylists(propPlaylists);
+      setLoading(false);
     }
-  }, [session]);
+  }, [session, propPlaylists]);
 
   const fetchPlaylists = async () => {
     try {

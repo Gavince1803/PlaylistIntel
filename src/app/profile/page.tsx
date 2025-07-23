@@ -1,14 +1,55 @@
-'use client';
-import { useSession, signOut } from 'next-auth/react';
-import { useTheme } from '../../components/Providers';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+"use client";
+import { useSession, signOut } from "next-auth/react";
+import { useTheme } from "../../components/Providers";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+
+interface SpotifyProfile {
+  id: string;
+  display_name: string;
+  email: string;
+  images: Array<{ url: string }>;
+  followers: { total: number };
+  external_urls: { spotify: string };
+}
+
+interface SpotifyPlaylist {
+  id: string;
+  name: string;
+  images: Array<{ url: string }>;
+  tracks: { total: number };
+}
 
 export default function ProfilePage() {
   const { data: session } = useSession();
   const { theme, toggleTheme } = useTheme();
   const router = useRouter();
   const [avatar, setAvatar] = useState<string | null>(null);
+  const [profile, setProfile] = useState<SpotifyProfile | null>(null);
+  const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProfileAndPlaylists = async () => {
+      if (!session?.accessToken) return;
+      setLoading(true);
+      try {
+        // Fetch Spotify profile
+        const resProfile = await fetch("/api/profile");
+        const dataProfile = await resProfile.json();
+        setProfile(dataProfile.profile);
+        // Fetch playlists
+        const resPlaylists = await fetch("/api/playlists?limit=5");
+        const dataPlaylists = await resPlaylists.json();
+        setPlaylists(dataPlaylists.playlists || []);
+      } catch (err) {
+        // Optionally show a toast here
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfileAndPlaylists();
+  }, [session]);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -22,11 +63,11 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f8fafc] via-[#e5e7eb] to-[#1DB954] dark:from-[#191414] dark:via-[#232323] dark:to-[#1DB954] p-6 transition-colors">
-      <div className="bg-white dark:bg-[#232323] rounded-2xl shadow-2xl border border-[#e5e7eb] dark:border-[#282828] p-10 max-w-md w-full mx-4 transition-colors">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f8fafc] via-[#e5e7eb] to-[#1DB954] dark:from-[#191414] dark:via-[#232323] dark:to-[#1DB954] p-2 sm:p-6 transition-colors">
+      <div className="relative bg-white dark:bg-[#232323] rounded-2xl shadow-2xl border border-[#e5e7eb] dark:border-[#282828] p-4 sm:p-10 w-full max-w-md mx-2 sm:mx-4 transition-colors">
         <button
           onClick={() => router.back()}
-          className="absolute left-4 top-4 text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white bg-gray-100 dark:bg-[#232323] rounded-full p-2 focus:outline-none focus:ring-2 focus:ring-[#1DB954]"
+          className="absolute left-2 top-2 sm:left-4 sm:top-4 text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white bg-gray-100 dark:bg-[#232323] rounded-full p-2 focus:outline-none focus:ring-2 focus:ring-[#1DB954] text-base sm:text-lg"
           aria-label="Go back"
         >
           ← Back
@@ -38,15 +79,21 @@ export default function ProfilePage() {
               alt="Avatar preview"
               className="w-24 h-24 rounded-full mb-2 border-4 border-[#1DB954] object-cover"
             />
+          ) : profile?.images?.[0]?.url ? (
+            <img
+              src={profile.images[0].url}
+              alt={profile.display_name || "User"}
+              className="w-24 h-24 rounded-full mb-2 border-4 border-[#1DB954] object-cover"
+            />
           ) : session?.user?.image ? (
             <img
               src={session.user.image}
-              alt={session.user.name || 'User'}
+              alt={session.user.name || "User"}
               className="w-24 h-24 rounded-full mb-2 border-4 border-[#1DB954] object-cover"
             />
           ) : (
             <div className="w-24 h-24 rounded-full bg-[#1DB954] flex items-center justify-center mb-2 text-3xl font-bold text-white">
-              {session?.user?.name?.charAt(0) || 'U'}
+              {profile?.display_name?.charAt(0) || session?.user?.name?.charAt(0) || "U"}
             </div>
           )}
           <label className="block mt-2">
@@ -58,12 +105,30 @@ export default function ProfilePage() {
               onChange={handleAvatarChange}
             />
           </label>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1 mt-2">{session?.user?.name || 'User'}</h2>
-          <p className="text-gray-500 dark:text-gray-400 mb-2">{session?.user?.email || 'No email'}</p>
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1 mt-2 text-center">
+            {profile?.display_name || session?.user?.name || "User"}
+          </h2>
+          <p className="text-gray-500 dark:text-gray-400 mb-2 text-center break-all">
+            {profile?.email || session?.user?.email || "No email"}
+          </p>
+          {profile && (
+            <>
+              <a
+                href={profile.external_urls.spotify}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#1DB954] hover:underline text-sm mb-1 text-center"
+              >
+                View Spotify Profile ↗
+              </a>
+              <div className="text-gray-400 text-xs mb-1 text-center">Spotify ID: {profile.id}</div>
+              <div className="text-gray-400 text-xs mb-1 text-center">Followers: {profile.followers?.total ?? 0}</div>
+            </>
+          )}
         </div>
         <button
           onClick={() => signOut()}
-          className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg font-semibold mb-8 transition-colors shadow-md"
+          className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg font-semibold mb-8 transition-colors shadow-md text-base sm:text-lg"
         >
           Sign Out
         </button>
@@ -74,15 +139,39 @@ export default function ProfilePage() {
               <span>Theme:</span>
               <button
                 onClick={toggleTheme}
-                className="ml-2 px-3 py-1 rounded-lg border border-[#1DB954] bg-white dark:bg-[#191414] text-gray-900 dark:text-white hover:bg-[#1DB954] hover:text-white dark:hover:text-black transition-colors focus:outline-none focus:ring-2 focus:ring-[#1DB954]"
+                className="ml-2 px-3 py-1 rounded-lg border border-[#1DB954] bg-white dark:bg-[#191414] text-gray-900 dark:text-white hover:bg-[#1DB954] hover:text-white dark:hover:text-black transition-colors focus:outline-none focus:ring-2 focus:ring-[#1DB954] text-sm sm:text-base"
                 aria-label="Toggle dark/light mode"
               >
-                {theme === 'dark' ? '🌙 Dark' : '☀️ Light'}
+                {theme === "dark" ? "🌙 Dark" : "☀️ Light"}
               </button>
             </li>
             <li>Notifications: <span className="italic">Not available yet</span></li>
             <li>More settings coming soon...</li>
           </ul>
+        </div>
+        <div className="border-t border-[#e5e7eb] dark:border-[#282828] pt-6 mt-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Your Playlists</h3>
+          {loading ? (
+            <div className="text-gray-400">Loading playlists...</div>
+          ) : playlists.length === 0 ? (
+            <div className="text-gray-400">No playlists found.</div>
+          ) : (
+            <ul className="space-y-2 max-h-60 overflow-y-auto pr-2">
+              {playlists.map((pl) => (
+                <li key={pl.id} className="flex items-center gap-3">
+                  {pl.images?.[0]?.url ? (
+                    <img src={pl.images[0].url} alt={pl.name} className="w-10 h-10 rounded object-cover border border-[#1DB954]" />
+                  ) : (
+                    <div className="w-10 h-10 rounded bg-[#1DB954]/20 flex items-center justify-center text-[#1DB954] font-bold">🎵</div>
+                  )}
+                  <div>
+                    <div className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">{pl.name}</div>
+                    <div className="text-xs text-gray-400">{pl.tracks.total} tracks</div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
     </div>

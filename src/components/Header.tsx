@@ -11,7 +11,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
 
   return (
     <header className="bg-[#191414] shadow-md border-b border-[#282828]">
-      <div className="flex items-center justify-between h-20 px-8">
+      <div className="flex items-center justify-between h-20 px-2 sm:px-8">
         {/* Left side - Menu button and search */}
         <div className="flex items-center space-x-6">
           {/* Mobile menu button */}
