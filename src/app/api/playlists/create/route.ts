@@ -87,14 +87,16 @@ export async function POST(request: NextRequest) {
     audioFeatures.forEach(feature => {
       audioFeaturesMap[feature.id] = feature;
     });
-    
+
+    // Only keep tracks for which we have audio features
+    const analyzableTracks = tracks.filter(track => audioFeaturesMap[track.id]);
+    const skippedCount = tracks.length - analyzableTracks.length;
+
     // Filter tracks based on criteria
-    const filteredTracks = tracks.filter(track => {
+    const filteredTracks = analyzableTracks.filter(track => {
       const trackGenres = Array.from(new Set(track.artists.flatMap(a => artistGenres[a.id] || [])));
       const features = audioFeaturesMap[track.id];
-      
       if (!features) return false;
-      
       // Genre filter
       if (filters.genres && filters.genres.length > 0) {
         const hasMatchingGenre = filters.genres.some(genre => 
@@ -104,52 +106,52 @@ export async function POST(request: NextRequest) {
         );
         if (!hasMatchingGenre) return false;
       }
-      
       // Energy filter
       if (filters.minEnergy !== undefined && features.energy < filters.minEnergy) return false;
       if (filters.maxEnergy !== undefined && features.energy > filters.maxEnergy) return false;
-      
       // Danceability filter
       if (filters.minDanceability !== undefined && features.danceability < filters.minDanceability) return false;
       if (filters.maxDanceability !== undefined && features.danceability > filters.maxDanceability) return false;
-      
       // Valence (mood) filter
       if (filters.minValence !== undefined && features.valence < filters.minValence) return false;
       if (filters.maxValence !== undefined && features.valence > filters.maxValence) return false;
-      
       // Tempo filter
       if (filters.minTempo !== undefined && features.tempo < filters.minTempo) return false;
       if (filters.maxTempo !== undefined && features.tempo > filters.maxTempo) return false;
-      
       // Acousticness filter
       if (filters.acousticness === 'acoustic' && features.acousticness < 0.5) return false;
       if (filters.acousticness === 'electronic' && features.acousticness > 0.5) return false;
-      
       // Instrumentalness filter
       if (filters.instrumentalness === 'instrumental' && features.instrumentalness < 0.5) return false;
       if (filters.instrumentalness === 'vocal' && features.instrumentalness > 0.5) return false;
-      
       return true;
     });
-    
+
     if (filteredTracks.length === 0) {
+      let errorMsg = 'No tracks match the specified filters.';
+      if (analyzableTracks.length === 0) {
+        errorMsg = 'We couldn’t analyze any tracks in this playlist. This may be due to Spotify restrictions or unavailable tracks. Try a different playlist.';
+      } else if (skippedCount > 0) {
+        errorMsg = `Only ${analyzableTracks.length} out of ${tracks.length} tracks could be analyzed. None matched your filters.`;
+      }
       return NextResponse.json({ 
-        error: 'No tracks match the specified filters' 
+        error: errorMsg
       }, { status: 400 });
     }
-    
+
     // Create new playlist
     const playlistId = await spotifyService.createPlaylist(user.id, name, description);
-    
+
     // Add filtered tracks to the new playlist
     const trackUris = filteredTracks.map(track => track.uri);
     await spotifyService.addTracksToPlaylist(playlistId, trackUris);
-    
+
     return NextResponse.json({ 
       success: true, 
       playlistId,
       trackCount: filteredTracks.length,
-      originalTrackCount: tracks.length
+      originalTrackCount: tracks.length,
+      skippedCount
     });
     
   } catch (error: any) {

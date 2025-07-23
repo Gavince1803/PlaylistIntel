@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from './Toast';
 
 interface PlaylistCreatorProps {
@@ -23,13 +23,34 @@ export default function PlaylistCreator({
 
   // Filter states
   const [genres, setGenres] = useState<string[]>([]);
-  const [genreInput, setGenreInput] = useState('');
+  const [availableGenres, setAvailableGenres] = useState<string[]>([]);
   const [energyRange, setEnergyRange] = useState<[number, number]>([0, 1]);
   const [danceabilityRange, setDanceabilityRange] = useState<[number, number]>([0, 1]);
   const [valenceRange, setValenceRange] = useState<[number, number]>([0, 1]);
   const [tempoRange, setTempoRange] = useState<[number, number]>([0, 200]);
   const [acousticness, setAcousticness] = useState<'any' | 'acoustic' | 'electronic'>('any');
   const [instrumentalness, setInstrumentalness] = useState<'any' | 'instrumental' | 'vocal'>('any');
+
+  // Fetch genres from the source playlist on mount
+  useEffect(() => {
+    const fetchGenres = async () => {
+      try {
+        const res = await fetch(`/api/playlists/${sourcePlaylistId}/tracks`);
+        const data = await res.json();
+        // Aggregate genres from all tracks
+        const genreSet = new Set<string>();
+        (data.tracks || []).forEach((track: any) => {
+          if (track.genres && Array.isArray(track.genres)) {
+            track.genres.forEach((g: string) => genreSet.add(g));
+          }
+        });
+        setAvailableGenres(Array.from(genreSet).sort((a, b) => a.localeCompare(b)));
+      } catch (err) {
+        // Optionally show a toast here
+      }
+    };
+    fetchGenres();
+  }, [sourcePlaylistId]);
 
   const handleCreatePlaylist = async () => {
     if (!name.trim()) {
@@ -71,6 +92,9 @@ export default function PlaylistCreator({
       }
 
       showToast(`Playlist "${name}" created successfully with ${data.trackCount} tracks!`, 'success');
+      if (data.skippedCount && data.skippedCount > 0) {
+        showToast(`Note: ${data.skippedCount} tracks could not be analyzed and were skipped due to Spotify restrictions.`, 'info');
+      }
       onSuccess?.(data.playlistId);
       onClose();
     } catch (error) {
@@ -81,21 +105,8 @@ export default function PlaylistCreator({
     }
   };
 
-  const addGenre = () => {
-    if (genreInput.trim() && !genres.includes(genreInput.trim())) {
-      setGenres([...genres, genreInput.trim()]);
-      setGenreInput('');
-    }
-  };
-
   const removeGenre = (genreToRemove: string) => {
     setGenres(genres.filter(genre => genre !== genreToRemove));
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      addGenre();
-    }
   };
 
   return (
@@ -152,24 +163,34 @@ export default function PlaylistCreator({
               {/* Genre Filter */}
               <div>
                 <label className="block text-white font-medium mb-2">Genres</label>
-                <div className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    value={genreInput}
-                    onChange={(e) => setGenreInput(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Add genre (e.g., rock, pop, jazz)"
-                    className="flex-1 bg-[#282828] border border-[#404040] rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-[#1DB954] transition-colors"
-                  />
-                  <button
-                    onClick={addGenre}
-                    className="bg-[#1DB954] hover:bg-[#1ed760] text-white px-4 py-2 rounded-lg transition-colors"
-                  >
-                    Add
-                  </button>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {availableGenres.length === 0 ? (
+                    <span className="text-gray-400 text-sm">No genres found in this playlist.</span>
+                  ) : (
+                    availableGenres.map((genre) => (
+                      <button
+                        key={genre}
+                        type="button"
+                        className={`px-3 py-1 rounded-full text-sm font-semibold border transition-colors
+                          ${genres.includes(genre)
+                            ? 'bg-[#1DB954] text-white border-[#1DB954]'
+                            : 'bg-[#282828] text-gray-300 border-[#404040] hover:bg-[#1DB954]/20'}
+                        `}
+                        onClick={() => {
+                          if (genres.includes(genre)) {
+                            setGenres(genres.filter((g) => g !== genre));
+                          } else {
+                            setGenres([...genres, genre]);
+                          }
+                        }}
+                      >
+                        {genre}
+                      </button>
+                    ))
+                  )}
                 </div>
                 {genres.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 mt-2">
                     {genres.map((genre) => (
                       <span
                         key={genre}
@@ -177,7 +198,7 @@ export default function PlaylistCreator({
                       >
                         {genre}
                         <button
-                          onClick={() => removeGenre(genre)}
+                          onClick={() => setGenres(genres.filter((g) => g !== genre))}
                           className="hover:text-red-200"
                         >
                           ×
