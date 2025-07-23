@@ -49,7 +49,19 @@ export async function POST(request: NextRequest) {
     
     // Get unique artist IDs and fetch artist details
     const artistIds = Array.from(new Set(tracks.flatMap(track => track.artists.map(a => a.id))));
-    const artists = await spotifyService.getArtists(artistIds);
+    console.log(`Fetching artist details for ${artistIds.length} unique artists...`);
+    let artists;
+    try {
+      artists = await spotifyService.getArtists(artistIds);
+      console.log(`Successfully fetched details for ${artists.length} artists`);
+    } catch (err: any) {
+      console.error('Error fetching artists:', err && (err.body || err.message || err));
+      return NextResponse.json({ 
+        error: 'Failed to fetch artist details. This might be due to rate limiting.',
+        details: err && (err.body || err.message || err)
+      }, { status: 500 });
+    }
+    
     const artistGenres: Record<string, string[]> = {};
     artists.forEach(artist => {
       artistGenres[artist.id] = artist.genres;
@@ -58,13 +70,18 @@ export async function POST(request: NextRequest) {
     // Fetch audio features
     const trackIds = tracks.map(track => track.id);
     const uniqueTrackIds = Array.from(new Set(trackIds));
-    console.log('Track IDs for audio features:', uniqueTrackIds);
+    console.log(`Fetching audio features for ${uniqueTrackIds.length} unique tracks...`);
     let audioFeatures;
     try {
       audioFeatures = await spotifyService.getAudioFeatures(uniqueTrackIds);
+      console.log(`Successfully fetched audio features for ${audioFeatures.length} tracks`);
     } catch (err: any) {
       console.error('Error from getAudioFeatures:', err && (err.body || err.message || err));
-      throw err;
+      // Return a more specific error message
+      return NextResponse.json({ 
+        error: 'Failed to fetch audio features. This might be due to rate limiting or invalid track IDs.',
+        details: err && (err.body || err.message || err)
+      }, { status: 500 });
     }
     const audioFeaturesMap: Record<string, any> = {};
     audioFeatures.forEach(feature => {

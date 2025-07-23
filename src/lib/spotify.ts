@@ -110,7 +110,7 @@ export class SpotifyService {
     try {
       const response = await this.api.getPlaylistTracks(playlistId, {
         limit: 100,
-        fields: 'items(track(id,name,artists,album,duration_ms,uri))'
+        fields: 'items(track(id,name,artists(id,name),album(name,images),duration_ms,uri))'
       });
       
       return response.body.items
@@ -118,8 +118,14 @@ export class SpotifyService {
         .map(item => ({
           id: item.track!.id,
           name: item.track!.name,
-          artists: item.track!.artists,
-          album: item.track!.album,
+          artists: item.track!.artists.map(artist => ({
+            id: artist.id,
+            name: artist.name
+          })),
+          album: {
+            name: item.track!.album.name,
+            images: item.track!.album.images || []
+          },
           duration_ms: item.track!.duration_ms,
           uri: item.track!.uri
         }));
@@ -223,7 +229,7 @@ export class SpotifyService {
       const allFeatures: SpotifyAudioFeatures[] = [];
       
       for (const chunk of chunks) {
-        console.log('Requesting audio features for track IDs:', chunk);
+        console.log(`Requesting audio features for ${chunk.length} tracks...`);
         try {
           const response = await this.api.getAudioFeaturesForTracks(chunk);
           const features = response.body.audio_features
@@ -245,9 +251,11 @@ export class SpotifyService {
               time_signature: feature!.time_signature
             }));
           allFeatures.push(...features);
+          console.log(`Successfully fetched features for ${features.length} tracks`);
         } catch (err: any) {
           console.error('Spotify API error in getAudioFeaturesForTracks:', err && (err.body || err.message || err));
-          throw err;
+          // Continue with other chunks instead of failing completely
+          console.log('Skipping this chunk and continuing...');
         }
       }
 

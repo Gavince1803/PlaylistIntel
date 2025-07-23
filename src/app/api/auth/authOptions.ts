@@ -40,7 +40,7 @@ export const authOptions = {
       clientSecret: process.env.SPOTIFY_CLIENT_SECRET!,
       authorization: {
         params: {
-          scope: 'user-read-private user-read-email playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private user-library-read'
+          scope: 'user-read-private user-read-email playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private user-library-read user-top-read'
         }
       }
     })
@@ -68,8 +68,5 @@ export const authOptions = {
       session.error = token.error;
       return session;
     }
-  },
-  pages: {
-    signIn: '/auth/signin',
   }
 }; 

@@ -19,7 +19,6 @@ interface SpotifyPlaylist {
   owner: {
     display_name: string;
     id: string;
-    avatar_url: string;
   };
   collaborative: boolean;
   public: boolean;
@@ -416,14 +415,12 @@ export default function PlaylistGrid({}: PlaylistGridProps) {
                     src={playlist.images[0].url}
                     alt={playlist.name}
                     className="w-full h-full object-cover"
-                    style={{ border: '2px solid red' }} // Debug border
                   />
                 ) : (
                   <img
                     src="/globe.svg"
                     alt="Default playlist cover"
                     className="w-full h-full object-cover opacity-60"
-                    style={{ border: '2px solid blue' }} // Debug border
                   />
                 )}
                 {/* Overlay play/quick actions on hover */}
@@ -488,11 +485,11 @@ export default function PlaylistGrid({}: PlaylistGridProps) {
                 <div className="flex items-center justify-between text-xs text-gray-400 font-sans mb-2">
                   <span>{playlist.tracks.total} tracks • {formatDuration(playlist.tracks.duration_ms || 0)}</span>
                   <span className="flex items-center gap-2">
-                    <img
-                      src={playlist.owner.avatar_url}
-                      alt={playlist.owner.display_name}
-                      className="w-6 h-6 rounded-full border border-[#1DB954] shadow-sm object-cover"
-                    />
+                    <div className="w-6 h-6 rounded-full border border-[#1DB954] shadow-sm bg-[#1DB954]/20 flex items-center justify-center">
+                      <svg className="w-3 h-3 text-[#1DB954]" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                      </svg>
+                    </div>
                     <span className="truncate max-w-[80px]">{playlist.owner.display_name}</span>
                   </span>
                 </div>

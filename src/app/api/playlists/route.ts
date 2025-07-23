@@ -22,8 +22,21 @@ export async function GET(request: NextRequest) {
 
     console.log('Fetching playlists from Spotify with limit:', limit, 'offset:', offset);
     const spotifyService = new SpotifyService(session.accessToken);
-    const playlists = await spotifyService.getUserPlaylists(limit, offset);
-    console.log('Fetched playlists:', playlists.length);
+    
+    let playlists;
+    try {
+      playlists = await spotifyService.getUserPlaylists(limit, offset);
+      console.log('Fetched playlists:', playlists.length);
+      console.log('First playlist sample:', playlists[0] ? {
+        id: playlists[0].id,
+        name: playlists[0].name,
+        tracks: playlists[0].tracks.total,
+        hasImages: playlists[0].images && playlists[0].images.length > 0
+      } : 'No playlists');
+    } catch (error: any) {
+      console.error('Error in getUserPlaylists:', error && (error.body || error.message || error));
+      throw error;
+    }
 
     return NextResponse.json({ playlists });
   } catch (error: any) {
