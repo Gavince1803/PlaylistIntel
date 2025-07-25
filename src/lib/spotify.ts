@@ -108,6 +108,9 @@ export class SpotifyService {
 
   async getPlaylistTracks(playlistId: string): Promise<SpotifyTrack[]> {
     try {
+      // Log the access token used for getPlaylistTracks
+      // @ts-ignore
+      console.log('getPlaylistTracks: Access Token Excerpt:', this.api.getAccessToken()?.slice(0, 10));
       const response = await this.api.getPlaylistTracks(playlistId, {
         limit: 100,
         fields: 'items(track(id,name,artists(id,name),album(name,images),duration_ms,uri))'
@@ -159,6 +162,9 @@ export class SpotifyService {
 
   async getCurrentUser(): Promise<{ id: string; display_name: string; email: string; images: Array<{ url: string }> }> {
     try {
+      // Log the access token used for getCurrentUser
+      // @ts-ignore
+      console.log('getCurrentUser: Access Token Excerpt:', this.api.getAccessToken()?.slice(0, 10));
       const response = await this.api.getMe();
       return {
         id: response.body.id,
@@ -229,7 +235,9 @@ export class SpotifyService {
       const allFeatures: SpotifyAudioFeatures[] = [];
       
       for (const chunk of chunks) {
-        console.log(`Requesting audio features for ${chunk.length} tracks...`);
+        // Log chunk size, sample track ID, and access token excerpt
+        // @ts-ignore
+        console.log(`getAudioFeaturesForTracks: chunk size: ${chunk.length}, sample track ID: ${chunk[0]}, access token: ${this.api.getAccessToken()?.slice(0, 10)}`);
         try {
           const response = await this.api.getAudioFeaturesForTracks(chunk);
           const features = response.body.audio_features
