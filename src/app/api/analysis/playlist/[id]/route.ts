@@ -58,10 +58,10 @@ export async function GET(
 
     console.log(`🔍 Starting analysis for playlist: ${playlistId}`);
 
-    // Paso 1: Obtener tracks de la playlist
+    // Paso 1: Obtener tracks de la playlist (con paginación para playlists grandes)
     console.log('📀 Fetching playlist tracks...');
-    const tracks = await spotifyService.getPlaylistTracks(playlistId);
-    console.log(`✅ Found ${tracks.length} tracks`);
+    const tracks = await spotifyService.getAllPlaylistTracks(playlistId, 2000); // Soporte hasta 2000 tracks
+    console.log(`✅ Found ${tracks.length} tracks total`);
 
     if (tracks.length === 0) {
       return NextResponse.json({ error: 'Playlist is empty' }, { status: 400 });

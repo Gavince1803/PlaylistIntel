@@ -46,6 +46,7 @@ export default function MusicalProfile({ playlistId, onClose }: MusicalProfilePr
   const [profile, setProfile] = useState<MusicalProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState<string>('');
   const { showToast } = useToast();
 
   // Cargar el perfil musical cuando el componente se monta
@@ -57,10 +58,25 @@ export default function MusicalProfile({ playlistId, onClose }: MusicalProfilePr
     try {
       setLoading(true);
       setError(null);
+      setProgress('Starting analysis...');
       
       console.log('🎵 Fetching musical profile for playlist:', playlistId);
+      
+      // Simulate progress updates for large playlists
+      const progressInterval = setInterval(() => {
+        setProgress(prev => {
+          if (prev.includes('Fetching tracks')) {
+            const current = parseInt(prev.match(/\d+/)?.[0] || '0');
+            return `Fetching tracks ${current + 100}-${current + 200}...`;
+          }
+          return 'Analyzing genres and artists...';
+        });
+      }, 2000);
+
       const response = await fetch(`/api/analysis/playlist/${playlistId}`);
       const data = await response.json();
+
+      clearInterval(progressInterval);
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to analyze playlist');
@@ -74,6 +90,7 @@ export default function MusicalProfile({ playlistId, onClose }: MusicalProfilePr
       showToast(err.message || 'Failed to analyze playlist', 'error');
     } finally {
       setLoading(false);
+      setProgress('');
     }
   };
 
@@ -134,9 +151,15 @@ export default function MusicalProfile({ playlistId, onClose }: MusicalProfilePr
   if (loading) {
     return (
       <div className="bg-[#232323] rounded-2xl p-4 sm:p-8 shadow-lg border border-[#282828]">
-        <div className="flex items-center justify-center space-x-4">
+        <div className="flex flex-col items-center justify-center space-y-4">
           <div className="w-8 h-8 border-4 border-[#1DB954] border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-white text-lg">Analyzing your music...</p>
+          <p className="text-white text-lg text-center">Analyzing your music...</p>
+          {progress && (
+            <p className="text-gray-400 text-sm text-center">{progress}</p>
+          )}
+          <div className="w-full max-w-xs bg-[#404040] rounded-full h-2">
+            <div className="bg-[#1DB954] h-2 rounded-full animate-pulse" style={{ width: '60%' }}></div>
+          </div>
         </div>
       </div>
     );
@@ -186,6 +209,9 @@ export default function MusicalProfile({ playlistId, onClose }: MusicalProfilePr
           <div className="text-right">
             <div className="text-white text-2xl sm:text-3xl font-bold">{profile.totalTracks}</div>
             <div className="text-white/80 text-xs sm:text-sm">tracks</div>
+            {profile.totalTracks > 500 && (
+              <div className="text-yellow-400 text-xs mt-1">Large playlist</div>
+            )}
           </div>
         </div>
       </div>

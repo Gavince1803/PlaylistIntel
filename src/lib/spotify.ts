@@ -106,13 +106,14 @@ export class SpotifyService {
     }
   }
 
-  async getPlaylistTracks(playlistId: string): Promise<SpotifyTrack[]> {
+  async getPlaylistTracks(playlistId: string, limit = 100, offset = 0): Promise<SpotifyTrack[]> {
     try {
       // Log the access token used for getPlaylistTracks
       // @ts-ignore
       console.log('getPlaylistTracks: Access Token Excerpt:', this.api.getAccessToken()?.slice(0, 10));
       const response = await this.api.getPlaylistTracks(playlistId, {
-        limit: 100,
+        limit,
+        offset,
         fields: 'items(track(id,name,artists(id,name),album(name,images),duration_ms,uri))'
       });
       
@@ -134,6 +135,42 @@ export class SpotifyService {
         }));
     } catch (error) {
       console.error('Error fetching playlist tracks:', error);
+      throw error;
+    }
+  }
+
+  // New method to get ALL tracks from a playlist using pagination
+  async getAllPlaylistTracks(playlistId: string, maxTracks = 1000): Promise<SpotifyTrack[]> {
+    try {
+      console.log(`🎵 Fetching ALL tracks from playlist: ${playlistId} (max: ${maxTracks})`);
+      
+      const allTracks: SpotifyTrack[] = [];
+      let offset = 0;
+      const limit = 100; // Spotify's max per request
+      
+      while (allTracks.length < maxTracks) {
+        console.log(`📄 Fetching tracks ${offset + 1}-${offset + limit}...`);
+        
+        const tracks = await this.getPlaylistTracks(playlistId, limit, offset);
+        
+        if (tracks.length === 0) {
+          console.log('✅ No more tracks to fetch');
+          break;
+        }
+        
+        allTracks.push(...tracks);
+        offset += limit;
+        
+        // Add a small delay to avoid rate limiting
+        if (tracks.length === limit) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      }
+      
+      console.log(`✅ Successfully fetched ${allTracks.length} tracks total`);
+      return allTracks;
+    } catch (error) {
+      console.error('Error fetching all playlist tracks:', error);
       throw error;
     }
   }
