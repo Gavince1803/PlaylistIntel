@@ -79,17 +79,22 @@ export async function GET(
       artistGenres[artist.id] = artist.genres;
     });
 
-    // Paso 4: Obtener características de audio de los tracks
-    const trackIds = tracks.map(track => track.id);
-    console.log(`🎵 Fetching audio features for ${trackIds.length} tracks...`);
-    const audioFeatures = await spotifyService.getAudioFeatures(trackIds);
-    console.log(`✅ Successfully fetched audio features for ${audioFeatures.length} tracks`);
-
-    // Crear mapa de características de audio por track
-    const audioFeaturesMap: Record<string, any> = {};
-    audioFeatures.forEach(feature => {
-      audioFeaturesMap[feature.id] = feature;
-    });
+    // Paso 4: Obtener características de audio de los tracks (OPCIONAL)
+    let audioFeatures: any[] = [];
+    let audioFeaturesMap: Record<string, any> = {};
+    
+    try {
+      const trackIds = tracks.map(track => track.id);
+      console.log(`🎵 Fetching audio features for ${trackIds.length} tracks...`);
+      audioFeatures = await spotifyService.getAudioFeatures(trackIds);
+      console.log(`✅ Successfully fetched audio features for ${audioFeatures.length} tracks`);
+      
+      audioFeatures.forEach(feature => {
+        audioFeaturesMap[feature.id] = feature;
+      });
+    } catch (error) {
+      console.log('⚠️ Audio features not available (Spotify restriction), continuing with genre analysis only');
+    }
 
     // Paso 5: Análisis de géneros
     console.log('🎼 Analyzing genres...');
@@ -124,26 +129,42 @@ export async function GET(
     // Calcular diversidad de géneros (usando índice de Shannon)
     const genreDiversity = calculateDiversity(Object.values(genreCounts));
 
-    // Paso 6: Análisis de características de audio
+    // Paso 6: Análisis de características de audio (OPCIONAL)
     console.log('🎚️ Analyzing audio features...');
-    const analyzableTracks = tracks.filter(track => audioFeaturesMap[track.id]);
-    
-    if (analyzableTracks.length === 0) {
-      return NextResponse.json({ error: 'No tracks with audio features found' }, { status: 400 });
+    let audioAnalysis = {
+      averageEnergy: 0,
+      averageDanceability: 0,
+      averageValence: 0,
+      averageTempo: 0,
+      averageAcousticness: 0,
+      averageInstrumentalness: 0,
+      mood: 'mixed' as 'energetic' | 'chill' | 'happy' | 'melancholic' | 'mixed'
+    };
+
+    if (audioFeatures.length > 0) {
+      const analyzableTracks = tracks.filter(track => audioFeaturesMap[track.id]);
+      if (analyzableTracks.length > 0) {
+        const audioFeaturesList = analyzableTracks.map(track => audioFeaturesMap[track.id]);
+        
+        // Calcular promedios de características de audio
+        audioAnalysis = {
+          averageEnergy: average(audioFeaturesList.map(f => f.energy)),
+          averageDanceability: average(audioFeaturesList.map(f => f.danceability)),
+          averageValence: average(audioFeaturesList.map(f => f.valence)),
+          averageTempo: average(audioFeaturesList.map(f => f.tempo)),
+          averageAcousticness: average(audioFeaturesList.map(f => f.acousticness)),
+          averageInstrumentalness: average(audioFeaturesList.map(f => f.instrumentalness)),
+          mood: determineMood(
+            average(audioFeaturesList.map(f => f.energy)),
+            average(audioFeaturesList.map(f => f.valence)),
+            average(audioFeaturesList.map(f => f.tempo))
+          )
+        };
+      }
+    } else {
+      // Determinar mood basado en géneros si no hay audio features
+      audioAnalysis.mood = determineMoodFromGenres(topGenres);
     }
-
-    const audioFeaturesList = analyzableTracks.map(track => audioFeaturesMap[track.id]);
-    
-    // Calcular promedios de características de audio
-    const averageEnergy = average(audioFeaturesList.map(f => f.energy));
-    const averageDanceability = average(audioFeaturesList.map(f => f.danceability));
-    const averageValence = average(audioFeaturesList.map(f => f.valence));
-    const averageTempo = average(audioFeaturesList.map(f => f.tempo));
-    const averageAcousticness = average(audioFeaturesList.map(f => f.acousticness));
-    const averageInstrumentalness = average(audioFeaturesList.map(f => f.instrumentalness));
-
-    // Determinar el mood basado en características de audio
-    const mood = determineMood(averageEnergy, averageValence, averageTempo);
 
     // Paso 7: Análisis de artistas
     console.log('👥 Analyzing artists...');
@@ -166,8 +187,8 @@ export async function GET(
     console.log('💡 Generating recommendations...');
     const recommendations = generateRecommendations(
       topGenres,
-      mood,
-      averageEnergy,
+      audioAnalysis.mood,
+      audioAnalysis.averageEnergy,
       genreDiversity
     );
 
@@ -181,15 +202,7 @@ export async function GET(
         genreDiversity,
         dominantGenre
       },
-      audioAnalysis: {
-        averageEnergy,
-        averageDanceability,
-        averageValence,
-        averageTempo,
-        averageAcousticness,
-        averageInstrumentalness,
-        mood
-      },
+      audioAnalysis: audioAnalysis,
       artistAnalysis: {
         uniqueArtists,
         topArtists,
@@ -301,4 +314,32 @@ function generateRecommendations(
     moodSuggestions,
     energyLevel
   };
+}
+
+// Función para determinar mood basado en géneros cuando no hay audio features
+function determineMoodFromGenres(topGenres: Array<{ genre: string; count: number; percentage: number }>): 'energetic' | 'chill' | 'happy' | 'melancholic' | 'mixed' {
+  const dominantGenre = topGenres[0]?.genre.toLowerCase() || '';
+  
+  // Géneros energéticos
+  if (dominantGenre.includes('rock') || dominantGenre.includes('metal') || dominantGenre.includes('electronic') || dominantGenre.includes('dance')) {
+    return 'energetic';
+  }
+  
+  // Géneros felices
+  if (dominantGenre.includes('pop') || dominantGenre.includes('reggaeton') || dominantGenre.includes('salsa') || dominantGenre.includes('funk')) {
+    return 'happy';
+  }
+  
+  // Géneros relajados
+  if (dominantGenre.includes('ambient') || dominantGenre.includes('chill') || dominantGenre.includes('lofi') || dominantGenre.includes('jazz')) {
+    return 'chill';
+  }
+  
+  // Géneros melancólicos
+  if (dominantGenre.includes('blues') || dominantGenre.includes('sad') || dominantGenre.includes('emo') || dominantGenre.includes('indie')) {
+    return 'melancholic';
+  }
+  
+  // Por defecto, mixed
+  return 'mixed';
 } 
