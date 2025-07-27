@@ -42,7 +42,7 @@ interface MusicalProfile {
 
 export async function GET(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
     // Verificar autenticación del usuario
@@ -51,7 +51,7 @@ export async function GET(
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const playlistId = context.params.id;
+    const playlistId = params.id;
     const spotifyService = new SpotifyService(session.accessToken);
 
     console.log(`🔍 Starting analysis for playlist: ${playlistId}`);
