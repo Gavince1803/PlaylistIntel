@@ -1,6 +1,94 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+:root {
+  --background: #191414;
+  --foreground: #fff;
+  --spotify-green: #1DB954;
+  --spotify-dark: #191414;
+  --spotify-gray: #232323;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #191414;
+    --foreground: #fff;
+  }
+}
+
+/* Remove body background and color so Tailwind classes can control them */
+/*
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', 'Geist', Arial, Helvetica, sans-serif;
+}
+*/
+
+/* Custom utilities */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #232323;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1DB954;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #1ed760;
+}
+
+/* Dark mode scrollbar */
+@media (prefers-color-scheme: dark) {
+  ::-webkit-scrollbar-track {
+    background: #232323;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #1DB954;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: #1ed760;
+  }
+}
+
+@keyframes fade-in-down {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-down {
+  animation: fade-in-down 0.4s cubic-bezier(0.4,0,0.2,1) both;
+}
+
+:focus {
+  outline: 2px solid #1DB954;
+  outline-offset: 2px;
+}
 
 /* Modal animations */
 @keyframes modalEnter {
