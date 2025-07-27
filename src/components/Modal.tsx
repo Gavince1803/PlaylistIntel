@@ -38,7 +38,7 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
       onClick={onClose}
     >
       <div
-        className="bg-[#232323] rounded-2xl shadow-2xl border border-[#282828] p-2 sm:p-8 max-w-full sm:max-w-lg w-full relative focus:outline-none"
+        className="bg-[#232323] rounded-2xl shadow-2xl border border-[#282828] p-2 sm:p-4 max-w-full sm:max-w-4xl lg:max-w-6xl w-full h-full sm:h-auto sm:max-h-[90vh] relative focus:outline-none overflow-hidden"
         ref={dialogRef}
         tabIndex={0}
         onClick={e => e.stopPropagation()}
@@ -51,7 +51,9 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
           &times;
         </button>
         {title && <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">{title}</h2>}
-        {children}
+        <div className="overflow-y-auto max-h-[calc(90vh-120px)]">
+          {children}
+        </div>
       </div>
     </div>
   );

@@ -682,12 +682,10 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
       {/* Musical Profile Modal */}
       {musicalProfileOpen && selectedPlaylistForAnalysis && (
         <Modal open={musicalProfileOpen} onClose={() => setMusicalProfileOpen(false)} title="Musical Profile Analysis">
-          <div className="max-w-4xl mx-auto">
-            <MusicalProfile 
-              playlistId={selectedPlaylistForAnalysis} 
-              onClose={() => setMusicalProfileOpen(false)}
-            />
-          </div>
+          <MusicalProfile 
+            playlistId={selectedPlaylistForAnalysis} 
+            onClose={() => setMusicalProfileOpen(false)}
+          />
         </Modal>
       )}
 
