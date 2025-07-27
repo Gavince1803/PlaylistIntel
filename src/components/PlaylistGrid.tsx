@@ -99,8 +99,16 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
       }
       
       const data = await response.json();
+      console.log('Fetched playlists data:', data);
+      
+      // Debug: Check images for first few playlists
+      if (data.playlists && data.playlists.length > 0) {
+        console.log('First playlist images:', data.playlists[0].images);
+        console.log('Second playlist images:', data.playlists[1]?.images);
+        console.log('Third playlist images:', data.playlists[2]?.images);
+      }
+      
       setPlaylists(data.playlists || []);
-      console.log('Playlist first image URLs:', (data.playlists || []).map((p: any) => p.images?.[0]?.url));
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'An error occurred';
       setError(msg);
@@ -423,19 +431,25 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
               </label>
               {/* Playlist image */}
               <div className="relative aspect-square bg-gray-800">
-                {playlist.images && playlist.images.length > 0 && typeof playlist.images[0].url === 'string' && playlist.images[0].url ? (
-                  <img
-                    src={playlist.images[0].url}
-                    alt={playlist.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <img
-                    src="/globe.svg"
-                    alt="Default playlist cover"
-                    className="w-full h-full object-cover opacity-60"
-                  />
-                )}
+                {(() => {
+                  console.log(`Playlist "${playlist.name}" images:`, playlist.images);
+                  return playlist.images && playlist.images.length > 0 && typeof playlist.images[0].url === 'string' && playlist.images[0].url ? (
+                    <img
+                      src={playlist.images[0].url}
+                      alt={playlist.name}
+                      className="w-full h-full object-cover"
+                      style={{ border: '2px solid red' }} // Temporary debug border
+                      onError={(e) => console.error(`Failed to load image for playlist "${playlist.name}":`, e)}
+                      onLoad={() => console.log(`Successfully loaded image for playlist "${playlist.name}"`)}
+                    />
+                  ) : (
+                    <img
+                      src="/globe.svg"
+                      alt="Default playlist cover"
+                      className="w-full h-full object-cover opacity-60"
+                    />
+                  );
+                })()}
                 {/* Overlay play/quick actions on hover */}
                 <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center">
                   <button
