@@ -31,7 +31,7 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 sm:p-6 lg:p-8 backdrop-enter"
       aria-modal="true"
       role="dialog"
       tabIndex={-1}
@@ -42,6 +42,9 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
         ref={dialogRef}
         tabIndex={0}
         onClick={e => e.stopPropagation()}
+        style={{
+          animation: 'modalEnter 0.3s ease-out forwards'
+        }}
       >
         <button
           onClick={onClose}
@@ -51,7 +54,7 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
           &times;
         </button>
         {title && <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">{title}</h2>}
-        <div className="overflow-y-auto max-h-[calc(90vh-120px)]">
+        <div className="overflow-y-auto max-h-[calc(90vh-120px)] modal-scrollbar">
           {children}
         </div>
       </div>
