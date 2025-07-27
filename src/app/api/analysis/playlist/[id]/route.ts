@@ -35,6 +35,8 @@ interface MusicalProfile {
     similarGenres: string[];
     moodSuggestions: string[];
     energyLevel: 'low' | 'medium' | 'high';
+    playlistSuggestions: string[];
+    discoveryTips: string[];
   };
   // Timestamp de cuando se generó el análisis
   analyzedAt: string;
@@ -276,44 +278,159 @@ function generateRecommendations(
 ) {
   const similarGenres: string[] = [];
   const moodSuggestions: string[] = [];
+  const artistRecommendations: string[] = [];
 
-  // Generar géneros similares basados en los top géneros
+  // Mapeo avanzado de géneros relacionados (sin usar API de Spotify)
+  const genreRelationships: Record<string, string[]> = {
+    'rock': ['alternative rock', 'indie rock', 'punk rock', 'hard rock', 'classic rock'],
+    'pop': ['indie pop', 'synthpop', 'electropop', 'dream pop', 'art pop'],
+    'hip hop': ['trap', 'r&b', 'rap', 'conscious hip hop', 'alternative hip hop'],
+    'electronic': ['house', 'techno', 'trance', 'ambient', 'downtempo'],
+    'jazz': ['smooth jazz', 'acid jazz', 'nu jazz', 'jazz fusion', 'bebop'],
+    'classical': ['orchestral', 'chamber music', 'symphony', 'opera', 'baroque'],
+    'reggae': ['dub', 'roots reggae', 'dancehall', 'ska', 'reggaeton'],
+    'country': ['folk', 'bluegrass', 'americana', 'country rock', 'outlaw country'],
+    'blues': ['delta blues', 'electric blues', 'blues rock', 'rhythm and blues'],
+    'metal': ['heavy metal', 'thrash metal', 'death metal', 'black metal', 'progressive metal']
+  };
+
+  // Generar géneros similares basados en relaciones conocidas
   topGenres.slice(0, 3).forEach(({ genre }) => {
-    // Aquí podrías tener un mapeo de géneros relacionados
-    // Por ahora, sugerimos géneros similares basados en patrones conocidos
-    if (genre.includes('rock')) similarGenres.push('alternative rock', 'indie rock');
-    if (genre.includes('pop')) similarGenres.push('indie pop', 'synthpop');
-    if (genre.includes('hip hop')) similarGenres.push('trap', 'r&b');
-    if (genre.includes('electronic')) similarGenres.push('house', 'techno');
+    const baseGenre = Object.keys(genreRelationships).find(key => 
+      genre.toLowerCase().includes(key)
+    );
+    
+    if (baseGenre && genreRelationships[baseGenre]) {
+      similarGenres.push(...genreRelationships[baseGenre]);
+    }
   });
 
-  // Generar sugerencias de mood
+  // Generar sugerencias de mood más específicas
   switch (mood) {
     case 'energetic':
-      moodSuggestions.push('Workout playlist', 'Party music', 'High-energy tracks');
+      moodSuggestions.push(
+        'Workout & Fitness Mix',
+        'Party & Celebration',
+        'High-Energy Workout',
+        'Gym Motivation',
+        'Dance Party Hits'
+      );
       break;
     case 'chill':
-      moodSuggestions.push('Study music', 'Relaxation playlist', 'Ambient sounds');
+      moodSuggestions.push(
+        'Study & Focus',
+        'Relaxation & Meditation',
+        'Chill Vibes Only',
+        'Lo-Fi Study Beats',
+        'Peaceful Moments'
+      );
       break;
     case 'happy':
-      moodSuggestions.push('Feel-good songs', 'Summer vibes', 'Positive energy');
+      moodSuggestions.push(
+        'Feel-Good Vibes',
+        'Summer Sunshine',
+        'Positive Energy Boost',
+        'Happy Morning',
+        'Good Mood Mix'
+      );
       break;
     case 'melancholic':
-      moodSuggestions.push('Rainy day music', 'Emotional tracks', 'Deep thoughts');
+      moodSuggestions.push(
+        'Rainy Day Melodies',
+        'Emotional Journey',
+        'Deep Thoughts',
+        'Late Night Vibes',
+        'Soulful Reflections'
+      );
       break;
     default:
-      moodSuggestions.push('Mixed mood playlist', 'Variety of emotions');
+      moodSuggestions.push(
+        'Mixed Emotions',
+        'Variety Pack',
+        'Eclectic Mix',
+        'Mood Swings',
+        'Diverse Collection'
+      );
   }
 
-  // Determinar nivel de energía
-  const energyLevel: 'low' | 'medium' | 'high' = 
-    energy < 0.4 ? 'low' : energy > 0.7 ? 'high' : 'medium';
+  // Recomendaciones basadas en diversidad de géneros
+  if (genreDiversity > 0.7) {
+    moodSuggestions.push('Eclectic Mix', 'Genre Explorer', 'Musical Journey');
+  } else if (genreDiversity < 0.3) {
+    moodSuggestions.push('Pure [Genre]', 'Focused Collection', 'Genre Deep Dive');
+  }
+
+  // Determinar nivel de energía basado en géneros si no hay audio features
+  let energyLevel: 'low' | 'medium' | 'high' = 'medium';
+  if (energy > 0) {
+    energyLevel = energy < 0.4 ? 'low' : energy > 0.7 ? 'high' : 'medium';
+  } else {
+    // Determinar energía basada en géneros dominantes
+    const dominantGenre = topGenres[0]?.genre.toLowerCase() || '';
+    if (dominantGenre.includes('rock') || dominantGenre.includes('metal') || dominantGenre.includes('electronic')) {
+      energyLevel = 'high';
+    } else if (dominantGenre.includes('ambient') || dominantGenre.includes('chill') || dominantGenre.includes('jazz')) {
+      energyLevel = 'low';
+    }
+  }
 
   return {
-    similarGenres: [...new Set(similarGenres)], // Remover duplicados
-    moodSuggestions,
-    energyLevel
+    similarGenres: [...new Set(similarGenres)].slice(0, 8), // Limitar a 8 géneros
+    moodSuggestions: [...new Set(moodSuggestions)].slice(0, 6), // Limitar a 6 sugerencias
+    energyLevel,
+    // Nuevas recomendaciones
+    playlistSuggestions: generatePlaylistSuggestions(topGenres, mood, genreDiversity),
+    discoveryTips: generateDiscoveryTips(genreDiversity, topGenres.length)
   };
+}
+
+// Función para generar sugerencias de playlist específicas
+function generatePlaylistSuggestions(
+  topGenres: Array<{ genre: string; count: number; percentage: number }>,
+  mood: string,
+  genreDiversity: number
+): string[] {
+  const suggestions: string[] = [];
+  const dominantGenre = topGenres[0]?.genre || '';
+
+  // Sugerencias basadas en el género dominante
+  if (dominantGenre.includes('rock')) {
+    suggestions.push('Rock Classics', 'Modern Rock Hits', 'Rock Essentials');
+  } else if (dominantGenre.includes('pop')) {
+    suggestions.push('Pop Hits', 'Chart Toppers', 'Pop Essentials');
+  } else if (dominantGenre.includes('hip hop')) {
+    suggestions.push('Hip Hop Essentials', 'Rap Classics', 'Urban Vibes');
+  }
+
+  // Sugerencias basadas en diversidad
+  if (genreDiversity > 0.8) {
+    suggestions.push('Genre Explorer', 'Musical Journey', 'Eclectic Mix');
+  } else if (genreDiversity < 0.2) {
+    suggestions.push(`Pure ${dominantGenre}`, `${dominantGenre} Deep Dive`);
+  }
+
+  return suggestions.slice(0, 4);
+}
+
+// Función para generar tips de descubrimiento
+function generateDiscoveryTips(genreDiversity: number, genreCount: number): string[] {
+  const tips: string[] = [];
+
+  if (genreDiversity < 0.3) {
+    tips.push('Try exploring similar genres to expand your taste');
+    tips.push('Consider adding artists from related genres');
+  } else if (genreDiversity > 0.7) {
+    tips.push('You have diverse musical taste!');
+    tips.push('Try creating focused playlists by genre');
+  }
+
+  if (genreCount < 5) {
+    tips.push('Explore more genres to discover new music');
+  } else if (genreCount > 15) {
+    tips.push('You enjoy variety! Try creating mood-based playlists');
+  }
+
+  return tips.slice(0, 3);
 }
 
 // Función para determinar mood basado en géneros cuando no hay audio features

@@ -31,6 +31,8 @@ interface MusicalProfile {
     similarGenres: string[];
     moodSuggestions: string[];
     energyLevel: 'low' | 'medium' | 'high';
+    playlistSuggestions: string[];
+    discoveryTips: string[];
   };
   analyzedAt: string;
 }
@@ -344,53 +346,68 @@ export default function MusicalProfile({ playlistId, onClose }: MusicalProfilePr
           </div>
         </section>
 
-        {/* Recomendaciones */}
-        <section>
-          <h3 className="text-xl font-bold text-white mb-4 flex items-center">
-            <span className="mr-2">💡</span>
-            Recomendaciones
-          </h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Géneros Similares */}
-            <div className="bg-[#282828] rounded-lg p-4">
-              <h4 className="text-white font-semibold mb-3">Géneros Similares</h4>
-              <div className="flex flex-wrap gap-2">
-                {profile.recommendations.similarGenres.map((genre, index) => (
-                  <span 
-                    key={index}
-                    className="bg-[#1DB954]/20 text-[#1DB954] px-3 py-1 rounded-full text-sm font-medium"
-                  >
-                    {genre}
-                  </span>
-                ))}
+                  {/* Recomendaciones */}
+          <section>
+            <h3 className="text-xl font-bold text-white mb-4 flex items-center">
+              <span className="mr-2">💡</span>
+              Recomendaciones
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Géneros Similares */}
+              <div className="bg-[#282828] rounded-lg p-4">
+                <h4 className="text-white font-semibold mb-3">Géneros Similares</h4>
+                <div className="flex flex-wrap gap-2">
+                  {profile.recommendations.similarGenres.map((genre, index) => (
+                    <span 
+                      key={index}
+                      className="bg-[#1DB954]/20 text-[#1DB954] px-3 py-1 rounded-full text-sm font-medium"
+                    >
+                      {genre}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Sugerencias de Playlist */}
+              <div className="bg-[#282828] rounded-lg p-4">
+                <h4 className="text-white font-semibold mb-3">Sugerencias de Playlist</h4>
+                <div className="space-y-2">
+                  {profile.recommendations.playlistSuggestions?.map((suggestion, index) => (
+                    <div key={index} className="text-gray-300 text-sm flex items-center">
+                      <span className="text-[#1DB954] mr-2">•</span>
+                      {suggestion}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* Sugerencias de Mood */}
-            <div className="bg-[#282828] rounded-lg p-4">
-              <h4 className="text-white font-semibold mb-3">Sugerencias de Playlist</h4>
-              <div className="space-y-2">
-                {profile.recommendations.moodSuggestions.map((suggestion, index) => (
-                  <div key={index} className="text-gray-300 text-sm flex items-center">
-                    <span className="text-[#1DB954] mr-2">•</span>
-                    {suggestion}
-                  </div>
-                ))}
+            {/* Tips de Descubrimiento */}
+            {profile.recommendations.discoveryTips && profile.recommendations.discoveryTips.length > 0 && (
+              <div className="bg-[#282828] rounded-lg p-4 mt-4">
+                <h4 className="text-white font-semibold mb-3">💡 Tips de Descubrimiento</h4>
+                <div className="space-y-2">
+                  {profile.recommendations.discoveryTips.map((tip, index) => (
+                    <div key={index} className="text-gray-300 text-sm flex items-start">
+                      <span className="text-yellow-400 mr-2 mt-1">💡</span>
+                      <span>{tip}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Nivel de Energía */}
+            <div className="bg-[#282828] rounded-lg p-4 mt-4">
+              <div className="flex items-center justify-between">
+                <span className="text-white font-semibold">Nivel de Energía</span>
+                <span className={`font-bold text-lg ${getEnergyColor(profile.recommendations.energyLevel)}`}>
+                  {profile.recommendations.energyLevel.toUpperCase()}
+                </span>
               </div>
             </div>
-          </div>
-
-          {/* Nivel de Energía */}
-          <div className="bg-[#282828] rounded-lg p-4 mt-4">
-            <div className="flex items-center justify-between">
-              <span className="text-white font-semibold">Nivel de Energía</span>
-              <span className={`font-bold text-lg ${getEnergyColor(profile.recommendations.energyLevel)}`}>
-                {profile.recommendations.energyLevel.toUpperCase()}
-              </span>
-            </div>
-          </div>
-        </section>
+          </section>
 
         {/* Botón de cerrar */}
         {onClose && (
