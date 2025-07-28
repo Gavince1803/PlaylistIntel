@@ -188,6 +188,16 @@ export class SpotifyService {
     }
   }
 
+  async getCurrentUserId(): Promise<string> {
+    try {
+      const response = await this.api.getMe();
+      return response.body.id;
+    } catch (error) {
+      console.error('Error getting current user ID:', error);
+      throw error;
+    }
+  }
+
   async addTracksToPlaylist(playlistId: string, trackUris: string[]): Promise<void> {
     try {
       await this.api.addTracksToPlaylist(playlistId, trackUris);
