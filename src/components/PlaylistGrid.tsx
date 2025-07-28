@@ -428,12 +428,11 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
                   console.log(`Playlist "${playlist.name}":`);
                   console.log('  Original URL:', originalUrl);
                   console.log('  Clean URL:', cleanUrl);
-                  console.log('  Proxy URL:', `/api/proxy/image?url=${encodeURIComponent(originalUrl || '')}`);
-                  console.log('  Full proxy URL:', `${window.location.origin}/api/proxy/image?url=${encodeURIComponent(originalUrl || '')}`);
+                  console.log('  Proxy URL:', `https://api.allorigins.win/raw?url=${encodeURIComponent(originalUrl || '')}`);
                   return playlist.images && playlist.images.length > 0 && typeof playlist.images[0].url === 'string' && playlist.images[0].url;
                 })() ? (
                   <img
-                    src={`/api/proxy/image?url=${encodeURIComponent(playlist.images[0].url)}`}
+                    src={`https://api.allorigins.win/raw?url=${encodeURIComponent(playlist.images[0].url)}`}
                     alt={playlist.name}
                     className="w-full h-full object-cover"
                     onError={(e) => {
