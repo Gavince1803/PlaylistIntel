@@ -72,42 +72,13 @@ export default function Dashboard() {
               <h1 className="text-4xl font-extrabold text-white mb-2 tracking-tight">
                 Welcome back{session?.user?.name ? `, ${session.user.name}` : ''}!
               </h1>
-              <p className="text-lg text-gray-300">Create new playlists from your mixed collections</p>
-            </section>
-            {/* Quick actions */}
-            <section className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
-              <div className="bg-[#232323] rounded-2xl p-8 shadow-lg flex flex-col gap-2 border border-[#282828] hover:shadow-2xl transition-shadow cursor-pointer">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-xl font-bold text-white">Create New Playlist</h3>
-                    <p className="text-gray-400 text-sm mt-1">Start from scratch or use a template</p>
-                  </div>
-                  <div className="w-12 h-12 bg-[#1DB954]/20 rounded-lg flex items-center justify-center">
-                    <svg className="w-6 h-6 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-[#232323] rounded-2xl p-8 shadow-lg flex flex-col gap-2 border border-[#282828] hover:shadow-2xl transition-shadow cursor-pointer">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-xl font-bold text-white">Recent Activity</h3>
-                    <p className="text-gray-400 text-sm mt-1">View your latest creations</p>
-                  </div>
-                  <div className="w-12 h-12 bg-[#1DB954]/20 rounded-lg flex items-center justify-center">
-                    <svg className="w-6 h-6 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
+              <p className="text-lg text-gray-300">Analyze and discover insights about your music taste</p>
             </section>
             {/* Playlists section */}
             <section className="bg-[#232323] rounded-2xl shadow-lg border border-[#282828]">
               <div className="p-8 border-b border-[#282828]">
                 <h2 className="text-2xl font-bold text-white">Your Playlists</h2>
-                <p className="text-gray-400 text-base mt-1">Manage and organize your music collections</p>
+                <p className="text-gray-400 text-base mt-1">Analyze your music taste and discover insights</p>
               </div>
               <PlaylistGrid />
             </section>

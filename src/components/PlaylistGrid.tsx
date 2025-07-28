@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback, Fragment } from 'react';
 import { useSession } from 'next-auth/react';
 import { useToast } from './Toast';
 import Modal from './Modal';
-import PlaylistCreator from './PlaylistCreator';
+
 import MusicalProfile from './MusicalProfile';
 
 interface SpotifyPlaylist {
@@ -56,7 +56,6 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
   const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>(propPlaylists || []);
   const [loading, setLoading] = useState(!propPlaylists);
   const [error, setError] = useState<string | null>(null);
-  const [playlistCreatorOpen, setPlaylistCreatorOpen] = useState(false);
   const [selectedPlaylist, setSelectedPlaylist] = useState<SpotifyPlaylist | null>(null);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const menuButtonRefs = useRef<{ [id: string]: HTMLButtonElement | null }>({});
@@ -109,16 +108,7 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
     }
   };
 
-  const openCreateModal = (playlist: SpotifyPlaylist) => {
-    setSelectedPlaylist(playlist);
-    setPlaylistCreatorOpen(true);
-  };
 
-  const handleCreateSuccess = (playlistId: string) => {
-    showToast('Playlist created successfully!', 'success');
-    // Optionally refresh the playlists list
-    fetchPlaylists();
-  };
 
   const formatDuration = (ms: number) => {
     const minutes = Math.floor(ms / 60000);
@@ -447,15 +437,7 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
                 )}
                 {/* Overlay play/quick actions on hover */}
                 <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center pointer-events-none">
-                  <button
-                    className="opacity-0 group-hover:opacity-100 transform scale-90 group-hover:scale-100 transition-all duration-200 w-12 h-12 bg-[#1DB954] rounded-full flex items-center justify-center shadow-lg pointer-events-auto"
-                    aria-label="Create from this playlist"
-                    onClick={() => openCreateModal(playlist)}
-                  >
-                    <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                    </svg>
-                  </button>
+
                 </div>
                 {/* Context menu button */}
                 <button
@@ -519,13 +501,6 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
                 {/* Action buttons */}
                 <div className="flex items-center justify-between mt-4 pt-4 border-t border-[#282828]">
                   <button
-                    className="text-[#1DB954] hover:text-white text-sm font-semibold font-sans transition-colors"
-                    aria-label="Create from this playlist"
-                    onClick={() => openCreateModal(playlist)}
-                  >
-                    Create From This
-                  </button>
-                  <button
                     className="text-gray-400 hover:text-white text-xs font-semibold font-sans underline ml-4"
                     aria-label="Show genres in this playlist"
                     onClick={() => showGenresForPlaylist(playlist)}
@@ -558,15 +533,7 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
         })}
       </div>
 
-      {/* Playlist Creator Modal */}
-      {playlistCreatorOpen && selectedPlaylist && (
-        <PlaylistCreator
-          sourcePlaylistId={selectedPlaylist.id}
-          sourcePlaylistName={selectedPlaylist.name}
-          onClose={() => setPlaylistCreatorOpen(false)}
-          onSuccess={handleCreateSuccess}
-        />
-      )}
+
 
       {/* Edit Modal */}
       <Modal open={editModalOpen} onClose={() => setEditModalOpen(false)} title="Edit Playlist">

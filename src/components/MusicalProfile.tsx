@@ -29,6 +29,8 @@ interface MusicalProfile {
   };
   recommendations: {
     similarGenres: string[];
+    recommendedArtists: Array<{ name: string; genre: string; reason: string }>;
+    recommendedSongs: Array<{ title: string; artist: string; genre: string; reason: string; year?: number; spotifyUrl?: string }>;
     moodSuggestions: string[];
     energyLevel: 'low' | 'medium' | 'high';
     playlistSuggestions: string[];
@@ -322,17 +324,71 @@ export default function MusicalProfile({ playlistId, onClose }: MusicalProfilePr
               </div>
             </div>
 
-            {/* Playlist Suggestions */}
+            {/* Recommended Artists */}
             <div className="bg-[#282828] rounded-lg p-3 sm:p-4">
-              <h4 className="text-white font-semibold mb-3 text-sm sm:text-base">Playlist Suggestions</h4>
+              <h4 className="text-white font-semibold mb-3 text-sm sm:text-base">🎤 Recommended Artists</h4>
               <div className="space-y-2">
-                {profile.recommendations.playlistSuggestions?.map((suggestion, index) => (
-                  <div key={index} className="text-gray-300 text-xs sm:text-sm flex items-center">
-                    <span className="text-[#1DB954] mr-2">•</span>
-                    <span className="truncate">{suggestion}</span>
+                {profile.recommendations.recommendedArtists?.slice(0, 4).map((artist, index) => (
+                  <div key={index} className="text-gray-300 text-xs sm:text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-white truncate">{artist.name}</span>
+                      <span className="text-[#1DB954] text-xs ml-2 flex-shrink-0">{artist.genre}</span>
+                    </div>
+                    <div className="text-gray-400 text-xs mt-1 italic">{artist.reason}</div>
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+
+          {/* Recommended Songs */}
+          <div className="bg-[#282828] rounded-lg p-3 sm:p-4 mt-4">
+            <h4 className="text-white font-semibold mb-3 text-sm sm:text-base">🎵 Recommended Songs</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {profile.recommendations.recommendedSongs?.slice(0, 6).map((song, index) => (
+                <div key={index} className="bg-[#191414] rounded-lg p-3 border border-[#404040]">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-white font-medium text-sm truncate">{song.title}</div>
+                      <div className="text-[#1DB954] text-xs mt-1">{song.artist}</div>
+                      <div className="text-gray-400 text-xs mt-1 flex items-center gap-2">
+                        <span>{song.genre}</span>
+                        {song.year && <span>• {song.year}</span>}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="text-[#1DB954] text-xs flex-shrink-0">#{index + 1}</div>
+                      {song.spotifyUrl && (
+                        <a
+                          href={song.spotifyUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[#1DB954] hover:text-white transition-colors"
+                          title="Open in Spotify"
+                        >
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+                          </svg>
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-gray-400 text-xs mt-2 italic">{song.reason}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Playlist Suggestions */}
+          <div className="bg-[#282828] rounded-lg p-3 sm:p-4 mt-4">
+            <h4 className="text-white font-semibold mb-3 text-sm sm:text-base">Playlist Suggestions</h4>
+            <div className="space-y-2">
+              {profile.recommendations.playlistSuggestions?.map((suggestion, index) => (
+                <div key={index} className="text-gray-300 text-xs sm:text-sm flex items-center">
+                  <span className="text-[#1DB954] mr-2">•</span>
+                  <span className="truncate">{suggestion}</span>
+                </div>
+              ))}
             </div>
           </div>
 

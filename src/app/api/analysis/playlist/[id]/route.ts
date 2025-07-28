@@ -33,6 +33,8 @@ interface MusicalProfile {
   // Recomendaciones generadas
   recommendations: {
     similarGenres: string[];
+    recommendedArtists: Array<{ name: string; genre: string; reason: string }>;
+    recommendedSongs: Array<{ title: string; artist: string; genre: string; reason: string; year?: number; spotifyUrl?: string }>;
     moodSuggestions: string[];
     energyLevel: 'low' | 'medium' | 'high';
     playlistSuggestions: string[];
@@ -187,11 +189,13 @@ export async function GET(
 
     // Paso 8: Generar recomendaciones
     console.log('💡 Generating recommendations...');
-    const recommendations = generateRecommendations(
+    const recommendations = await generateRecommendations(
       topGenres,
+      topArtists,
       audioAnalysis.mood,
       audioAnalysis.averageEnergy,
-      genreDiversity
+      genreDiversity,
+      spotifyService
     );
 
     // Paso 9: Construir el perfil musical completo
@@ -270,15 +274,318 @@ function determineMood(energy: number, valence: number, tempo: number): 'energet
 }
 
 // Función para generar recomendaciones basadas en el análisis
-function generateRecommendations(
+function generateArtistRecommendations(
   topGenres: Array<{ genre: string; count: number; percentage: number }>,
+  topArtists: Array<{ name: string; trackCount: number }>,
+  mood: string,
+  genreDiversity: number
+): Array<{ name: string; genre: string; reason: string }> {
+  const recommendations: Array<{ name: string; genre: string; reason: string }> = [];
+  
+  // Base de datos de artistas populares por género (sin usar API de Spotify)
+  const artistDatabase: Record<string, Array<{ name: string; genre: string; popularity: 'high' | 'medium' | 'low' }>> = {
+    'rock': [
+      { name: 'Arctic Monkeys', genre: 'indie rock', popularity: 'high' },
+      { name: 'The Strokes', genre: 'indie rock', popularity: 'high' },
+      { name: 'Foo Fighters', genre: 'alternative rock', popularity: 'high' },
+      { name: 'Red Hot Chili Peppers', genre: 'alternative rock', popularity: 'high' },
+      { name: 'Queens of the Stone Age', genre: 'stoner rock', popularity: 'medium' },
+      { name: 'Tame Impala', genre: 'psychedelic rock', popularity: 'high' },
+      { name: 'The Killers', genre: 'indie rock', popularity: 'high' },
+      { name: 'Interpol', genre: 'post-punk', popularity: 'medium' }
+    ],
+    'pop': [
+      { name: 'Dua Lipa', genre: 'pop', popularity: 'high' },
+      { name: 'The Weeknd', genre: 'pop', popularity: 'high' },
+      { name: 'Ariana Grande', genre: 'pop', popularity: 'high' },
+      { name: 'Billie Eilish', genre: 'indie pop', popularity: 'high' },
+      { name: 'Lorde', genre: 'indie pop', popularity: 'high' },
+      { name: 'Charli XCX', genre: 'electropop', popularity: 'medium' },
+      { name: 'Carly Rae Jepsen', genre: 'pop', popularity: 'medium' },
+      { name: 'Halsey', genre: 'pop', popularity: 'high' }
+    ],
+    'hip hop': [
+      { name: 'Kendrick Lamar', genre: 'hip hop', popularity: 'high' },
+      { name: 'Drake', genre: 'hip hop', popularity: 'high' },
+      { name: 'J. Cole', genre: 'hip hop', popularity: 'high' },
+      { name: 'Travis Scott', genre: 'trap', popularity: 'high' },
+      { name: 'Tyler, The Creator', genre: 'hip hop', popularity: 'high' },
+      { name: 'A$AP Rocky', genre: 'hip hop', popularity: 'high' },
+      { name: 'Post Malone', genre: 'hip hop', popularity: 'high' },
+      { name: '21 Savage', genre: 'trap', popularity: 'high' }
+    ],
+    'electronic': [
+      { name: 'Daft Punk', genre: 'electronic', popularity: 'high' },
+      { name: 'The Chemical Brothers', genre: 'electronic', popularity: 'medium' },
+      { name: 'Aphex Twin', genre: 'ambient', popularity: 'medium' },
+      { name: 'Four Tet', genre: 'electronic', popularity: 'medium' },
+      { name: 'Flying Lotus', genre: 'electronic', popularity: 'medium' },
+      { name: 'Caribou', genre: 'electronic', popularity: 'medium' },
+      { name: 'Jamie xx', genre: 'electronic', popularity: 'high' },
+      { name: 'Disclosure', genre: 'house', popularity: 'high' }
+    ],
+    'jazz': [
+      { name: 'Kamasi Washington', genre: 'jazz', popularity: 'medium' },
+      { name: 'Robert Glasper', genre: 'jazz', popularity: 'medium' },
+      { name: 'Esperanza Spalding', genre: 'jazz', popularity: 'medium' },
+      { name: 'Christian Scott', genre: 'jazz', popularity: 'medium' },
+      { name: 'Snarky Puppy', genre: 'jazz fusion', popularity: 'medium' },
+      { name: 'BADBADNOTGOOD', genre: 'jazz', popularity: 'medium' },
+      { name: 'GoGo Penguin', genre: 'jazz', popularity: 'medium' },
+      { name: 'The Comet Is Coming', genre: 'jazz', popularity: 'medium' }
+    ],
+    'indie': [
+      { name: 'Vampire Weekend', genre: 'indie pop', popularity: 'high' },
+      { name: 'Phoenix', genre: 'indie pop', popularity: 'high' },
+      { name: 'MGMT', genre: 'indie pop', popularity: 'high' },
+      { name: 'Foster The People', genre: 'indie pop', popularity: 'high' },
+      { name: 'Two Door Cinema Club', genre: 'indie pop', popularity: 'medium' },
+      { name: 'The 1975', genre: 'indie pop', popularity: 'high' },
+      { name: 'Glass Animals', genre: 'indie pop', popularity: 'high' },
+      { name: 'Alt-J', genre: 'indie rock', popularity: 'high' }
+    ],
+    'r&b': [
+      { name: 'Frank Ocean', genre: 'r&b', popularity: 'high' },
+      { name: 'The Weeknd', genre: 'r&b', popularity: 'high' },
+      { name: 'SZA', genre: 'r&b', popularity: 'high' },
+      { name: 'H.E.R.', genre: 'r&b', popularity: 'high' },
+      { name: 'Daniel Caesar', genre: 'r&b', popularity: 'medium' },
+      { name: 'Giveon', genre: 'r&b', popularity: 'medium' },
+      { name: 'Lucky Daye', genre: 'r&b', popularity: 'medium' },
+      { name: 'Snoh Aalegra', genre: 'r&b', popularity: 'medium' }
+    ]
+  };
+
+  // Obtener géneros dominantes
+  const dominantGenres = topGenres.slice(0, 3).map(g => g.genre.toLowerCase());
+  
+  // Generar recomendaciones basadas en géneros dominantes
+  for (const genre of dominantGenres) {
+    // Buscar artistas que coincidan con el género
+    for (const [category, artists] of Object.entries(artistDatabase)) {
+      if (genre.includes(category) || category.includes(genre)) {
+        // Filtrar artistas que no están ya en la playlist
+        const existingArtists = topArtists.map(a => a.name.toLowerCase());
+        const newArtists = artists.filter(artist => 
+          !existingArtists.includes(artist.name.toLowerCase())
+        );
+        
+        // Agregar hasta 2 artistas por género
+        newArtists.slice(0, 2).forEach(artist => {
+          let reason = '';
+          if (genreDiversity > 0.7) {
+            reason = 'Similar to your eclectic taste';
+          } else if (artist.popularity === 'high') {
+            reason = 'Popular artist in your favorite genre';
+          } else {
+            reason = 'Emerging artist in your style';
+          }
+          
+          recommendations.push({
+            name: artist.name,
+            genre: artist.genre,
+            reason
+          });
+        });
+      }
+    }
+  }
+
+  // Si no hay suficientes recomendaciones, agregar artistas de géneros relacionados
+  if (recommendations.length < 5) {
+    const relatedGenres = ['indie', 'alternative', 'electronic'];
+    relatedGenres.forEach(genre => {
+      if (!dominantGenres.some(dg => dg.includes(genre))) {
+        const artists = artistDatabase[genre] || [];
+        const newArtists = artists.filter(artist => 
+          !recommendations.some(r => r.name === artist.name) &&
+          !topArtists.some(a => a.name.toLowerCase() === artist.name.toLowerCase())
+        );
+        
+        newArtists.slice(0, 2).forEach(artist => {
+          recommendations.push({
+            name: artist.name,
+            genre: artist.genre,
+            reason: 'Expand your musical horizons'
+          });
+        });
+      }
+    });
+  }
+
+  // Limitar a 8 recomendaciones y eliminar duplicados
+  const uniqueRecommendations = recommendations
+    .filter((rec, index, self) => 
+      index === self.findIndex(r => r.name === rec.name)
+    )
+    .slice(0, 8);
+
+  return uniqueRecommendations;
+}
+
+function generateSongRecommendations(
+  topGenres: Array<{ genre: string; count: number; percentage: number }>,
+  topArtists: Array<{ name: string; trackCount: number }>,
+  mood: string,
+  genreDiversity: number
+): Array<{ title: string; artist: string; genre: string; reason: string; year?: number; spotifyUrl?: string }> {
+  const recommendations: Array<{ title: string; artist: string; genre: string; reason: string; year?: number; spotifyUrl?: string }> = [];
+  
+  // Base de datos de canciones populares por género (sin usar API de Spotify)
+  const songDatabase: Record<string, Array<{ title: string; artist: string; genre: string; year: number; popularity: 'high' | 'medium' | 'low' }>> = {
+    'rock': [
+      { title: 'Do I Wanna Know?', artist: 'Arctic Monkeys', genre: 'indie rock', year: 2013, popularity: 'high' },
+      { title: 'Last Nite', artist: 'The Strokes', genre: 'indie rock', year: 2001, popularity: 'high' },
+      { title: 'Everlong', artist: 'Foo Fighters', genre: 'alternative rock', year: 1997, popularity: 'high' },
+      { title: 'Californication', artist: 'Red Hot Chili Peppers', genre: 'alternative rock', year: 1999, popularity: 'high' },
+      { title: 'No One Knows', artist: 'Queens of the Stone Age', genre: 'stoner rock', year: 2002, popularity: 'medium' },
+      { title: 'The Less I Know The Better', artist: 'Tame Impala', genre: 'psychedelic rock', year: 2015, popularity: 'high' },
+      { title: 'Mr. Brightside', artist: 'The Killers', genre: 'indie rock', year: 2004, popularity: 'high' },
+      { title: 'Obstacle 1', artist: 'Interpol', genre: 'post-punk', year: 2002, popularity: 'medium' }
+    ],
+    'pop': [
+      { title: 'Levitating', artist: 'Dua Lipa', genre: 'pop', year: 2020, popularity: 'high' },
+      { title: 'Blinding Lights', artist: 'The Weeknd', genre: 'pop', year: 2019, popularity: 'high' },
+      { title: 'thank u, next', artist: 'Ariana Grande', genre: 'pop', year: 2018, popularity: 'high' },
+      { title: 'bad guy', artist: 'Billie Eilish', genre: 'indie pop', year: 2019, popularity: 'high' },
+      { title: 'Royals', artist: 'Lorde', genre: 'indie pop', year: 2013, popularity: 'high' },
+      { title: 'Vroom Vroom', artist: 'Charli XCX', genre: 'electropop', year: 2016, popularity: 'medium' },
+      { title: 'Run Away With Me', artist: 'Carly Rae Jepsen', genre: 'pop', year: 2015, popularity: 'medium' },
+      { title: 'Without Me', artist: 'Halsey', genre: 'pop', year: 2018, popularity: 'high' }
+    ],
+    'hip hop': [
+      { title: 'HUMBLE.', artist: 'Kendrick Lamar', genre: 'hip hop', year: 2017, popularity: 'high' },
+      { title: 'God\'s Plan', artist: 'Drake', genre: 'hip hop', year: 2018, popularity: 'high' },
+      { title: 'No Role Modelz', artist: 'J. Cole', genre: 'hip hop', year: 2014, popularity: 'high' },
+      { title: 'SICKO MODE', artist: 'Travis Scott', genre: 'trap', year: 2018, popularity: 'high' },
+      { title: 'EARFQUAKE', artist: 'Tyler, The Creator', genre: 'hip hop', year: 2019, popularity: 'high' },
+      { title: 'Praise The Lord (Da Shine)', artist: 'A$AP Rocky', genre: 'hip hop', year: 2018, popularity: 'high' },
+      { title: 'rockstar', artist: 'Post Malone', genre: 'hip hop', year: 2017, popularity: 'high' },
+      { title: 'a lot', artist: '21 Savage', genre: 'trap', year: 2018, popularity: 'high' }
+    ],
+    'electronic': [
+      { title: 'Get Lucky', artist: 'Daft Punk', genre: 'electronic', year: 2013, popularity: 'high' },
+      { title: 'Go', artist: 'The Chemical Brothers', genre: 'electronic', year: 2015, popularity: 'medium' },
+      { title: 'Windowlicker', artist: 'Aphex Twin', genre: 'ambient', year: 1999, popularity: 'medium' },
+      { title: 'Two Thousand And Seventeen', artist: 'Four Tet', genre: 'electronic', year: 2017, popularity: 'medium' },
+      { title: 'Never Catch Me', artist: 'Flying Lotus', genre: 'electronic', year: 2014, popularity: 'medium' },
+      { title: 'Can\'t Do Without You', artist: 'Caribou', genre: 'electronic', year: 2014, popularity: 'medium' },
+      { title: 'Gosh', artist: 'Jamie xx', genre: 'electronic', year: 2015, popularity: 'high' },
+      { title: 'Latch', artist: 'Disclosure', genre: 'house', year: 2012, popularity: 'high' }
+    ],
+    'jazz': [
+      { title: 'The Rhythm Changes', artist: 'Kamasi Washington', genre: 'jazz', year: 2015, popularity: 'medium' },
+      { title: 'Ah Yeah', artist: 'Robert Glasper', genre: 'jazz', year: 2012, popularity: 'medium' },
+      { title: 'I Can\'t Help It', artist: 'Esperanza Spalding', genre: 'jazz', year: 2010, popularity: 'medium' },
+      { title: 'Litany Against Fear', artist: 'Christian Scott', genre: 'jazz', year: 2015, popularity: 'medium' },
+      { title: 'Lingus', artist: 'Snarky Puppy', genre: 'jazz fusion', year: 2014, popularity: 'medium' },
+      { title: 'In Your Eyes', artist: 'BADBADNOTGOOD', genre: 'jazz', year: 2014, popularity: 'medium' },
+      { title: 'Hopopono', artist: 'GoGo Penguin', genre: 'jazz', year: 2014, popularity: 'medium' },
+      { title: 'Summon The Fire', artist: 'The Comet Is Coming', genre: 'jazz', year: 2019, popularity: 'medium' }
+    ],
+    'indie': [
+      { title: 'A-Punk', artist: 'Vampire Weekend', genre: 'indie pop', year: 2008, popularity: 'high' },
+      { title: '1901', artist: 'Phoenix', genre: 'indie pop', year: 2009, popularity: 'high' },
+      { title: 'Kids', artist: 'MGMT', genre: 'indie pop', year: 2007, popularity: 'high' },
+      { title: 'Pumped Up Kicks', artist: 'Foster The People', genre: 'indie pop', year: 2011, popularity: 'high' },
+      { title: 'What You Know', artist: 'Two Door Cinema Club', genre: 'indie pop', year: 2010, popularity: 'medium' },
+      { title: 'Chocolate', artist: 'The 1975', genre: 'indie pop', year: 2013, popularity: 'high' },
+      { title: 'Gooey', artist: 'Glass Animals', genre: 'indie pop', year: 2014, popularity: 'high' },
+      { title: 'Breezeblocks', artist: 'Alt-J', genre: 'indie rock', year: 2012, popularity: 'high' }
+    ],
+    'r&b': [
+      { title: 'Pink + White', artist: 'Frank Ocean', genre: 'r&b', year: 2016, popularity: 'high' },
+      { title: 'Starboy', artist: 'The Weeknd', genre: 'r&b', year: 2016, popularity: 'high' },
+      { title: 'Good Days', artist: 'SZA', genre: 'r&b', year: 2020, popularity: 'high' },
+      { title: 'Focus', artist: 'H.E.R.', genre: 'r&b', year: 2016, popularity: 'high' },
+      { title: 'Get You', artist: 'Daniel Caesar', genre: 'r&b', year: 2017, popularity: 'medium' },
+      { title: 'Heartbreak Anniversary', artist: 'Giveon', genre: 'r&b', year: 2020, popularity: 'medium' },
+      { title: 'Roll Some Mo', artist: 'Lucky Daye', genre: 'r&b', year: 2019, popularity: 'medium' },
+      { title: 'I Want You Around', artist: 'Snoh Aalegra', genre: 'r&b', year: 2019, popularity: 'medium' }
+    ]
+  };
+
+  // Obtener géneros dominantes
+  const dominantGenres = topGenres.slice(0, 3).map(g => g.genre.toLowerCase());
+  
+  // Generar recomendaciones basadas en géneros dominantes
+  dominantGenres.forEach(genre => {
+    // Buscar canciones que coincidan con el género
+    Object.entries(songDatabase).forEach(([category, songs]) => {
+      if (genre.includes(category) || category.includes(genre)) {
+        // Filtrar canciones de artistas que no están ya en la playlist
+        const existingArtists = topArtists.map(a => a.name.toLowerCase());
+        const newSongs = songs.filter(song => 
+          !existingArtists.includes(song.artist.toLowerCase())
+        );
+        
+        // Agregar hasta 2 canciones por género
+        newSongs.slice(0, 2).forEach(song => {
+          let reason = '';
+          if (genreDiversity > 0.7) {
+            reason = 'Perfect for your eclectic taste';
+          } else if (song.popularity === 'high') {
+            reason = 'Must-listen in your favorite genre';
+          } else {
+            reason = 'Hidden gem in your style';
+          }
+          
+          recommendations.push({
+            title: song.title,
+            artist: song.artist,
+            genre: song.genre,
+            year: song.year,
+            reason
+          });
+        });
+      }
+    });
+  });
+
+  // Si no hay suficientes recomendaciones, agregar canciones de géneros relacionados
+  if (recommendations.length < 6) {
+    const relatedGenres = ['indie', 'alternative', 'electronic'];
+    for (const genre of relatedGenres) {
+      if (!dominantGenres.some(dg => dg.includes(genre))) {
+        const songs = songDatabase[genre] || [];
+        const newSongs = songs.filter(song => 
+          !recommendations.some(r => r.title === song.title && r.artist === song.artist) &&
+          !topArtists.some(a => a.name.toLowerCase() === song.artist.toLowerCase())
+        );
+        
+        newSongs.slice(0, 2).forEach(song => {
+          recommendations.push({
+            title: song.title,
+            artist: song.artist,
+            genre: song.genre,
+            year: song.year,
+            reason: 'Expand your musical horizons'
+          });
+        });
+      }
+    }
+  }
+
+  // Limitar a 8 recomendaciones y eliminar duplicados
+  const uniqueRecommendations = recommendations
+    .filter((rec, index, self) => 
+      index === self.findIndex(r => r.title === rec.title && r.artist === rec.artist)
+    )
+    .slice(0, 8);
+
+  return uniqueRecommendations;
+}
+
+async function generateRecommendations(
+  topGenres: Array<{ genre: string; count: number; percentage: number }>,
+  topArtists: Array<{ name: string; trackCount: number }>,
   mood: string,
   energy: number,
-  genreDiversity: number
+  genreDiversity: number,
+  spotifyService: SpotifyService
 ) {
   const similarGenres: string[] = [];
   const moodSuggestions: string[] = [];
-  const artistRecommendations: string[] = [];
 
   // Mapeo avanzado de géneros relacionados (sin usar API de Spotify)
   const genreRelationships: Record<string, string[]> = {
@@ -376,6 +683,8 @@ function generateRecommendations(
 
   return {
     similarGenres: [...new Set(similarGenres)].slice(0, 8), // Limitar a 8 géneros
+    recommendedArtists: generateArtistRecommendations(topGenres, topArtists, mood, genreDiversity),
+    recommendedSongs: generateSongRecommendations(topGenres, topArtists, mood, genreDiversity),
     moodSuggestions: [...new Set(moodSuggestions)].slice(0, 6), // Limitar a 6 sugerencias
     energyLevel,
     // Nuevas recomendaciones

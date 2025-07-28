@@ -310,6 +310,47 @@ export class SpotifyService {
       throw error;
     }
   }
+
+  // Method to search for tracks and get their Spotify URIs
+  async searchTracks(query: string, limit = 5): Promise<Array<{ id: string; name: string; artist: string; uri: string; external_url: string }>> {
+    try {
+      console.log(`🔍 Searching for tracks with query: "${query}"`);
+      
+      const response = await this.api.searchTracks(query, { limit });
+      
+      return response.body.tracks?.items.map(track => ({
+        id: track.id,
+        name: track.name,
+        artist: track.artists[0]?.name || 'Unknown Artist',
+        uri: track.uri,
+        external_url: track.external_urls?.spotify || ''
+      })) || [];
+    } catch (error) {
+      console.error('Error searching tracks:', error);
+      throw error;
+    }
+  }
+
+  // Method to get track details by ID
+  async getTrack(trackId: string): Promise<{ id: string; name: string; artist: string; uri: string; external_url: string } | null> {
+    try {
+      console.log(`🎵 Getting track details for ID: ${trackId}`);
+      
+      const response = await this.api.getTrack(trackId);
+      const track = response.body;
+      
+      return {
+        id: track.id,
+        name: track.name,
+        artist: track.artists[0]?.name || 'Unknown Artist',
+        uri: track.uri,
+        external_url: track.external_urls?.spotify || ''
+      };
+    } catch (error) {
+      console.error('Error getting track:', error);
+      return null;
+    }
+  }
 }
 
 export default spotifyApi; 
