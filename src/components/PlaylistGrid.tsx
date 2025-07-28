@@ -421,12 +421,21 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
                 />
               </label>
               {/* Playlist image */}
-              <div className="relative aspect-square bg-gray-800" style={{ minHeight: '200px' }}>
+              <div className="relative aspect-square bg-gray-800" style={{ border: '2px solid blue', minHeight: '200px' }}>
                 {playlist.images && playlist.images.length > 0 && typeof playlist.images[0].url === 'string' && playlist.images[0].url ? (
                   <img
-                    src={playlist.images[0].url}
+                    src="https://via.placeholder.com/300x300/1DB954/FFFFFF?text=Test"
                     alt={playlist.name}
-                    className="w-full h-full object-cover"
+                    style={{ 
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      border: '2px solid red',
+                      backgroundColor: 'white',
+                      zIndex: 1,
+                      position: 'relative',
+                      display: 'block'
+                    }}
                   />
                 ) : (
                   <img
@@ -435,10 +444,10 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
                     className="w-full h-full object-cover opacity-60"
                   />
                 )}
-                {/* Overlay play/quick actions on hover */}
-                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center">
+                {/* Overlay play/quick actions on hover - TEMPORARILY DISABLED FOR DEBUG */}
+                {/* <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center pointer-events-none">
                   <button
-                    className="opacity-0 group-hover:opacity-100 transform scale-90 group-hover:scale-100 transition-all duration-200 w-12 h-12 bg-[#1DB954] rounded-full flex items-center justify-center shadow-lg"
+                    className="opacity-0 group-hover:opacity-100 transform scale-90 group-hover:scale-100 transition-all duration-200 w-12 h-12 bg-[#1DB954] rounded-full flex items-center justify-center shadow-lg pointer-events-auto"
                     aria-label="Create from this playlist"
                     onClick={() => openCreateModal(playlist)}
                   >
@@ -446,7 +455,7 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
                     </svg>
                   </button>
-                </div>
+                </div> */}
                 {/* Context menu button */}
                 <button
                   ref={el => { menuButtonRefs.current[playlist.id] = el || null; }}
