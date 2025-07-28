@@ -422,21 +422,13 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
               </label>
               {/* Playlist image */}
               <div className="relative aspect-square bg-gray-800">
-                {(() => {
-                  const originalUrl = playlist.images?.[0]?.url;
-                  const cleanUrl = originalUrl?.replace(/^https?:\/\//, '');
-                  console.log(`Playlist "${playlist.name}":`);
-                  console.log('  Original URL:', originalUrl);
-                  console.log('  Clean URL:', cleanUrl);
-                  console.log('  Proxy URL:', `https://api.allorigins.win/raw?url=${encodeURIComponent(originalUrl || '')}`);
-                  return playlist.images && playlist.images.length > 0 && typeof playlist.images[0].url === 'string' && playlist.images[0].url;
-                })() ? (
+                {playlist.images && playlist.images.length > 0 && typeof playlist.images[0].url === 'string' && playlist.images[0].url ? (
                   <img
-                    src={`https://api.allorigins.win/raw?url=${encodeURIComponent(playlist.images[0].url)}`}
+                    src={playlist.images[0].url}
                     alt={playlist.name}
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      console.log(`Proxy failed for playlist "${playlist.name}", falling back to default`);
+                      console.log(`Image failed to load for playlist "${playlist.name}", falling back to default`);
                       e.currentTarget.src = "/globe.svg";
                       e.currentTarget.style.opacity = "0.6";
                     }}
