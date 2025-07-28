@@ -111,7 +111,7 @@ export default function ProfilePage() {
           <p className="text-gray-500 dark:text-gray-400 mb-2 text-center break-all">
             {profile?.email || session?.user?.email || "No email"}
           </p>
-          {profile && (
+          {profile && profile.external_urls?.spotify && (
             <>
               <a
                 href={profile.external_urls.spotify}
