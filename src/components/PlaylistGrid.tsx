@@ -425,6 +425,19 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
                 <div style={{ position: 'absolute', top: '5px', left: '5px', background: 'red', color: 'white', padding: '5px', zIndex: 1000 }}>
                   DEBUG: {playlist.name}
                 </div>
+                <img 
+                  src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzFkYjk1NCIvPgogIDx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPlRFU1Q8L3RleHQ+Cjwvc3ZnPgo="
+                  alt="Test"
+                  style={{ 
+                    position: 'absolute', 
+                    top: '30px', 
+                    left: '5px', 
+                    width: '50px', 
+                    height: '50px',
+                    border: '2px solid green',
+                    zIndex: 999
+                  }}
+                />
                 {playlist.images && playlist.images.length > 0 && typeof playlist.images[0].url === 'string' && playlist.images[0].url ? (
                   <img
                     src={playlist.images[0].url}
