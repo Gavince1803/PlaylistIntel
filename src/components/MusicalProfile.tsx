@@ -50,6 +50,13 @@ export default function MusicalProfile({ playlistId, onClose }: MusicalProfilePr
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<string>('');
   const { showToast } = useToast();
+  
+  // Add playlist selection state
+  const [showAddToPlaylistModal, setShowAddToPlaylistModal] = useState(false);
+  const [selectedSong, setSelectedSong] = useState<{ title: string; artist: string; genre: string; reason: string; year?: number; spotifyUrl?: string } | null>(null);
+  const [userPlaylists, setUserPlaylists] = useState<Array<{ id: string; name: string; tracks: { total: number } }>>([]);
+  const [loadingPlaylists, setLoadingPlaylists] = useState(false);
+  const [addingToPlaylist, setAddingToPlaylist] = useState(false);
 
   // Cargar el perfil musical cuando el componente se monta
   useEffect(() => {
@@ -147,6 +154,86 @@ export default function MusicalProfile({ playlistId, onClose }: MusicalProfilePr
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  // Function to fetch user playlists
+  const fetchUserPlaylists = async () => {
+    try {
+      setLoadingPlaylists(true);
+      const response = await fetch('/api/playlists?limit=50');
+      if (!response.ok) {
+        throw new Error('Failed to fetch playlists');
+      }
+      const data = await response.json();
+      setUserPlaylists(data.playlists || []);
+    } catch (error) {
+      console.error('Error fetching playlists:', error);
+      showToast('Failed to load playlists', 'error');
+    } finally {
+      setLoadingPlaylists(false);
+    }
+  };
+
+  // Function to search for a track and get its URI
+  const searchTrack = async (title: string, artist: string): Promise<string | null> => {
+    try {
+      const query = `${title} ${artist}`;
+      const response = await fetch(`/api/search/tracks?q=${encodeURIComponent(query)}&limit=1`);
+      if (!response.ok) {
+        throw new Error('Failed to search track');
+      }
+      const data = await response.json();
+      return data.tracks?.[0]?.uri || null;
+    } catch (error) {
+      console.error('Error searching track:', error);
+      return null;
+    }
+  };
+
+  // Function to add song to playlist
+  const addSongToPlaylist = async (playlistId: string, song: { title: string; artist: string }) => {
+    try {
+      setAddingToPlaylist(true);
+      
+      // Search for the track to get its URI
+      const trackUri = await searchTrack(song.title, song.artist);
+      if (!trackUri) {
+        throw new Error('Could not find track on Spotify');
+      }
+
+      // Add track to playlist
+      const response = await fetch(`/api/playlists/${playlistId}/add-tracks`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          trackUris: [trackUri]
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to add track to playlist');
+      }
+
+      const result = await response.json();
+      showToast(`Added "${song.title}" to playlist!`, 'success');
+      setShowAddToPlaylistModal(false);
+      setSelectedSong(null);
+    } catch (error: any) {
+      console.error('Error adding song to playlist:', error);
+      showToast(error.message || 'Failed to add song to playlist', 'error');
+    } finally {
+      setAddingToPlaylist(false);
+    }
+  };
+
+  // Function to open add to playlist modal
+  const handleAddToPlaylist = (song: { title: string; artist: string; genre: string; reason: string; year?: number; spotifyUrl?: string }) => {
+    setSelectedSong(song);
+    setShowAddToPlaylistModal(true);
+    fetchUserPlaylists();
   };
 
   // Estado de carga
@@ -358,6 +445,15 @@ export default function MusicalProfile({ playlistId, onClose }: MusicalProfilePr
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="text-[#1DB954] text-xs flex-shrink-0">#{index + 1}</div>
+                      <button
+                        onClick={() => handleAddToPlaylist(song)}
+                        className="text-[#1DB954] hover:text-white transition-colors p-1 rounded"
+                        title="Add to Playlist"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                      </button>
                       {song.spotifyUrl && (
                         <a
                           href={song.spotifyUrl}
@@ -430,6 +526,68 @@ export default function MusicalProfile({ playlistId, onClose }: MusicalProfilePr
           </div>
         )}
       </div>
+
+      {/* Add to Playlist Modal */}
+      {showAddToPlaylistModal && selectedSong && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#232323] rounded-2xl p-6 max-w-md w-full max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-white">Add to Playlist</h3>
+              <button
+                onClick={() => {
+                  setShowAddToPlaylistModal(false);
+                  setSelectedSong(null);
+                }}
+                className="text-gray-400 hover:text-white"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <div className="bg-[#191414] rounded-lg p-3 border border-[#404040]">
+                <div className="text-white font-medium text-sm">{selectedSong.title}</div>
+                <div className="text-[#1DB954] text-xs mt-1">{selectedSong.artist}</div>
+                <div className="text-gray-400 text-xs mt-1">{selectedSong.genre}</div>
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <h4 className="text-white font-semibold mb-3">Select a Playlist</h4>
+              {loadingPlaylists ? (
+                <div className="text-gray-400 text-center py-4">Loading playlists...</div>
+              ) : userPlaylists.length === 0 ? (
+                <div className="text-gray-400 text-center py-4">No playlists found</div>
+              ) : (
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {userPlaylists.map((playlist) => (
+                    <button
+                      key={playlist.id}
+                      onClick={() => addSongToPlaylist(playlist.id, selectedSong)}
+                      disabled={addingToPlaylist}
+                      className="w-full text-left bg-[#282828] hover:bg-[#404040] rounded-lg p-3 transition-colors disabled:opacity-50"
+                    >
+                      <div className="text-white font-medium text-sm">{playlist.name}</div>
+                      <div className="text-gray-400 text-xs">{playlist.tracks.total} tracks</div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {addingToPlaylist && (
+              <div className="text-center py-2">
+                <div className="inline-flex items-center text-[#1DB954]">
+                  <div className="w-4 h-4 border-2 border-[#1DB954] border-t-transparent rounded-full animate-spin mr-2"></div>
+                  Adding to playlist...
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
