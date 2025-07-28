@@ -421,10 +421,13 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
                 />
               </label>
               {/* Playlist image */}
-              <div className="relative aspect-square bg-gray-800">
+              <div className="relative aspect-square bg-gray-800" style={{ border: '5px solid blue', minHeight: '250px', backgroundColor: 'yellow' }}>
+                <div style={{ position: 'absolute', top: '5px', left: '5px', background: 'red', color: 'white', padding: '5px', zIndex: 1000 }}>
+                  DEBUG: {playlist.name}
+                </div>
                 {playlist.images && playlist.images.length > 0 && typeof playlist.images[0].url === 'string' && playlist.images[0].url ? (
                   <img
-                    src="https://via.placeholder.com/300x300/1DB954/FFFFFF?text=Test"
+                    src={playlist.images[0].url}
                     alt={playlist.name}
                     className="w-full h-full object-cover"
                     style={{ 
