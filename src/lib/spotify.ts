@@ -183,88 +183,40 @@ export class SpotifyService {
       const accessToken = this.api.getAccessToken();
       console.log('Access token available:', !!accessToken);
       
-      // Try multiple approaches to create playlist
-      let response;
-      let error;
+      // Use direct API call as the primary method since the library seems to have issues
+      console.log('🎯 Using direct Spotify API call...');
+      const url = `https://api.spotify.com/v1/users/${userId}/playlists`;
       
-      // Approach 1: Try the standard method
-      try {
-        response = await (this.api as any).createPlaylist(userId, name, {
+      const apiResponse = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: name,
           description: description || '',
           public: false
-        });
-        console.log('Approach 1 successful');
-      } catch (err1) {
-        console.log('Approach 1 failed:', err1);
-        error = err1;
-        
-        // Approach 2: Try with different parameter structure
-        try {
-          response = await (this.api as any).createPlaylist(userId, {
-            name: name,
-            description: description || '',
-            public: false
-          });
-          console.log('Approach 2 successful');
-        } catch (err2) {
-          console.log('Approach 2 failed:', err2);
-          error = err2;
-          
-          // Approach 3: Try direct API call
-          try {
-            const url = `https://api.spotify.com/v1/users/${userId}/playlists`;
-            const apiResponse = await fetch(url, {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                name: name,
-                description: description || '',
-                public: false
-              })
-            });
-            
-            if (!apiResponse.ok) {
-              const errorData = await apiResponse.json();
-              throw new Error(`Spotify API error: ${errorData.error?.message || apiResponse.statusText}`);
-            }
-            
-            const data = await apiResponse.json();
-            response = { body: data };
-            console.log('Approach 3 (direct API) successful');
-          } catch (err3) {
-            console.log('Approach 3 failed:', err3);
-            error = err3;
-          }
-        }
+        })
+      });
+      
+      console.log('API Response status:', apiResponse.status);
+      
+      if (!apiResponse.ok) {
+        const errorData = await apiResponse.json().catch(() => ({}));
+        console.error('Spotify API error response:', errorData);
+        throw new Error(`Spotify API error: ${errorData.error?.message || apiResponse.statusText}`);
       }
       
-      console.log('Final response received:', !!response);
-      console.log('Response type:', typeof response);
+      const data = await apiResponse.json();
+      console.log('Spotify API success response:', { id: data.id, name: data.name });
       
-      // Handle the response properly with more detailed logging
-      if (!response) {
-        const errorMessage = error && typeof error === 'object' && 'message' in error 
-          ? (error as any).message 
-          : 'Unknown error';
-        throw new Error(`No response received from Spotify API. Last error: ${errorMessage}`);
+      if (!data.id) {
+        throw new Error('No playlist ID in response');
       }
       
-      if (!response.body) {
-        console.error('Response structure:', JSON.stringify(response, null, 2));
-        throw new Error('Invalid response structure from Spotify API');
-      }
-      
-      const playlistId = response.body.id;
-      if (!playlistId) {
-        console.error('Response body:', JSON.stringify(response.body, null, 2));
-        throw new Error('Failed to create playlist: No ID returned');
-      }
-      
-      console.log('Playlist created successfully:', playlistId);
-      return playlistId;
+      console.log('Playlist created successfully:', data.id);
+      return data.id;
     } catch (error) {
       console.error('Error creating playlist:', error);
       console.error('Error details:', JSON.stringify(error, null, 2));
@@ -274,10 +226,12 @@ export class SpotifyService {
 
   async getCurrentUserId(): Promise<string> {
     try {
+      console.log('🔍 Getting current user info...');
       const response = await this.api.getMe();
+      console.log('✅ User info received:', response.body?.id ? 'ID found' : 'No ID');
       return response.body.id;
     } catch (error) {
-      console.error('Error getting current user ID:', error);
+      console.error('❌ Error getting current user ID:', error);
       throw error;
     }
   }

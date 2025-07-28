@@ -5,21 +5,30 @@ import { authOptions } from '../../auth/authOptions';
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('🎵 Starting playlist creation process...');
+    
     const session = await getServerSession(authOptions);
     if (!session?.accessToken) {
+      console.log('❌ No access token found');
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
     
+    console.log('✅ Session found, parsing request body...');
     const { name, description, trackUris } = await request.json();
+    console.log('📝 Request data:', { name, description, trackUris: trackUris?.length || 0 });
     
     if (!name) {
+      console.log('❌ No playlist name provided');
       return NextResponse.json({ error: 'Playlist name is required' }, { status: 400 });
     }
     
+    console.log('🔧 Creating Spotify service...');
     const spotifyService = new SpotifyService(session.accessToken);
     
     // Get current user ID
+    console.log('👤 Getting current user ID...');
     const userId = await spotifyService.getCurrentUserId();
+    console.log('✅ User ID obtained:', userId);
     
     // Create playlist with better error handling
     let playlistId;
