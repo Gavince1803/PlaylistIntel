@@ -424,13 +424,21 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
               <div className="relative aspect-square bg-gray-800">
                 {playlist.images && playlist.images.length > 0 && typeof playlist.images[0].url === 'string' && playlist.images[0].url ? (
                   <img
-                    src={playlist.images[0].url}
+                    src="https://via.placeholder.com/300x300/1DB954/FFFFFF?text=Test"
                     alt={playlist.name}
                     className="w-full h-full object-cover"
+                    style={{ 
+                      border: '3px solid red',
+                      backgroundColor: 'white',
+                      minHeight: '200px'
+                    }}
                     onError={(e) => {
                       console.log(`Image failed to load for playlist "${playlist.name}", falling back to default`);
                       e.currentTarget.src = "/globe.svg";
                       e.currentTarget.style.opacity = "0.6";
+                    }}
+                    onLoad={() => {
+                      console.log(`✅ Image loaded successfully for playlist "${playlist.name}"`);
                     }}
                   />
                 ) : (
