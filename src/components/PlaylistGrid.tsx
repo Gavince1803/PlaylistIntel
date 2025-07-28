@@ -425,17 +425,15 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
                 {(() => {
                   const originalUrl = playlist.images?.[0]?.url;
                   const cleanUrl = originalUrl?.replace(/^https?:\/\//, '');
-                  console.log(`Playlist "${playlist.name}":`, {
-                    originalUrl,
-                    cleanUrl,
-                    proxyUrl: `https://images.weserv.nl/?url=${encodeURIComponent(cleanUrl || '')}&w=300&h=300&fit=cover`
-                  });
+                  console.log(`Playlist "${playlist.name}":`);
+                  console.log('  Original URL:', originalUrl);
+                  console.log('  Clean URL:', cleanUrl);
+                  console.log('  Proxy URL:', `/api/proxy/image?url=${encodeURIComponent(originalUrl || '')}`);
+                  console.log('  Full proxy URL:', `${window.location.origin}/api/proxy/image?url=${encodeURIComponent(originalUrl || '')}`);
                   return playlist.images && playlist.images.length > 0 && typeof playlist.images[0].url === 'string' && playlist.images[0].url;
                 })() ? (
                   <img
-                    src={`https://images.weserv.nl/?url=${encodeURIComponent(
-                      playlist.images[0].url.replace(/^https?:\/\//, '')
-                    )}&w=300&h=300&fit=cover`}
+                    src={`/api/proxy/image?url=${encodeURIComponent(playlist.images[0].url)}`}
                     alt={playlist.name}
                     className="w-full h-full object-cover"
                     onError={(e) => {
