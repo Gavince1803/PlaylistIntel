@@ -177,11 +177,22 @@ export class SpotifyService {
 
   async createPlaylist(userId: string, name: string, description?: string): Promise<string> {
     try {
-      const response = await (this.api.createPlaylist as any)(userId, name, {
-        description,
+      console.log(`Creating playlist: ${name} for user: ${userId}`);
+      
+      // Use the correct Spotify API method with proper typing
+      const response = await (this.api as any).createPlaylist(userId, name, {
+        description: description || '',
         public: false
-      }) as { body: { id: string } };
-      return response.body.id;
+      });
+      
+      // Handle the response properly
+      const playlistId = response.body?.id;
+      if (!playlistId) {
+        throw new Error('Failed to create playlist: No ID returned');
+      }
+      
+      console.log('Playlist created successfully:', playlistId);
+      return playlistId;
     } catch (error) {
       console.error('Error creating playlist:', error);
       throw error;
