@@ -21,12 +21,36 @@ export async function POST(request: NextRequest) {
     // Get current user ID
     const userId = await spotifyService.getCurrentUserId();
     
-    // Create playlist
-    const playlistId = await spotifyService.createPlaylist(userId, name, description);
+    // Create playlist with better error handling
+    let playlistId;
+    try {
+      playlistId = await spotifyService.createPlaylist(userId, name, description);
+      
+      if (!playlistId) {
+        throw new Error('No playlist ID returned from Spotify API');
+      }
+      
+      console.log('Playlist created successfully with ID:', playlistId);
+    } catch (createError: any) {
+      console.error('Error in createPlaylist:', createError);
+      
+      // Return a more detailed error response
+      return NextResponse.json({ 
+        error: 'Failed to create playlist',
+        details: createError.message,
+        suggestion: 'Please try again or create the playlist manually in Spotify'
+      }, { status: 500 });
+    }
     
     // Add tracks if provided
     if (trackUris && Array.isArray(trackUris) && trackUris.length > 0) {
-      await spotifyService.addTracksToPlaylist(playlistId, trackUris);
+      try {
+        await spotifyService.addTracksToPlaylist(playlistId, trackUris);
+        console.log(`Added ${trackUris.length} tracks to playlist`);
+      } catch (addError: any) {
+        console.error('Error adding tracks to playlist:', addError);
+        // Continue even if adding tracks fails - playlist was created successfully
+      }
     }
     
     return NextResponse.json({ 

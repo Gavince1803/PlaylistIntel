@@ -183,18 +183,73 @@ export class SpotifyService {
       const accessToken = this.api.getAccessToken();
       console.log('Access token available:', !!accessToken);
       
-      // Use the correct Spotify API method with proper error handling
-      const response = await (this.api as any).createPlaylist(userId, name, {
-        description: description || '',
-        public: false
-      });
+      // Try multiple approaches to create playlist
+      let response;
+      let error;
       
-      console.log('Response received:', !!response);
+      // Approach 1: Try the standard method
+      try {
+        response = await (this.api as any).createPlaylist(userId, name, {
+          description: description || '',
+          public: false
+        });
+        console.log('Approach 1 successful');
+      } catch (err1) {
+        console.log('Approach 1 failed:', err1);
+        error = err1;
+        
+        // Approach 2: Try with different parameter structure
+        try {
+          response = await (this.api as any).createPlaylist(userId, {
+            name: name,
+            description: description || '',
+            public: false
+          });
+          console.log('Approach 2 successful');
+        } catch (err2) {
+          console.log('Approach 2 failed:', err2);
+          error = err2;
+          
+          // Approach 3: Try direct API call
+          try {
+            const url = `https://api.spotify.com/v1/users/${userId}/playlists`;
+            const apiResponse = await fetch(url, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                name: name,
+                description: description || '',
+                public: false
+              })
+            });
+            
+            if (!apiResponse.ok) {
+              const errorData = await apiResponse.json();
+              throw new Error(`Spotify API error: ${errorData.error?.message || apiResponse.statusText}`);
+            }
+            
+            const data = await apiResponse.json();
+            response = { body: data };
+            console.log('Approach 3 (direct API) successful');
+          } catch (err3) {
+            console.log('Approach 3 failed:', err3);
+            error = err3;
+          }
+        }
+      }
+      
+      console.log('Final response received:', !!response);
       console.log('Response type:', typeof response);
       
       // Handle the response properly with more detailed logging
       if (!response) {
-        throw new Error('No response received from Spotify API');
+        const errorMessage = error && typeof error === 'object' && 'message' in error 
+          ? (error as any).message 
+          : 'Unknown error';
+        throw new Error(`No response received from Spotify API. Last error: ${errorMessage}`);
       }
       
       if (!response.body) {
