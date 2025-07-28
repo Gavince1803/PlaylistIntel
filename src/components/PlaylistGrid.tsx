@@ -424,7 +424,7 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
               <div className="relative aspect-square bg-gray-800">
                 {playlist.images && playlist.images.length > 0 && typeof playlist.images[0].url === 'string' && playlist.images[0].url ? (
                   <img
-                    src={playlist.images[0].url}
+                    src={`https://images.weserv.nl/?url=${encodeURIComponent(playlist.images[0].url)}&w=300&h=300&fit=cover`}
                     alt={playlist.name}
                     className="w-full h-full object-cover"
                     onError={(e) => {
