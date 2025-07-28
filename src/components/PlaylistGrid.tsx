@@ -274,32 +274,39 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
   return (
     <section className="p-6" aria-label="Your playlists">
       {/* Search and filter bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <input
-          type="text"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Search playlists..."
-          className="w-full sm:w-72 px-4 py-2 rounded-lg bg-[#232323] text-white border border-[#282828] focus:ring-2 focus:ring-[#1DB954] font-sans shadow-sm"
-          aria-label="Search playlists"
-        />
-        <div className="flex gap-2 mt-2 sm:mt-0">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8 p-6">
+        <div className="relative flex-1 max-w-md">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search your playlists..."
+            className="w-full pl-10 pr-4 py-3 rounded-2xl bg-[#2a2a2a] text-white border border-[#282828] focus:ring-2 focus:ring-[#1DB954] focus:border-[#1DB954] font-sans shadow-lg transition-all duration-200 placeholder-gray-400"
+            aria-label="Search playlists"
+          />
+        </div>
+        <div className="flex gap-3">
           <button
-            className={`px-4 py-1.5 rounded-full font-semibold text-sm transition-colors ${typeFilter === 'all' ? 'bg-[#1DB954] text-white' : 'bg-[#232323] text-gray-300 border border-[#282828] hover:bg-[#282828]'}`}
+            className={`px-6 py-3 rounded-2xl font-semibold text-sm transition-all duration-200 shadow-lg ${typeFilter === 'all' ? 'bg-[#1DB954] text-white shadow-[#1DB954]/25' : 'bg-[#2a2a2a] text-gray-300 border border-[#282828] hover:bg-[#282828] hover:border-[#1DB954]/30'}`}
             onClick={() => setTypeFilter('all')}
             aria-pressed={typeFilter === 'all'}
           >
-            All
+            All Playlists
           </button>
           <button
-            className={`px-4 py-1.5 rounded-full font-semibold text-sm transition-colors ${typeFilter === 'mixed' ? 'bg-[#1DB954] text-white' : 'bg-[#232323] text-gray-300 border border-[#282828] hover:bg-[#282828]'}`}
+            className={`px-6 py-3 rounded-2xl font-semibold text-sm transition-all duration-200 shadow-lg ${typeFilter === 'mixed' ? 'bg-[#1DB954] text-white shadow-[#1DB954]/25' : 'bg-[#2a2a2a] text-gray-300 border border-[#282828] hover:bg-[#282828] hover:border-[#1DB954]/30'}`}
             onClick={() => setTypeFilter('mixed')}
             aria-pressed={typeFilter === 'mixed'}
           >
             Mixed
           </button>
           <button
-            className={`px-4 py-1.5 rounded-full font-semibold text-sm transition-colors ${typeFilter === 'regular' ? 'bg-[#1DB954] text-white' : 'bg-[#232323] text-gray-300 border border-[#282828] hover:bg-[#282828]'}`}
+            className={`px-6 py-3 rounded-2xl font-semibold text-sm transition-all duration-200 shadow-lg ${typeFilter === 'regular' ? 'bg-[#1DB954] text-white shadow-[#1DB954]/25' : 'bg-[#2a2a2a] text-gray-300 border border-[#282828] hover:bg-[#282828] hover:border-[#1DB954]/30'}`}
             onClick={() => setTypeFilter('regular')}
             aria-pressed={typeFilter === 'regular'}
           >
@@ -384,14 +391,15 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
       </div>
 
       {/* Playlist grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {filteredPlaylists.map((playlist) => {
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-6">
+        {filteredPlaylists.map((playlist, index) => {
           const badges = getBadges(playlist);
           const selected = selectedIds.includes(playlist.id);
           return (
             <article
               key={playlist.id}
-              className={`bg-[#232323] rounded-2xl shadow-lg border border-[#282828] overflow-hidden group cursor-pointer focus-within:ring-2 focus-within:ring-[#1DB954] outline-none transform transition-all duration-200 hover:scale-[1.03] hover:shadow-2xl active:scale-[0.98] relative ${selected ? 'ring-2 ring-[#1DB954]' : ''}`}
+              className={`bg-gradient-to-br from-[#232323] to-[#2a2a2a] rounded-3xl shadow-xl border border-[#282828] overflow-hidden group cursor-pointer focus-within:ring-2 focus-within:ring-[#1DB954] outline-none transform transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:border-[#1DB954]/30 active:scale-[0.98] relative ${selected ? 'ring-2 ring-[#1DB954] shadow-[#1DB954]/20' : ''}`}
+              style={{ animationDelay: `${index * 50}ms` }}
               tabIndex={0}
               aria-label={`Playlist: ${playlist.name}`}
               onKeyDown={e => {
@@ -479,50 +487,74 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
               </div>
 
               {/* Playlist info */}
-              <div className="p-5">
-                <h3 className="font-bold text-white text-lg mb-1 truncate font-sans">
-                  {playlist.name}
-                </h3>
-                <p className="text-gray-300 text-sm mb-3 line-clamp-2 font-sans">
-                  {playlist.description || 'No description'}
-                </p>
-                <div className="flex items-center justify-between text-xs text-gray-400 font-sans mb-2">
-                  <span>{playlist.tracks.total} tracks • {formatDuration(playlist.tracks.duration_ms || 0)}</span>
-                  <span className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full border border-[#1DB954] shadow-sm bg-[#1DB954]/20 flex items-center justify-center">
-                      <svg className="w-3 h-3 text-[#1DB954]" fill="currentColor" viewBox="0 0 24 24">
+              <div className="p-6">
+                <div className="mb-4">
+                  <h3 className="font-bold text-white text-xl mb-2 truncate font-sans group-hover:text-[#1DB954] transition-colors">
+                    {playlist.name}
+                  </h3>
+                  <p className="text-gray-300 text-sm line-clamp-2 font-sans leading-relaxed">
+                    {playlist.description || 'No description available'}
+                  </p>
+                </div>
+                
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 bg-[#1DB954]/10 rounded-full px-3 py-1">
+                      <svg className="w-4 h-4 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                      </svg>
+                      <span className="text-white font-semibold text-sm">{playlist.tracks.total}</span>
+                    </div>
+                    <div className="flex items-center gap-2 bg-[#1DB954]/10 rounded-full px-3 py-1">
+                      <svg className="w-4 h-4 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="text-white font-semibold text-sm">{formatDuration(playlist.tracks.duration_ms || 0)}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full border-2 border-[#1DB954] shadow-sm bg-[#1DB954]/20 flex items-center justify-center">
+                      <svg className="w-4 h-4 text-[#1DB954]" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
                       </svg>
                     </div>
-                    <span className="truncate max-w-[80px]">{playlist.owner.display_name}</span>
-                  </span>
+                    <span className="text-gray-300 font-medium text-sm truncate max-w-[100px]">{playlist.owner.display_name}</span>
+                  </div>
                 </div>
 
                 {/* Action buttons */}
-                <div className="flex items-center justify-between mt-4 pt-4 border-t border-[#282828]">
-                  <button
-                    className="text-gray-400 hover:text-white text-xs font-semibold font-sans underline ml-4"
-                    aria-label="Show genres in this playlist"
-                    onClick={() => showGenresForPlaylist(playlist)}
-                  >
-                    Show Genres
-                  </button>
-                  <button
-                    className="text-[#1DB954] hover:text-white text-xs font-semibold font-sans underline ml-4"
-                    aria-label="Analyze musical profile"
-                    onClick={() => showMusicalProfile(playlist)}
-                  >
-                    Analyze
-                  </button>
-                  <div className="flex items-center space-x-2">
-                    <button className="p-1 text-gray-400 hover:text-white hover:bg-[#282828] rounded-full" aria-label="Like playlist">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="flex items-center justify-between pt-4 border-t border-[#282828]">
+                  <div className="flex items-center gap-3">
+                    <button
+                      className="flex items-center gap-2 px-4 py-2 bg-[#1DB954]/10 hover:bg-[#1DB954]/20 text-[#1DB954] hover:text-white rounded-xl font-semibold text-sm transition-all duration-200 group/btn"
+                      aria-label="Show genres in this playlist"
+                      onClick={() => showGenresForPlaylist(playlist)}
+                    >
+                      <svg className="w-4 h-4 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                      </svg>
+                      Genres
+                    </button>
+                    <button
+                      className="flex items-center gap-2 px-4 py-2 bg-[#1DB954] hover:bg-[#1ed760] text-white rounded-xl font-semibold text-sm transition-all duration-200 shadow-lg hover:shadow-xl group/btn"
+                      aria-label="Analyze musical profile"
+                      onClick={() => showMusicalProfile(playlist)}
+                    >
+                      <svg className="w-4 h-4 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                      Analyze
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button className="p-2 text-gray-400 hover:text-[#1DB954] hover:bg-[#1DB954]/10 rounded-xl transition-all duration-200" aria-label="Like playlist">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                       </svg>
                     </button>
-                    <button className="p-1 text-gray-400 hover:text-white hover:bg-[#282828] rounded-full" aria-label="More options">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                    <button className="p-2 text-gray-400 hover:text-[#1DB954] hover:bg-[#1DB954]/10 rounded-xl transition-all duration-200" aria-label="Share playlist">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
                       </svg>
                     </button>
                   </div>
