@@ -428,7 +428,7 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
                     alt={playlist.name}
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      console.log(`Image failed to load for playlist "${playlist.name}", falling back to default`);
+                      console.log(`Proxy failed for playlist "${playlist.name}", falling back to default`);
                       e.currentTarget.src = "/globe.svg";
                       e.currentTarget.style.opacity = "0.6";
                     }}
