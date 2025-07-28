@@ -179,15 +179,31 @@ export class SpotifyService {
     try {
       console.log(`Creating playlist: ${name} for user: ${userId}`);
       
-      // Use the correct Spotify API method with proper typing
+      // Log the access token to verify it's valid
+      const accessToken = this.api.getAccessToken();
+      console.log('Access token available:', !!accessToken);
+      
+      // Use a more direct approach with proper error handling
       const response = await (this.api as any).createPlaylist(userId, name, {
         description: description || '',
         public: false
       });
       
-      // Handle the response properly
-      const playlistId = response.body?.id;
+      console.log('Raw response:', response);
+      
+      // Handle the response properly with more detailed logging
+      if (!response) {
+        throw new Error('No response received from Spotify API');
+      }
+      
+      if (!response.body) {
+        console.error('Response structure:', JSON.stringify(response, null, 2));
+        throw new Error('Invalid response structure from Spotify API');
+      }
+      
+      const playlistId = response.body.id;
       if (!playlistId) {
+        console.error('Response body:', JSON.stringify(response.body, null, 2));
         throw new Error('Failed to create playlist: No ID returned');
       }
       
@@ -195,6 +211,7 @@ export class SpotifyService {
       return playlistId;
     } catch (error) {
       console.error('Error creating playlist:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
       throw error;
     }
   }
