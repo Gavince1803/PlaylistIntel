@@ -183,13 +183,14 @@ export class SpotifyService {
       const accessToken = this.api.getAccessToken();
       console.log('Access token available:', !!accessToken);
       
-      // Use a more direct approach with proper error handling
+      // Use the correct Spotify API method with proper error handling
       const response = await (this.api as any).createPlaylist(userId, name, {
         description: description || '',
         public: false
       });
       
-      console.log('Raw response:', response);
+      console.log('Response received:', !!response);
+      console.log('Response type:', typeof response);
       
       // Handle the response properly with more detailed logging
       if (!response) {

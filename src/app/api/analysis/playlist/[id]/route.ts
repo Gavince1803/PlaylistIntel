@@ -86,6 +86,7 @@ export async function GET(
     // Paso 4: Obtener características de audio de los tracks (OPCIONAL)
     let audioFeatures: any[] = [];
     let audioFeaturesMap: Record<string, any> = {};
+    let audioFeaturesAvailable = false;
     
     try {
       const trackIds = tracks.map(track => track.id);
@@ -93,11 +94,17 @@ export async function GET(
       audioFeatures = await spotifyService.getAudioFeatures(trackIds);
       console.log(`✅ Successfully fetched audio features for ${audioFeatures.length} tracks`);
       
-      audioFeatures.forEach(feature => {
-        audioFeaturesMap[feature.id] = feature;
-      });
+      if (audioFeatures.length > 0) {
+        audioFeaturesAvailable = true;
+        audioFeatures.forEach(feature => {
+          audioFeaturesMap[feature.id] = feature;
+        });
+      } else {
+        console.log('⚠️ No audio features returned, using genre-based analysis');
+      }
     } catch (error) {
-      console.log('⚠️ Audio features not available (Spotify restriction), continuing with genre analysis only');
+      console.log('⚠️ Audio features not available (Spotify restriction), using genre-based analysis');
+      audioFeaturesAvailable = false;
     }
 
     // Paso 5: Análisis de géneros
@@ -145,7 +152,7 @@ export async function GET(
       mood: 'mixed' as 'energetic' | 'chill' | 'happy' | 'melancholic' | 'mixed'
     };
 
-    if (audioFeatures.length > 0) {
+    if (audioFeaturesAvailable && audioFeatures.length > 0) {
       const analyzableTracks = tracks.filter(track => audioFeaturesMap[track.id]);
       if (analyzableTracks.length > 0) {
         const audioFeaturesList = analyzableTracks.map(track => audioFeaturesMap[track.id]);
@@ -164,10 +171,12 @@ export async function GET(
             average(audioFeaturesList.map(f => f.tempo))
           )
         };
+        console.log('✅ Audio analysis completed with actual data');
       }
     } else {
       // Determinar mood basado en géneros si no hay audio features
       audioAnalysis.mood = determineMoodFromGenres(topGenres);
+      console.log('⚠️ Using genre-based mood analysis due to audio features restriction');
     }
 
     // Paso 7: Análisis de artistas
