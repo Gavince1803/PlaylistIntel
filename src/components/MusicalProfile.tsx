@@ -384,9 +384,21 @@ export default function MusicalProfile({ playlistId, onClose }: MusicalProfilePr
   }
 
   return (
-    <div className="bg-[#232323] rounded-2xl shadow-lg border border-[#282828] overflow-hidden custom-scrollbar max-h-[90vh] overflow-y-auto">
+    <div className="bg-[#232323] rounded-2xl shadow-lg border border-[#282828] overflow-hidden max-h-[90vh] overflow-y-auto">
       {/* Header */}
-      <div className="bg-gradient-to-r from-[#1DB954] to-[#1ed760] p-4 sm:p-6">
+      <div className="bg-gradient-to-r from-[#1DB954] to-[#1ed760] p-4 sm:p-6 relative">
+        {/* Close button */}
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-white hover:text-gray-200 transition-colors p-2 rounded-lg hover:bg-white/10"
+            aria-label="Close musical profile"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xl sm:text-2xl font-bold text-white">Musical Profile</h2>
