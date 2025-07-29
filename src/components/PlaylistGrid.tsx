@@ -545,89 +545,73 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
               </div>
 
               {/* Playlist info */}
-              <div className="p-6 flex flex-col h-full min-h-0">
-                <div className="mb-4 flex-1 min-h-0">
-                  <h3 className="font-bold text-white text-xl mb-2 truncate font-sans group-hover:text-[#1DB954] transition-colors">
-                    {playlist.name}
-                  </h3>
-                  <p className="text-gray-300 text-sm line-clamp-2 font-sans leading-relaxed mb-4">
-                    {playlist.description || 'No description available'}
-                  </p>
-                  
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1 bg-[#1DB954]/10 rounded-full px-2 py-1">
-                        <svg className="w-3 h-3 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-                        </svg>
-                        <span className="text-white font-semibold text-xs">{playlist.tracks.total}</span>
-                      </div>
-                      <div className="flex items-center gap-1 bg-[#1DB954]/10 rounded-full px-2 py-1">
-                        <svg className="w-3 h-3 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span className="text-white font-semibold text-xs">{formatDuration(playlist.tracks.duration_ms || 0)}</span>
-                      </div>
+              <div className="p-6">
+                <h3 className="font-bold text-white text-xl mb-2 truncate font-sans group-hover:text-[#1DB954] transition-colors">
+                  {playlist.name}
+                </h3>
+                <p className="text-gray-300 text-sm line-clamp-2 font-sans leading-relaxed mb-4">
+                  {playlist.description || 'No description available'}
+                </p>
+                
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 bg-[#1DB954]/10 rounded-full px-2 py-1">
+                      <svg className="w-3 h-3 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                      </svg>
+                      <span className="text-white font-semibold text-xs">{playlist.tracks.total}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full border-2 border-[#1DB954] shadow-sm bg-[#1DB954]/20 flex items-center justify-center">
-                        <svg className="w-3 h-3 text-[#1DB954]" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                        </svg>
-                      </div>
-                      <span className="text-gray-300 font-medium text-xs truncate max-w-[80px]">{playlist.owner.display_name}</span>
+                    <div className="flex items-center gap-1 bg-[#1DB954]/10 rounded-full px-2 py-1">
+                      <svg className="w-3 h-3 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="text-white font-semibold text-xs">{formatDuration(playlist.tracks.duration_ms || 0)}</span>
                     </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full border-2 border-[#1DB954] shadow-sm bg-[#1DB954]/20 flex items-center justify-center">
+                      <svg className="w-3 h-3 text-[#1DB954]" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                      </svg>
+                    </div>
+                    <span className="text-gray-300 font-medium text-xs truncate max-w-[80px]">{playlist.owner.display_name}</span>
                   </div>
                 </div>
 
-                {/* Action buttons */}
-                <div className="flex items-center justify-between pt-4 border-t border-[#282828] mt-auto relative z-10">
-                  <div className="flex items-center gap-2">
+                {/* Action buttons - SIMPLIFIED */}
+                <div className="pt-4 border-t border-[#282828] debug-buttons">
+                  <div className="flex items-center gap-2 mb-2">
                     <button
-                      className="flex items-center gap-1 px-3 py-1.5 bg-[#1DB954]/10 hover:bg-[#1DB954]/20 text-[#1DB954] hover:text-white rounded-lg font-semibold text-xs transition-all duration-200 group/btn relative z-10"
-                      aria-label="Show genres in this playlist"
+                      className="px-3 py-2 bg-red-500 text-white rounded-lg font-semibold text-sm"
                       onClick={(e) => {
                         e.stopPropagation();
                         showGenresForPlaylist(playlist);
                       }}
                     >
-                      <svg className="w-3 h-3 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                      </svg>
-                      Genres
+                      🔍 Genres
                     </button>
                     <button
-                      className="flex items-center gap-1 px-3 py-1.5 bg-[#1DB954] hover:bg-[#1ed760] text-white rounded-lg font-semibold text-xs transition-all duration-200 shadow-md hover:shadow-lg group/btn relative z-10"
-                      aria-label="Analyze musical profile"
+                      className="px-3 py-2 bg-blue-500 text-white rounded-lg font-semibold text-sm"
                       onClick={(e) => {
                         e.stopPropagation();
                         showMusicalProfile(playlist);
                       }}
                     >
-                      <svg className="w-3 h-3 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                      </svg>
-                      Analyze
+                      📊 Analyze
                     </button>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-2">
                     <button 
-                      className="p-1.5 text-gray-400 hover:text-[#1DB954] hover:bg-[#1DB954]/10 rounded-lg transition-all duration-200 relative z-10" 
-                      aria-label="Like playlist"
+                      className="px-2 py-2 bg-gray-500 text-white rounded-lg"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                      </svg>
+                      ❤️
                     </button>
                     <button 
-                      className="p-1.5 text-gray-400 hover:text-[#1DB954] hover:bg-[#1DB954]/10 rounded-lg transition-all duration-200 relative z-10" 
-                      aria-label="Share playlist"
+                      className="px-2 py-2 bg-gray-500 text-white rounded-lg"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
-                      </svg>
+                      📤
                     </button>
                   </div>
                 </div>

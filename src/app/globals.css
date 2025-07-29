@@ -197,8 +197,11 @@ html {
 
 /* Ensure buttons are visible */
 button {
-  position: relative;
-  z-index: 1;
+  position: relative !important;
+  z-index: 10 !important;
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 /* Fix for any potential z-index issues */
@@ -208,4 +211,10 @@ button {
 
 .absolute {
   position: absolute;
+}
+
+/* Debug styles to make sure buttons are visible */
+.debug-buttons button {
+  background: red !important;
+  border: 2px solid yellow !important;
 }
