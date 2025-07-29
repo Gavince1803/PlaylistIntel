@@ -505,32 +505,7 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
                 <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center pointer-events-none">
 
                 </div>
-                {/* Context menu button */}
-                <button
-                  ref={el => { menuButtonRefs.current[playlist.id] = el || null; }}
-                  className="absolute top-2 right-2 z-10 p-2 rounded-full bg-[#232323]/80 text-gray-300 hover:text-white hover:bg-[#282828] focus:ring-2 focus:ring-[#1DB954] transition-colors"
-                  aria-label="More options"
-                  tabIndex={0}
-                  onClick={e => {
-                    e.stopPropagation();
-                    setMenuOpenId(menuOpenId === playlist.id ? null : playlist.id);
-                  }}
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <circle cx="5" cy="12" r="2" />
-                    <circle cx="12" cy="12" r="2" />
-                    <circle cx="19" cy="12" r="2" />
-                  </svg>
-                </button>
-                {menuOpenId === playlist.id && (
-                  <PlaylistContextMenu
-                    onEdit={() => handleEdit(playlist)}
-                    onDelete={() => handleDelete(playlist)}
-                    onShare={() => handleShare(playlist)}
-                    onClose={() => setMenuOpenId(null)}
-                    anchorRef={{ current: menuButtonRefs.current[playlist.id] }}
-                  />
-                )}
+
                 {/* Badges */}
                 <div className="absolute left-2 bottom-2 flex flex-wrap gap-2 z-10">
                   {badges.map(badge => (
@@ -627,8 +602,33 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
                       </svg>
                     </button>
+                    <button
+                      ref={el => { menuButtonRefs.current[playlist.id] = el || null; }}
+                      className="p-1.5 text-gray-400 hover:text-[#1DB954] hover:bg-[#1DB954]/10 rounded-lg transition-all duration-200 relative z-10 hover:shadow-md"
+                      aria-label="More options"
+                      tabIndex={0}
+                      onClick={e => {
+                        e.stopPropagation();
+                        setMenuOpenId(menuOpenId === playlist.id ? null : playlist.id);
+                      }}
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <circle cx="5" cy="12" r="2" />
+                        <circle cx="12" cy="12" r="2" />
+                        <circle cx="19" cy="12" r="2" />
+                      </svg>
+                    </button>
                   </div>
                 </div>
+                {menuOpenId === playlist.id && (
+                  <PlaylistContextMenu
+                    onEdit={() => handleEdit(playlist)}
+                    onDelete={() => handleDelete(playlist)}
+                    onShare={() => handleShare(playlist)}
+                    onClose={() => setMenuOpenId(null)}
+                    anchorRef={{ current: menuButtonRefs.current[playlist.id] }}
+                  />
+                )}
               </div>
             </article>
           );
