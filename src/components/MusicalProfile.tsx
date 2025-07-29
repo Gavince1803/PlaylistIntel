@@ -384,7 +384,7 @@ export default function MusicalProfile({ playlistId, onClose }: MusicalProfilePr
   }
 
   return (
-    <div className="bg-[#232323] rounded-2xl shadow-lg border border-[#282828] overflow-hidden max-h-[90vh] overflow-y-auto">
+    <div className="bg-[#232323] rounded-2xl shadow-lg border border-[#282828] overflow-hidden">
       {/* Header */}
       <div className="bg-gradient-to-r from-[#1DB954] to-[#1ed760] p-4 sm:p-6 relative">
         {/* Close button */}
