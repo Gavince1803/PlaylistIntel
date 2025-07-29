@@ -554,10 +554,10 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
                 </div>
 
                 {/* Action buttons */}
-                <div className="flex items-center justify-between pt-4 border-t border-[#282828] mt-auto relative z-10">
-                  <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between pt-4 border-t border-[#282828] mt-auto relative z-10 min-h-[40px]">
+                  <div className="flex items-center gap-2">
                     <button
-                      className="flex items-center gap-1 px-3 py-1.5 bg-[#1DB954]/10 hover:bg-[#1DB954]/20 text-[#1DB954] hover:text-white rounded-lg font-semibold text-xs transition-all duration-200 group/btn relative z-10 shadow-md hover:shadow-lg"
+                      className="flex items-center gap-1 px-2 py-1 bg-[#1DB954]/10 hover:bg-[#1DB954]/20 text-[#1DB954] hover:text-white rounded-lg font-semibold text-xs transition-all duration-200 group/btn relative z-10 shadow-md hover:shadow-lg"
                       aria-label="Show genres in this playlist"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -570,7 +570,7 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
                       Genres
                     </button>
                     <button
-                      className="flex items-center gap-1 px-3 py-1.5 bg-[#1DB954] hover:bg-[#1ed760] text-white rounded-lg font-semibold text-xs transition-all duration-200 shadow-md hover:shadow-xl group/btn relative z-10"
+                      className="flex items-center gap-1 px-2 py-1 bg-[#1DB954] hover:bg-[#1ed760] text-white rounded-lg font-semibold text-xs transition-all duration-200 shadow-md hover:shadow-xl group/btn relative z-10"
                       aria-label="Analyze musical profile"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -583,7 +583,7 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
                       Analyze
                     </button>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     <button 
                       className="p-1.5 text-gray-400 hover:text-[#1DB954] hover:bg-[#1DB954]/10 rounded-lg transition-all duration-200 relative z-10 hover:shadow-md" 
                       aria-label="Like playlist"
@@ -591,15 +591,6 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                      </svg>
-                    </button>
-                    <button 
-                      className="p-1.5 text-gray-400 hover:text-[#1DB954] hover:bg-[#1DB954]/10 rounded-lg transition-all duration-200 relative z-10 hover:shadow-md" 
-                      aria-label="Share playlist"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
                       </svg>
                     </button>
                     <button
