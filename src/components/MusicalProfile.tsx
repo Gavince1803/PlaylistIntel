@@ -384,7 +384,7 @@ export default function MusicalProfile({ playlistId, onClose }: MusicalProfilePr
   }
 
   return (
-    <div className="bg-[#232323] rounded-2xl shadow-lg border border-[#282828] overflow-hidden">
+    <div className="bg-[#232323] rounded-2xl shadow-lg border border-[#282828] overflow-hidden custom-scrollbar max-h-[90vh] overflow-y-auto">
       {/* Header */}
       <div className="bg-gradient-to-r from-[#1DB954] to-[#1ed760] p-4 sm:p-6">
         <div className="flex items-center justify-between">

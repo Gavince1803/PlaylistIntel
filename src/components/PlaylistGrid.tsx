@@ -546,14 +546,14 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
 
               {/* Playlist info */}
               <div className="p-6">
-                <h3 className="font-bold text-white text-xl mb-2 truncate font-sans group-hover:text-[#1DB954] transition-colors">
+                <h3 className="font-bold text-white text-xl mb-3 truncate font-sans group-hover:text-[#1DB954] transition-colors">
                   {playlist.name}
                 </h3>
-                <p className="text-gray-300 text-sm line-clamp-2 font-sans leading-relaxed mb-4">
+                <p className="text-gray-300 text-sm line-clamp-2 font-sans leading-relaxed mb-6">
                   {playlist.description || 'No description available'}
                 </p>
                 
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-1 bg-[#1DB954]/10 rounded-full px-2 py-1">
                       <svg className="w-3 h-3 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -580,9 +580,9 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
 
                 {/* Action buttons */}
                 <div className="flex items-center justify-between pt-4 border-t border-[#282828] mt-auto relative z-10">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <button
-                      className="flex items-center gap-1 px-3 py-1.5 bg-[#1DB954]/10 hover:bg-[#1DB954]/20 text-[#1DB954] hover:text-white rounded-lg font-semibold text-xs transition-all duration-200 group/btn relative z-10 shadow-md"
+                      className="flex items-center gap-1 px-3 py-1.5 bg-[#1DB954]/10 hover:bg-[#1DB954]/20 text-[#1DB954] hover:text-white rounded-lg font-semibold text-xs transition-all duration-200 group/btn relative z-10 shadow-md hover:shadow-lg"
                       aria-label="Show genres in this playlist"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -595,7 +595,7 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
                       Genres
                     </button>
                     <button
-                      className="flex items-center gap-1 px-3 py-1.5 bg-[#1DB954] hover:bg-[#1ed760] text-white rounded-lg font-semibold text-xs transition-all duration-200 shadow-md hover:shadow-lg group/btn relative z-10"
+                      className="flex items-center gap-1 px-3 py-1.5 bg-[#1DB954] hover:bg-[#1ed760] text-white rounded-lg font-semibold text-xs transition-all duration-200 shadow-md hover:shadow-xl group/btn relative z-10"
                       aria-label="Analyze musical profile"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -608,9 +608,9 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
                       Analyze
                     </button>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-2">
                     <button 
-                      className="p-1.5 text-gray-400 hover:text-[#1DB954] hover:bg-[#1DB954]/10 rounded-lg transition-all duration-200 relative z-10" 
+                      className="p-1.5 text-gray-400 hover:text-[#1DB954] hover:bg-[#1DB954]/10 rounded-lg transition-all duration-200 relative z-10 hover:shadow-md" 
                       aria-label="Like playlist"
                       onClick={(e) => e.stopPropagation()}
                     >
@@ -619,7 +619,7 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
                       </svg>
                     </button>
                     <button 
-                      className="p-1.5 text-gray-400 hover:text-[#1DB954] hover:bg-[#1DB954]/10 rounded-lg transition-all duration-200 relative z-10" 
+                      className="p-1.5 text-gray-400 hover:text-[#1DB954] hover:bg-[#1DB954]/10 rounded-lg transition-all duration-200 relative z-10 hover:shadow-md" 
                       aria-label="Share playlist"
                       onClick={(e) => e.stopPropagation()}
                     >

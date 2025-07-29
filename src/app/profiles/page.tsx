@@ -350,8 +350,8 @@ export default function ProfilesPage() {
                   </button>
                 </div>
 
-                <div className="space-y-3 mb-4">
-                  <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-4 mb-6">
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="bg-[#232323]/50 rounded-lg p-2 border border-[#282828]">
                       <div className="flex items-center gap-1 mb-1">
                         <svg className="w-3 h-3 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -394,10 +394,10 @@ export default function ProfilesPage() {
                   </div>
                 </div>
 
-                <div className="pt-3 border-t border-[#404040] mt-auto">
-                  <button className="w-full bg-[#1DB954] hover:bg-[#1ed760] text-white font-semibold py-2 px-3 rounded-lg transition-all duration-200 text-xs shadow-md hover:shadow-lg group/btn">
-                    <span className="flex items-center justify-center gap-1">
-                      <svg className="w-3 h-3 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="pt-4 border-t border-[#404040] mt-auto">
+                  <button className="w-full bg-[#1DB954] hover:bg-[#1ed760] text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 text-sm shadow-md hover:shadow-xl group/btn">
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="w-4 h-4 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
