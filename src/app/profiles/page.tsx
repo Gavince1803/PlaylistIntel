@@ -187,11 +187,11 @@ export default function ProfilesPage() {
             {savedProfiles.map((profile, index) => (
               <div
                 key={profile.id}
-                className="bg-gradient-to-br from-[#282828] to-[#2a2a2a] rounded-3xl p-6 hover:bg-gradient-to-br hover:from-[#333333] hover:to-[#353535] transition-all duration-300 cursor-pointer group shadow-xl hover:shadow-2xl hover:scale-[1.02] border border-[#282828] hover:border-[#1DB954]/30"
+                className="bg-gradient-to-br from-[#282828] to-[#2a2a2a] rounded-3xl p-6 hover:bg-gradient-to-br hover:from-[#333333] hover:to-[#353535] transition-all duration-300 cursor-pointer group shadow-xl hover:shadow-2xl hover:scale-[1.02] border border-[#282828] hover:border-[#1DB954]/30 flex flex-col h-full"
                 style={{ animationDelay: `${index * 100}ms` }}
                 onClick={() => setSelectedProfile(profile.playlistId)}
               >
-                <div className="flex items-start justify-between mb-6">
+                <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-4">
                     {profile.playlistImage ? (
                       <div className="relative">
@@ -248,41 +248,41 @@ export default function ProfilesPage() {
                   </button>
                 </div>
 
-                <div className="space-y-4 mb-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-[#232323]/50 rounded-xl p-3 border border-[#282828]">
-                      <div className="flex items-center gap-2 mb-1">
-                        <svg className="w-4 h-4 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="space-y-3 mb-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-[#232323]/50 rounded-lg p-2 border border-[#282828]">
+                      <div className="flex items-center gap-1 mb-1">
+                        <svg className="w-3 h-3 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                         </svg>
                         <span className="text-gray-400 text-xs">Género</span>
                       </div>
-                      <span className="text-white font-semibold text-sm capitalize">
+                      <span className="text-white font-semibold text-xs capitalize">
                         {profile.dominantGenre}
                       </span>
                     </div>
                     
-                    <div className="bg-[#232323]/50 rounded-xl p-3 border border-[#282828]">
-                      <div className="flex items-center gap-2 mb-1">
-                        <svg className="w-4 h-4 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="bg-[#232323]/50 rounded-lg p-2 border border-[#282828]">
+                      <div className="flex items-center gap-1 mb-1">
+                        <svg className="w-3 h-3 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <span className="text-gray-400 text-xs">Mood</span>
                       </div>
-                      <span className={`font-semibold text-sm capitalize ${getMoodColor(profile.mood)}`}>
+                      <span className={`font-semibold text-xs capitalize ${getMoodColor(profile.mood)}`}>
                         {profile.mood}
                       </span>
                     </div>
                   </div>
                   
-                  <div className="bg-[#232323]/50 rounded-xl p-3 border border-[#282828]">
-                    <div className="flex items-center gap-2 mb-1">
-                      <svg className="w-4 h-4 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="bg-[#232323]/50 rounded-lg p-2 border border-[#282828]">
+                    <div className="flex items-center gap-1 mb-1">
+                      <svg className="w-3 h-3 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                       </svg>
                       <span className="text-gray-400 text-xs">Energía</span>
                     </div>
-                    <span className={`font-semibold text-sm capitalize ${getEnergyColor(profile.energyLevel)}`}>
+                    <span className={`font-semibold text-xs capitalize ${getEnergyColor(profile.energyLevel)}`}>
                       {profile.energyLevel}
                     </span>
                   </div>
@@ -292,14 +292,14 @@ export default function ProfilesPage() {
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-[#404040]">
-                  <button className="w-full bg-[#1DB954] hover:bg-[#1ed760] text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 text-sm shadow-lg hover:shadow-xl group/btn">
-                    <span className="flex items-center justify-center gap-2">
-                      <svg className="w-4 h-4 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="pt-3 border-t border-[#404040] mt-auto">
+                  <button className="w-full bg-[#1DB954] hover:bg-[#1ed760] text-white font-semibold py-2 px-3 rounded-lg transition-all duration-200 text-xs shadow-md hover:shadow-lg group/btn">
+                    <span className="flex items-center justify-center gap-1">
+                      <svg className="w-3 h-3 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
-                      Ver Análisis Completo
+                      Ver Análisis
                     </span>
                   </button>
                 </div>
