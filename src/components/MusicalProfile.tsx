@@ -143,7 +143,7 @@ export default function MusicalProfile({ playlistId, onClose }: MusicalProfilePr
       }
       
       localStorage.setItem('spotify-musical-profiles', JSON.stringify(profiles));
-      showToast('Perfil guardado en tu biblioteca', 'success');
+              showToast('Profile saved to your library', 'success');
     } catch (error) {
       console.error('Error saving profile:', error);
     }
