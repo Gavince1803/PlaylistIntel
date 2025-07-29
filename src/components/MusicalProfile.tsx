@@ -613,17 +613,7 @@ export default function MusicalProfile({ playlistId, onClose }: MusicalProfilePr
           </div>
         </section>
 
-        {/* Close button */}
-        {onClose && (
-          <div className="flex justify-end pt-4">
-            <button
-              onClick={onClose}
-              className="bg-[#404040] hover:bg-[#505050] text-white px-4 sm:px-6 py-2 rounded-lg font-semibold transition-colors text-sm sm:text-base"
-            >
-              Close
-            </button>
-          </div>
-        )}
+
       </div>
 
       {/* Add to Playlist Modal */}

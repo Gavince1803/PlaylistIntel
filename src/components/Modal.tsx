@@ -46,13 +46,7 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
           animation: 'modalEnter 0.3s ease-out forwards'
         }}
       >
-        <button
-          onClick={onClose}
-          className="absolute top-2 right-2 sm:top-4 sm:right-4 text-gray-400 hover:text-white text-2xl font-bold focus:outline-none p-2"
-          aria-label="Close modal"
-        >
-          &times;
-        </button>
+
         {title && <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">{title}</h2>}
         <div className="overflow-y-auto max-h-[calc(90vh-120px)] modal-scrollbar">
           {children}
