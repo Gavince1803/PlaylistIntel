@@ -194,3 +194,18 @@ html {
 .checkbox-hover:active {
   transform: scale(0.95);
 }
+
+/* Ensure buttons are visible */
+button {
+  position: relative;
+  z-index: 1;
+}
+
+/* Fix for any potential z-index issues */
+.relative {
+  position: relative;
+}
+
+.absolute {
+  position: absolute;
+}
