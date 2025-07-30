@@ -156,12 +156,12 @@ export default function SettingsPage() {
                 </div>
                 <button
                   onClick={() => handleNotificationChange('email')}
-                  className={`w-12 h-6 rounded-full transition-colors ${
-                    settings.notifications.email ? 'bg-[#1DB954]' : 'bg-[#404040]'
+                  className={`relative w-14 h-7 rounded-full transition-all duration-300 ${
+                    settings.notifications.email ? 'bg-[#1DB954] shadow-lg shadow-[#1DB954]/30' : 'bg-[#404040]'
                   }`}
                 >
-                  <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
-                    settings.notifications.email ? 'translate-x-6' : 'translate-x-0'
+                  <div className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full transition-all duration-300 shadow-md ${
+                    settings.notifications.email ? 'translate-x-7' : 'translate-x-0'
                   }`} />
                 </button>
               </div>
@@ -173,12 +173,12 @@ export default function SettingsPage() {
                 </div>
                 <button
                   onClick={() => handleNotificationChange('push')}
-                  className={`w-12 h-6 rounded-full transition-colors ${
-                    settings.notifications.push ? 'bg-[#1DB954]' : 'bg-[#404040]'
+                  className={`relative w-14 h-7 rounded-full transition-all duration-300 ${
+                    settings.notifications.push ? 'bg-[#1DB954] shadow-lg shadow-[#1DB954]/30' : 'bg-[#404040]'
                   }`}
                 >
-                  <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
-                    settings.notifications.push ? 'translate-x-6' : 'translate-x-0'
+                  <div className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full transition-all duration-300 shadow-md ${
+                    settings.notifications.push ? 'translate-x-7' : 'translate-x-0'
                   }`} />
                 </button>
               </div>
@@ -190,12 +190,12 @@ export default function SettingsPage() {
                 </div>
                 <button
                   onClick={() => handleNotificationChange('recommendations')}
-                  className={`w-12 h-6 rounded-full transition-colors ${
-                    settings.notifications.recommendations ? 'bg-[#1DB954]' : 'bg-[#404040]'
+                  className={`relative w-14 h-7 rounded-full transition-all duration-300 ${
+                    settings.notifications.recommendations ? 'bg-[#1DB954] shadow-lg shadow-[#1DB954]/30' : 'bg-[#404040]'
                   }`}
                 >
-                  <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
-                    settings.notifications.recommendations ? 'translate-x-6' : 'translate-x-0'
+                  <div className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full transition-all duration-300 shadow-md ${
+                    settings.notifications.recommendations ? 'translate-x-7' : 'translate-x-0'
                   }`} />
                 </button>
               </div>
@@ -225,12 +225,12 @@ export default function SettingsPage() {
                 </div>
                 <button
                   onClick={() => handlePrivacyChange('showListeningHistory')}
-                  className={`w-12 h-6 rounded-full transition-colors ${
-                    settings.privacy.showListeningHistory ? 'bg-[#1DB954]' : 'bg-[#404040]'
+                  className={`relative w-14 h-7 rounded-full transition-all duration-300 ${
+                    settings.privacy.showListeningHistory ? 'bg-[#1DB954] shadow-lg shadow-[#1DB954]/30' : 'bg-[#404040]'
                   }`}
                 >
-                  <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
-                    settings.privacy.showListeningHistory ? 'translate-x-6' : 'translate-x-0'
+                  <div className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full transition-all duration-300 shadow-md ${
+                    settings.privacy.showListeningHistory ? 'translate-x-7' : 'translate-x-0'
                   }`} />
                 </button>
               </div>
@@ -242,12 +242,12 @@ export default function SettingsPage() {
                 </div>
                 <button
                   onClick={() => handlePrivacyChange('allowAnalytics')}
-                  className={`w-12 h-6 rounded-full transition-colors ${
-                    settings.privacy.allowAnalytics ? 'bg-[#1DB954]' : 'bg-[#404040]'
+                  className={`relative w-14 h-7 rounded-full transition-all duration-300 ${
+                    settings.privacy.allowAnalytics ? 'bg-[#1DB954] shadow-lg shadow-[#1DB954]/30' : 'bg-[#404040]'
                   }`}
                 >
-                  <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
-                    settings.privacy.allowAnalytics ? 'translate-x-6' : 'translate-x-0'
+                  <div className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full transition-all duration-300 shadow-md ${
+                    settings.privacy.allowAnalytics ? 'translate-x-7' : 'translate-x-0'
                   }`} />
                 </button>
               </div>
@@ -260,27 +260,41 @@ export default function SettingsPage() {
             <div className="space-y-6">
               <div>
                 <p className="text-white font-medium mb-2">Theme</p>
-                <select
-                  value={settings.preferences.theme}
-                  onChange={(e) => handlePreferenceChange('theme', e.target.value)}
-                  className="w-full px-4 py-2 bg-[#404040] text-white rounded-lg border border-[#282828] focus:ring-2 focus:ring-[#1DB954] focus:border-[#1DB954]"
-                >
-                  <option value="dark">Dark</option>
-                  <option value="light">Light</option>
-                  <option value="auto">Auto</option>
-                </select>
+                <div className="relative">
+                  <select
+                    value={settings.preferences.theme}
+                    onChange={(e) => handlePreferenceChange('theme', e.target.value)}
+                    className="w-full px-4 py-3 bg-[#404040] text-white rounded-xl border border-[#282828] focus:ring-2 focus:ring-[#1DB954] focus:border-[#1DB954] appearance-none cursor-pointer transition-all duration-200 hover:border-[#1DB954]/50"
+                  >
+                    <option value="dark">🌙 Dark</option>
+                    <option value="light">☀️ Light</option>
+                    <option value="auto">🔄 Auto</option>
+                  </select>
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
               </div>
 
               <div>
                 <p className="text-white font-medium mb-2">Language</p>
-                <select
-                  value={settings.preferences.language}
-                  onChange={(e) => handlePreferenceChange('language', e.target.value)}
-                  className="w-full px-4 py-2 bg-[#404040] text-white rounded-lg border border-[#282828] focus:ring-2 focus:ring-[#1DB954] focus:border-[#1DB954]"
-                >
-                  <option value="en">English</option>
-                  <option value="es">Español</option>
-                </select>
+                <div className="relative">
+                  <select
+                    value={settings.preferences.language}
+                    onChange={(e) => handlePreferenceChange('language', e.target.value)}
+                    className="w-full px-4 py-3 bg-[#404040] text-white rounded-xl border border-[#282828] focus:ring-2 focus:ring-[#1DB954] focus:border-[#1DB954] appearance-none cursor-pointer transition-all duration-200 hover:border-[#1DB954]/50"
+                  >
+                    <option value="en">🇺🇸 English</option>
+                    <option value="es">🇪🇸 Español</option>
+                  </select>
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
               </div>
 
               <div className="flex items-center justify-between">
@@ -290,12 +304,12 @@ export default function SettingsPage() {
                 </div>
                 <button
                   onClick={() => handlePreferenceChange('autoSaveProfiles')}
-                  className={`w-12 h-6 rounded-full transition-colors ${
-                    settings.preferences.autoSaveProfiles ? 'bg-[#1DB954]' : 'bg-[#404040]'
+                  className={`relative w-14 h-7 rounded-full transition-all duration-300 ${
+                    settings.preferences.autoSaveProfiles ? 'bg-[#1DB954] shadow-lg shadow-[#1DB954]/30' : 'bg-[#404040]'
                   }`}
                 >
-                  <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
-                    settings.preferences.autoSaveProfiles ? 'translate-x-6' : 'translate-x-0'
+                  <div className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full transition-all duration-300 shadow-md ${
+                    settings.preferences.autoSaveProfiles ? 'translate-x-7' : 'translate-x-0'
                   }`} />
                 </button>
               </div>
@@ -306,8 +320,11 @@ export default function SettingsPage() {
           <div className="flex justify-end">
             <button
               onClick={saveSettings}
-              className="bg-[#1DB954] hover:bg-[#1ed760] text-white px-8 py-3 rounded-xl font-semibold transition-colors shadow-lg"
+              className="bg-gradient-to-r from-[#1DB954] to-[#1ed760] hover:from-[#1ed760] hover:to-[#1DB954] text-white px-8 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2"
             >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
               Save Settings
             </button>
           </div>

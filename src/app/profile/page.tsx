@@ -127,9 +127,12 @@ export default function ProfilePage() {
           )}
         </div>
         <button
-          onClick={() => signOut()}
-          className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg font-semibold mb-8 transition-colors shadow-md text-base sm:text-lg"
+          onClick={() => signOut({ callbackUrl: '/' })}
+          className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg font-semibold mb-8 transition-colors shadow-md text-base sm:text-lg flex items-center justify-center gap-2"
         >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
           Sign Out
         </button>
         <div className="border-t border-[#e5e7eb] dark:border-[#282828] pt-6">
