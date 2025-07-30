@@ -30,37 +30,14 @@ export default function AnalyticsPage() {
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
-      // TODO: Implement actual analytics API call
-      // For now, we'll use mock data
-      const mockData: AnalyticsData = {
-        totalPlaylists: 24,
-        totalTracks: 847,
-        averagePlaylistLength: 35,
-        topGenres: [
-          { genre: 'Pop', count: 156, percentage: 18.4 },
-          { genre: 'Rock', count: 134, percentage: 15.8 },
-          { genre: 'Hip Hop', count: 98, percentage: 11.6 },
-          { genre: 'Electronic', count: 87, percentage: 10.3 },
-          { genre: 'R&B', count: 76, percentage: 9.0 }
-        ],
-        listeningTime: 2847,
-        mostActiveMonth: 'December',
-        favoriteArtists: [
-          { name: 'The Weeknd', trackCount: 23 },
-          { name: 'Drake', trackCount: 19 },
-          { name: 'Taylor Swift', trackCount: 17 },
-          { name: 'Post Malone', trackCount: 15 },
-          { name: 'Dua Lipa', trackCount: 12 }
-        ],
-        moodDistribution: [
-          { mood: 'Energetic', count: 45 },
-          { mood: 'Chill', count: 38 },
-          { mood: 'Happy', count: 32 },
-          { mood: 'Melancholic', count: 28 }
-        ]
-      };
       
-      setAnalyticsData(mockData);
+      const response = await fetch('/api/analytics/overview');
+      if (!response.ok) {
+        throw new Error('Failed to fetch analytics data');
+      }
+      
+      const data = await response.json();
+      setAnalyticsData(data);
     } catch (error) {
       console.error('Error fetching analytics:', error);
       showToast('Failed to load analytics data', 'error');
