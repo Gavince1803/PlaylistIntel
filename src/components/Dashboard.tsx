@@ -69,11 +69,11 @@ export default function Dashboard() {
   return (
     <div className="flex h-screen bg-gradient-to-br from-[#191414] via-[#232323] to-[#1DB954] font-sans">
       {/* Sidebar */}
-      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} onMenuClick={() => setSidebarOpen(true)} />
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden lg:ml-64">
         {/* Header */}
-        <Header onMenuClick={() => setSidebarOpen(true)} />
+        <Header />
         {/* Main content area */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 custom-scrollbar">
           <div className="max-w-7xl mx-auto">

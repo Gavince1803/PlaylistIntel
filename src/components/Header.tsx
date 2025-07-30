@@ -3,10 +3,10 @@
 import { useSession, signIn, signOut } from 'next-auth/react';
 
 interface HeaderProps {
-  onMenuClick: () => void;
+  // Removed onMenuClick prop as it's no longer needed
 }
 
-export default function Header({ onMenuClick }: HeaderProps) {
+export default function Header({}: HeaderProps) {
   const { data: session } = useSession();
 
   // Extiende el tipo de usuario para permitir 'product'
@@ -22,19 +22,8 @@ export default function Header({ onMenuClick }: HeaderProps) {
   return (
     <header className="bg-[#191414] shadow-md border-b border-[#282828]">
       <div className="flex items-center justify-between h-20 px-2 sm:px-8">
-        {/* Left side - Menu button and search */}
+        {/* Left side - Search */}
         <div className="flex items-center space-x-6">
-          {/* Mobile menu button */}
-          <button
-            onClick={onMenuClick}
-            className="lg:hidden p-2 rounded-md text-gray-400 hover:text-white hover:bg-[#282828]"
-            aria-label="Open sidebar"
-          >
-            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-
           {/* Search bar */}
           <div className="hidden md:block relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

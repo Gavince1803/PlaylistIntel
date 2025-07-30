@@ -6,9 +6,10 @@ import { useSession } from 'next-auth/react';
 interface SidebarProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
+  onMenuClick?: () => void;
 }
 
-export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
+export default function Sidebar({ isOpen, setIsOpen, onMenuClick }: SidebarProps) {
   const { data: session } = useSession();
   const sidebarRef = useRef<HTMLDivElement>(null);
 
@@ -80,15 +81,17 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
             </div>
             <span className="text-2xl font-bold text-white tracking-tight">Music Taste</span>
           </div>
-          <button
-            onClick={() => setIsOpen(false)}
-            className="lg:hidden p-2 rounded-md text-gray-400 hover:text-white hover:bg-[#282828]"
-            aria-label="Close sidebar"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+          {onMenuClick && (
+            <button
+              onClick={onMenuClick}
+              className="lg:hidden p-2 rounded-md text-gray-400 hover:text-white hover:bg-[#282828]"
+              aria-label="Open sidebar"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          )}
         </div>
 
         <nav className="mt-8 px-3" aria-label="Main navigation">
