@@ -28,6 +28,12 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Load saved avatar
+    const savedAvatar = localStorage.getItem('userAvatar');
+    if (savedAvatar) {
+      setAvatar(savedAvatar);
+    }
+
     const fetchProfileAndPlaylists = async () => {
       if (!session?.accessToken) return;
       setLoading(true);
@@ -54,7 +60,10 @@ export default function ProfilePage() {
     if (file) {
       const reader = new FileReader();
       reader.onload = (ev) => {
-        setAvatar(ev.target?.result as string);
+        const imageData = ev.target?.result as string;
+        setAvatar(imageData);
+        // Save to localStorage
+        localStorage.setItem('userAvatar', imageData);
       };
       reader.readAsDataURL(file);
     }

@@ -231,7 +231,7 @@ export default function ProfilesPage() {
     <div className="min-h-screen bg-gradient-to-br from-[#191414] via-[#232323] to-[#1DB954] p-4 sm:p-6 lg:p-8 custom-scrollbar overflow-y-auto">
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
-        <div className="mb-8 lg:mb-12">
+        <div className="mb-8 lg:mb-12 mt-4">
           <div className="bg-gradient-to-r from-[#1DB954]/10 to-[#1ed760]/10 rounded-3xl p-6 lg:p-8 border border-[#1DB954]/20">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-4">
@@ -328,7 +328,7 @@ export default function ProfilesPage() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 custom-scrollbar max-h-[70vh] overflow-y-auto pr-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 custom-scrollbar max-h-[70vh] overflow-y-auto pr-2 pt-4">
             {savedProfiles.map((profile, index) => (
               <div
                 key={profile.id}

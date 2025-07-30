@@ -158,22 +158,8 @@ export default function SettingsPage() {
               <div>
                 <p className="text-white font-medium mb-2">Theme</p>
                 <div className="relative">
-                  <select
-                    value={theme}
-                    onChange={(e) => {
-                      const newTheme = e.target.value as 'light' | 'dark';
-                      handlePreferenceChange('theme', newTheme);
-                      setTheme(newTheme);
-                    }}
-                    className="w-full px-4 py-3 bg-[#404040] text-white rounded-xl border border-[#282828] focus:ring-2 focus:ring-[#1DB954] focus:border-[#1DB954] appearance-none cursor-pointer transition-all duration-200 hover:border-[#1DB954]/50"
-                  >
-                    <option value="dark">🌙 Dark</option>
-                    <option value="light">☀️ Light</option>
-                  </select>
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
+                  <div className="w-full px-4 py-3 bg-[#404040] text-white rounded-xl border border-[#282828] flex items-center">
+                    <span className="text-gray-400">🌙 Dark (Fixed)</span>
                   </div>
                 </div>
               </div>
