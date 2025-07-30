@@ -71,7 +71,6 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [sharePlaylist, setSharePlaylist] = useState<SpotifyPlaylist | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | 'mixed' | 'regular'>('all');
   const [genresModalOpen, setGenresModalOpen] = useState(false);
   const [genresModalData, setGenresModalData] = useState<{playlistName: string, genres: Record<string, number>} | null>(null);
@@ -189,16 +188,13 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
 
   // Filtering logic
   const filteredPlaylists = playlists.filter(p => {
-    const matchesSearch =
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.description.toLowerCase().includes(search.toLowerCase());
     let matchesType = true;
     if (typeFilter === 'mixed') {
       matchesType = p.collaborative || p.name.toLowerCase().includes('mix');
     } else if (typeFilter === 'regular') {
       matchesType = !p.collaborative && !p.name.toLowerCase().includes('mix');
     }
-    return matchesSearch && matchesType;
+    return matchesType;
   });
 
   // Show genres for a playlist
@@ -273,23 +269,8 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
 
   return (
     <section className="p-6" aria-label="Your playlists">
-      {/* Search and filter bar */}
+      {/* Filter bar */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8 p-6">
-        <div className="relative flex-1 max-w-md">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </div>
-          <input
-            type="text"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Search your playlists..."
-            className="w-full pl-10 pr-4 py-3 rounded-2xl bg-[#2a2a2a] text-white border border-[#282828] focus:ring-2 focus:ring-[#1DB954] focus:border-[#1DB954] font-sans shadow-lg transition-all duration-200 placeholder-gray-400"
-            aria-label="Search playlists"
-          />
-        </div>
         <div className="flex gap-3">
           <button
             className={`px-6 py-3 rounded-2xl font-semibold text-sm transition-all duration-200 shadow-lg ${typeFilter === 'all' ? 'bg-[#1DB954] text-white shadow-[#1DB954]/25' : 'bg-[#2a2a2a] text-gray-300 border border-[#282828] hover:bg-[#282828] hover:border-[#1DB954]/30'}`}

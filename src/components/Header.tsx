@@ -64,36 +64,31 @@ export default function Header({ onMenuClick }: HeaderProps) {
             <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-400"></span>
           </button>
 
-          {/* User menu */}
-          <div className="relative">
-            <button className="flex items-center space-x-3 p-2 rounded-full hover:bg-[#282828]">
-              {session?.user?.image ? (
-                <img
-                  src={session.user.image}
-                  alt={session.user.name || 'User'}
-                  className="w-10 h-10 rounded-full"
-                />
-              ) : (
-                <div className="w-10 h-10 bg-[#1DB954] rounded-full flex items-center justify-center">
-                  <span className="text-lg font-bold text-white">
-                    {session?.user?.name?.charAt(0) || 'U'}
-                  </span>
-                </div>
-              )} 
-              <div className="hidden md:block text-left">
-                <p className="text-base font-semibold text-white">
-                  {user?.name || 'User Name'}
-                </p>
-                <p className="text-xs text-gray-400">
-                  {user?.product
-                    ? user.product.charAt(0).toUpperCase() + user.product.slice(1)
-                    : 'Account'}
-                </p>
+          {/* User info */}
+          <div className="flex items-center space-x-3 p-2">
+            {session?.user?.image ? (
+              <img
+                src={session.user.image}
+                alt={session.user.name || 'User'}
+                className="w-10 h-10 rounded-full"
+              />
+            ) : (
+              <div className="w-10 h-10 bg-[#1DB954] rounded-full flex items-center justify-center">
+                <span className="text-lg font-bold text-white">
+                  {session?.user?.name?.charAt(0) || 'U'}
+                </span>
               </div>
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
+            )} 
+            <div className="hidden md:block text-left">
+              <p className="text-base font-semibold text-white">
+                {user?.name || 'User Name'}
+              </p>
+              <p className="text-xs text-gray-400">
+                {user?.product
+                  ? user.product.charAt(0).toUpperCase() + user.product.slice(1)
+                  : 'Account'}
+              </p>
+            </div>
           </div>
 
           {/* Connect/Disconnect Spotify button */}
