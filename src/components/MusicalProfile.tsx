@@ -101,7 +101,7 @@ export default function MusicalProfile({ playlistId, onClose }: MusicalProfilePr
       console.log('✅ Musical profile loaded successfully:', data.profile);
       
       // Save profile to localStorage
-      saveProfileToStorage(data.profile);
+      await saveProfileToStorage(data.profile);
     } catch (err: any) {
       console.error('❌ Error fetching musical profile:', err);
       setError(err.message || 'Failed to analyze playlist');
@@ -113,12 +113,27 @@ export default function MusicalProfile({ playlistId, onClose }: MusicalProfilePr
   };
 
   // Function to save profile to localStorage
-  const saveProfileToStorage = (profileData: MusicalProfile) => {
+  const saveProfileToStorage = async (profileData: MusicalProfile) => {
     try {
       // Check if auto-save is enabled
       const autoSaveEnabled = localStorage.getItem('autoSaveProfiles');
       if (autoSaveEnabled === 'false') {
         return; // Don't save if auto-save is disabled
+      }
+      
+      // Get playlist information to get the image
+      let playlistImage = '';
+      try {
+        const response = await fetch('/api/playlists');
+        if (response.ok) {
+          const data = await response.json();
+          const playlist = data.playlists?.find((p: any) => p.id === profileData.playlistId);
+          if (playlist?.images?.[0]?.url) {
+            playlistImage = playlist.images[0].url;
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching playlist image:', error);
       }
       
       const savedProfiles = localStorage.getItem('spotify-musical-profiles');
@@ -131,7 +146,7 @@ export default function MusicalProfile({ playlistId, onClose }: MusicalProfilePr
         id: `${profileData.playlistId}-${Date.now()}`,
         playlistId: profileData.playlistId,
         playlistName: profileData.playlistName,
-        playlistImage: '', // We'll need to get this from the playlist data
+        playlistImage: playlistImage,
         analyzedAt: profileData.analyzedAt,
         totalTracks: profileData.totalTracks,
         dominantGenre: profileData.genreAnalysis.dominantGenre,

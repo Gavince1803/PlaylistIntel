@@ -79,6 +79,52 @@ export default function ProfilesPage() {
     }
   };
 
+  // Generate a human-readable name for the profile
+  const generateProfileName = (profile: SavedProfile) => {
+    const genre = profile.dominantGenre;
+    const mood = profile.mood;
+    const energy = profile.energyLevel;
+    
+    // Create descriptive name based on characteristics
+    let descriptiveName = '';
+    
+    // Add mood description
+    switch (mood) {
+      case 'energetic':
+        descriptiveName += 'Energetic ';
+        break;
+      case 'happy':
+        descriptiveName += 'Happy ';
+        break;
+      case 'chill':
+        descriptiveName += 'Chill ';
+        break;
+      case 'melancholic':
+        descriptiveName += 'Melancholic ';
+        break;
+      default:
+        descriptiveName += 'Vibrant ';
+    }
+    
+    // Add genre
+    descriptiveName += genre.charAt(0).toUpperCase() + genre.slice(1);
+    
+    // Add energy level
+    switch (energy) {
+      case 'high':
+        descriptiveName += ' (High Energy)';
+        break;
+      case 'medium':
+        descriptiveName += ' (Medium Energy)';
+        break;
+      case 'low':
+        descriptiveName += ' (Low Energy)';
+        break;
+    }
+    
+    return descriptiveName;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#191414] via-[#232323] to-[#1DB954] p-4 sm:p-6 lg:p-8 custom-scrollbar overflow-y-auto">
@@ -326,7 +372,10 @@ export default function ProfilesPage() {
                       <h3 className="text-white font-bold text-xl truncate max-w-40 group-hover:text-[#1DB954] transition-colors">
                         {profile.playlistName}
                       </h3>
-                      <div className="flex items-center gap-2 mt-1">
+                      <p className="text-gray-400 text-sm mt-1 italic">
+                        {generateProfileName(profile)}
+                      </p>
+                      <div className="flex items-center gap-2 mt-2">
                         <div className="flex items-center gap-1 bg-[#1DB954]/10 rounded-full px-2 py-1">
                           <svg className="w-3 h-3 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
