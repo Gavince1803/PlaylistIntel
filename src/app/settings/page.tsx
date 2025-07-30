@@ -1,20 +1,11 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/components/Toast';
+import { useTheme } from '@/components/Providers';
 
 interface Settings {
-  notifications: {
-    email: boolean;
-    push: boolean;
-    recommendations: boolean;
-  };
-  privacy: {
-    profileVisibility: 'public' | 'private';
-    showListeningHistory: boolean;
-    allowAnalytics: boolean;
-  };
   preferences: {
     theme: 'dark' | 'light' | 'auto';
     language: 'en' | 'es';
@@ -25,6 +16,7 @@ interface Settings {
 export default function SettingsPage() {
   const { data: session } = useSession();
   const { showToast } = useToast();
+  const { theme, toggleTheme } = useTheme();
   
   // Extend user type to include product
   type UserWithProduct = {
@@ -35,17 +27,8 @@ export default function SettingsPage() {
     product?: string;
   };
   const user = session?.user as UserWithProduct | undefined;
+  
   const [settings, setSettings] = useState<Settings>({
-    notifications: {
-      email: true,
-      push: false,
-      recommendations: true,
-    },
-    privacy: {
-      profileVisibility: 'public',
-      showListeningHistory: true,
-      allowAnalytics: true,
-    },
     preferences: {
       theme: 'dark',
       language: 'en',
@@ -53,25 +36,29 @@ export default function SettingsPage() {
     },
   });
 
-  const handleNotificationChange = (key: keyof Settings['notifications']) => {
-    setSettings(prev => ({
-      ...prev,
-      notifications: {
-        ...prev.notifications,
-        [key]: !prev.notifications[key],
-      },
-    }));
-  };
+  // Load settings from localStorage on mount
+  useEffect(() => {
+    const savedSettings = localStorage.getItem('userSettings');
+    if (savedSettings) {
+      try {
+        const parsed = JSON.parse(savedSettings);
+        setSettings(parsed);
+      } catch (error) {
+        console.error('Error loading settings:', error);
+      }
+    }
+  }, []);
 
-  const handlePrivacyChange = (key: keyof Settings['privacy'], value?: any) => {
-    setSettings(prev => ({
-      ...prev,
-      privacy: {
-        ...prev.privacy,
-        [key]: value !== undefined ? value : !prev.privacy[key],
-      },
-    }));
-  };
+  // Update theme when settings change
+  useEffect(() => {
+    if (settings.preferences.theme !== theme) {
+      if (settings.preferences.theme === 'light' && theme === 'dark') {
+        toggleTheme();
+      } else if (settings.preferences.theme === 'dark' && theme === 'light') {
+        toggleTheme();
+      }
+    }
+  }, [settings.preferences.theme, theme, toggleTheme]);
 
   const handlePreferenceChange = (key: keyof Settings['preferences'], value?: any) => {
     setSettings(prev => ({
@@ -85,7 +72,15 @@ export default function SettingsPage() {
 
   const saveSettings = async () => {
     try {
-      // TODO: Implement actual settings save API call
+      // Save to localStorage
+      localStorage.setItem('userSettings', JSON.stringify(settings));
+      
+      // Update autoSaveProfiles setting in localStorage
+      localStorage.setItem('autoSaveProfiles', settings.preferences.autoSaveProfiles.toString());
+      
+      // Update language setting
+      localStorage.setItem('language', settings.preferences.language);
+      
       showToast('Settings saved successfully!', 'success');
     } catch (error) {
       showToast('Failed to save settings', 'error');
@@ -145,114 +140,7 @@ export default function SettingsPage() {
             </div>
           </section>
 
-          {/* Notifications */}
-          <section className="bg-gradient-to-br from-[#232323] to-[#2a2a2a] rounded-2xl p-6 border border-[#282828] shadow-xl">
-            <h2 className="text-2xl font-bold text-white mb-6">Notifications</h2>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-white font-medium">Email Notifications</p>
-                  <p className="text-gray-400 text-sm">Receive updates via email</p>
-                </div>
-                <button
-                  onClick={() => handleNotificationChange('email')}
-                  className={`relative w-14 h-7 rounded-full transition-all duration-300 ${
-                    settings.notifications.email ? 'bg-[#1DB954] shadow-lg shadow-[#1DB954]/30' : 'bg-[#404040]'
-                  }`}
-                >
-                  <div className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full transition-all duration-300 shadow-md ${
-                    settings.notifications.email ? 'translate-x-7' : 'translate-x-0'
-                  }`} />
-                </button>
-              </div>
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-white font-medium">Push Notifications</p>
-                  <p className="text-gray-400 text-sm">Receive push notifications</p>
-                </div>
-                <button
-                  onClick={() => handleNotificationChange('push')}
-                  className={`relative w-14 h-7 rounded-full transition-all duration-300 ${
-                    settings.notifications.push ? 'bg-[#1DB954] shadow-lg shadow-[#1DB954]/30' : 'bg-[#404040]'
-                  }`}
-                >
-                  <div className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full transition-all duration-300 shadow-md ${
-                    settings.notifications.push ? 'translate-x-7' : 'translate-x-0'
-                  }`} />
-                </button>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-white font-medium">Music Recommendations</p>
-                  <p className="text-gray-400 text-sm">Get personalized music suggestions</p>
-                </div>
-                <button
-                  onClick={() => handleNotificationChange('recommendations')}
-                  className={`relative w-14 h-7 rounded-full transition-all duration-300 ${
-                    settings.notifications.recommendations ? 'bg-[#1DB954] shadow-lg shadow-[#1DB954]/30' : 'bg-[#404040]'
-                  }`}
-                >
-                  <div className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full transition-all duration-300 shadow-md ${
-                    settings.notifications.recommendations ? 'translate-x-7' : 'translate-x-0'
-                  }`} />
-                </button>
-              </div>
-            </div>
-          </section>
-
-          {/* Privacy */}
-          <section className="bg-gradient-to-br from-[#232323] to-[#2a2a2a] rounded-2xl p-6 border border-[#282828] shadow-xl">
-            <h2 className="text-2xl font-bold text-white mb-6">Privacy</h2>
-            <div className="space-y-6">
-              <div>
-                <p className="text-white font-medium mb-2">Profile Visibility</p>
-                <select
-                  value={settings.privacy.profileVisibility}
-                  onChange={(e) => handlePrivacyChange('profileVisibility', e.target.value)}
-                  className="w-full px-4 py-2 bg-[#404040] text-white rounded-lg border border-[#282828] focus:ring-2 focus:ring-[#1DB954] focus:border-[#1DB954]"
-                >
-                  <option value="public">Public</option>
-                  <option value="private">Private</option>
-                </select>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-white font-medium">Show Listening History</p>
-                  <p className="text-gray-400 text-sm">Allow others to see your listening activity</p>
-                </div>
-                <button
-                  onClick={() => handlePrivacyChange('showListeningHistory')}
-                  className={`relative w-14 h-7 rounded-full transition-all duration-300 ${
-                    settings.privacy.showListeningHistory ? 'bg-[#1DB954] shadow-lg shadow-[#1DB954]/30' : 'bg-[#404040]'
-                  }`}
-                >
-                  <div className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full transition-all duration-300 shadow-md ${
-                    settings.privacy.showListeningHistory ? 'translate-x-7' : 'translate-x-0'
-                  }`} />
-                </button>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-white font-medium">Analytics & Insights</p>
-                  <p className="text-gray-400 text-sm">Help improve the app with anonymous data</p>
-                </div>
-                <button
-                  onClick={() => handlePrivacyChange('allowAnalytics')}
-                  className={`relative w-14 h-7 rounded-full transition-all duration-300 ${
-                    settings.privacy.allowAnalytics ? 'bg-[#1DB954] shadow-lg shadow-[#1DB954]/30' : 'bg-[#404040]'
-                  }`}
-                >
-                  <div className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full transition-all duration-300 shadow-md ${
-                    settings.privacy.allowAnalytics ? 'translate-x-7' : 'translate-x-0'
-                  }`} />
-                </button>
-              </div>
-            </div>
-          </section>
 
           {/* Preferences */}
           <section className="bg-gradient-to-br from-[#232323] to-[#2a2a2a] rounded-2xl p-6 border border-[#282828] shadow-xl">
@@ -262,13 +150,19 @@ export default function SettingsPage() {
                 <p className="text-white font-medium mb-2">Theme</p>
                 <div className="relative">
                   <select
-                    value={settings.preferences.theme}
-                    onChange={(e) => handlePreferenceChange('theme', e.target.value)}
+                    value={theme}
+                    onChange={(e) => {
+                      handlePreferenceChange('theme', e.target.value);
+                      if (e.target.value === 'light' && theme === 'dark') {
+                        toggleTheme();
+                      } else if (e.target.value === 'dark' && theme === 'light') {
+                        toggleTheme();
+                      }
+                    }}
                     className="w-full px-4 py-3 bg-[#404040] text-white rounded-xl border border-[#282828] focus:ring-2 focus:ring-[#1DB954] focus:border-[#1DB954] appearance-none cursor-pointer transition-all duration-200 hover:border-[#1DB954]/50"
                   >
                     <option value="dark">🌙 Dark</option>
                     <option value="light">☀️ Light</option>
-                    <option value="auto">🔄 Auto</option>
                   </select>
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                     <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

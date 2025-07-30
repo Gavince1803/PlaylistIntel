@@ -115,6 +115,12 @@ export default function MusicalProfile({ playlistId, onClose }: MusicalProfilePr
   // Function to save profile to localStorage
   const saveProfileToStorage = (profileData: MusicalProfile) => {
     try {
+      // Check if auto-save is enabled
+      const autoSaveEnabled = localStorage.getItem('autoSaveProfiles');
+      if (autoSaveEnabled === 'false') {
+        return; // Don't save if auto-save is disabled
+      }
+      
       const savedProfiles = localStorage.getItem('spotify-musical-profiles');
       const profiles = savedProfiles ? JSON.parse(savedProfiles) : [];
       
@@ -143,7 +149,7 @@ export default function MusicalProfile({ playlistId, onClose }: MusicalProfilePr
       }
       
       localStorage.setItem('spotify-musical-profiles', JSON.stringify(profiles));
-              showToast('Profile saved to your library', 'success');
+      showToast('Profile saved to your library', 'success');
     } catch (error) {
       console.error('Error saving profile:', error);
     }
