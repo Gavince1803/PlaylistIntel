@@ -66,6 +66,20 @@ export const authOptions = {
     async session({ session, token }: any) {
       session.accessToken = token.accessToken;
       session.error = token.error;
+      // Obtener el tipo de cuenta (product) desde Spotify
+      try {
+        if (token.accessToken) {
+          const res = await fetch('https://api.spotify.com/v1/me', {
+            headers: { Authorization: `Bearer ${token.accessToken}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            session.user.product = data.product;
+          }
+        }
+      } catch (e) {
+        // Si falla, no pasa nada, solo no se muestra el tipo de cuenta
+      }
       return session;
     }
   }

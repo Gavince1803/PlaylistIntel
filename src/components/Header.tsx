@@ -9,6 +9,16 @@ interface HeaderProps {
 export default function Header({ onMenuClick }: HeaderProps) {
   const { data: session } = useSession();
 
+  // Extiende el tipo de usuario para permitir 'product'
+  type UserWithProduct = {
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+    id?: string;
+    product?: string;
+  };
+  const user = session?.user as UserWithProduct | undefined;
+
   return (
     <header className="bg-[#191414] shadow-md border-b border-[#282828]">
       <div className="flex items-center justify-between h-20 px-2 sm:px-8">
@@ -70,9 +80,13 @@ export default function Header({ onMenuClick }: HeaderProps) {
               )} 
               <div className="hidden md:block text-left">
                 <p className="text-base font-semibold text-white">
-                  {session?.user?.name || 'User Name'}
+                  {user?.name || 'User Name'}
                 </p>
-                <p className="text-xs text-gray-400">Premium</p>
+                <p className="text-xs text-gray-400">
+                  {user?.product
+                    ? user.product.charAt(0).toUpperCase() + user.product.slice(1)
+                    : 'Account'}
+                </p>
               </div>
               <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />

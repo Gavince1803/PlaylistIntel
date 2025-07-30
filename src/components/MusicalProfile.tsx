@@ -391,7 +391,7 @@ export default function MusicalProfile({ playlistId, onClose }: MusicalProfilePr
         {onClose && (
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-white hover:text-gray-200 transition-colors p-2 rounded-lg hover:bg-white/10"
+            className="absolute top-2 right-4 text-white hover:text-gray-200 transition-colors p-2 rounded-lg hover:bg-white/10"
             aria-label="Close musical profile"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
