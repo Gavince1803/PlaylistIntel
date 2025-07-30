@@ -53,16 +53,8 @@ export default function Header({ onMenuClick }: HeaderProps) {
           </div>
         </div>
 
-        {/* Right side - Notifications and user menu */}
+        {/* Right side - User menu */}
         <div className="flex items-center space-x-6">
-          {/* Notifications */}
-          <button className="p-2 text-gray-400 hover:text-white hover:bg-[#282828] rounded-full relative" aria-label="Notifications">
-            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM10.5 3.75a6 6 0 00-6 6v3.75a6 6 0 006 6h7.5a6 6 0 006-6V9.75a6 6 0 00-6-6h-7.5z" />
-            </svg>
-            {/* Notification badge */}
-            <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-400"></span>
-          </button>
 
           {/* User info */}
           <div className="flex items-center space-x-3 p-2">

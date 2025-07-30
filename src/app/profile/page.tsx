@@ -1,6 +1,5 @@
 "use client";
 import { useSession, signOut } from "next-auth/react";
-import { useTheme } from "../../components/Providers";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
@@ -22,7 +21,6 @@ interface SpotifyPlaylist {
 
 export default function ProfilePage() {
   const { data: session } = useSession();
-  const { theme, toggleTheme } = useTheme();
   const router = useRouter();
   const [avatar, setAvatar] = useState<string | null>(null);
   const [profile, setProfile] = useState<SpotifyProfile | null>(null);
@@ -98,12 +96,15 @@ export default function ProfilePage() {
           )}
           <label className="block mt-2">
             <span className="sr-only">Upload avatar</span>
-            <input
-              type="file"
-              accept="image/*"
-              className="block w-full text-sm text-gray-500 dark:text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#1DB954]/10 file:text-[#1DB954] hover:file:bg-[#1DB954]/20"
-              onChange={handleAvatarChange}
-            />
+            <div className="text-center">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Change profile picture</p>
+              <input
+                type="file"
+                accept="image/*"
+                className="block w-full text-sm text-gray-500 dark:text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#1DB954]/10 file:text-[#1DB954] hover:file:bg-[#1DB954]/20"
+                onChange={handleAvatarChange}
+              />
+            </div>
           </label>
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1 mt-2 text-center">
             {profile?.display_name || session?.user?.name || "User"}
@@ -135,25 +136,16 @@ export default function ProfilePage() {
           </svg>
           Sign Out
         </button>
-        <div className="border-t border-[#e5e7eb] dark:border-[#282828] pt-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Settings</h3>
-          <ul className="text-gray-500 dark:text-gray-400 space-y-2 mb-4">
-            <li className="flex items-center justify-between">
-              <span>Theme:</span>
-              <button
-                onClick={toggleTheme}
-                className="ml-2 px-3 py-1 rounded-lg border border-[#1DB954] bg-white dark:bg-[#191414] text-gray-900 dark:text-white hover:bg-[#1DB954] hover:text-white dark:hover:text-black transition-colors focus:outline-none focus:ring-2 focus:ring-[#1DB954] text-sm sm:text-base"
-                aria-label="Toggle dark/light mode"
-              >
-                {theme === "dark" ? "🌙 Dark" : "☀️ Light"}
-              </button>
-            </li>
-            <li>Notifications: <span className="italic">Not available yet</span></li>
-            <li>More settings coming soon...</li>
-          </ul>
-        </div>
         <div className="border-t border-[#e5e7eb] dark:border-[#282828] pt-6 mt-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Your Playlists</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Your Playlists</h3>
+            <button
+              onClick={() => router.push('/')}
+              className="text-[#1DB954] hover:text-[#1ed760] text-sm font-medium transition-colors"
+            >
+              View All →
+            </button>
+          </div>
           {loading ? (
             <div className="text-gray-400">Loading playlists...</div>
           ) : playlists.length === 0 ? (
@@ -161,14 +153,14 @@ export default function ProfilePage() {
           ) : (
             <ul className="space-y-2 max-h-60 overflow-y-auto pr-2">
               {playlists.map((pl) => (
-                <li key={pl.id} className="flex items-center gap-3">
+                <li key={pl.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-[#2a2a2a] transition-colors cursor-pointer">
                   {pl.images?.[0]?.url ? (
                     <img src={pl.images[0].url} alt={pl.name} className="w-10 h-10 rounded object-cover border border-[#1DB954]" />
                   ) : (
                     <div className="w-10 h-10 rounded bg-[#1DB954]/20 flex items-center justify-center text-[#1DB954] font-bold">🎵</div>
                   )}
-                  <div>
-                    <div className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">{pl.name}</div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base truncate">{pl.name}</div>
                     <div className="text-xs text-gray-400">{pl.tracks.total} tracks</div>
                   </div>
                 </li>
