@@ -6,17 +6,23 @@ import Sidebar from './Sidebar';
 import Header from './Header';
 import PlaylistGrid from './PlaylistGrid';
 import { useToast } from './Toast';
+import { useTheme } from './Providers';
 
 export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { data: session, status } = useSession();
   const [showSignIn, setShowSignIn] = useState(false);
   const { showToast } = useToast();
+  const { theme } = useTheme();
 
   // Show loading state while checking authentication
   if (status === 'loading') {
     return (
-      <div className="flex h-screen bg-gradient-to-br from-[#191414] via-[#232323] to-[#1DB954] font-sans items-center justify-center">
+      <div className={`flex h-screen font-sans items-center justify-center ${
+        theme === 'light' 
+          ? 'bg-gradient-to-br from-gray-50 via-gray-100 to-[#1DB954]' 
+          : 'bg-gradient-to-br from-[#191414] via-[#232323] to-[#1DB954]'
+      }`}>
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-[#1DB954] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-white text-lg font-semibold">Loading your musical experience...</p>
@@ -33,7 +39,11 @@ export default function Dashboard() {
   // Show sign-in modal if requested
   if (showSignIn) {
     return (
-      <div className="flex h-screen bg-gradient-to-br from-[#191414] via-[#232323] to-[#1DB954] font-sans items-center justify-center">
+      <div className={`flex h-screen font-sans items-center justify-center ${
+        theme === 'light' 
+          ? 'bg-gradient-to-br from-gray-50 via-gray-100 to-[#1DB954]' 
+          : 'bg-gradient-to-br from-[#191414] via-[#232323] to-[#1DB954]'
+      }`}>
         <div className="bg-gradient-to-br from-[#232323] to-[#2a2a2a] rounded-3xl p-8 lg:p-12 shadow-2xl border border-[#1DB954]/20 text-center max-w-md w-full mx-4 animate-fade-in-down">
           <div className="w-20 h-20 bg-gradient-to-br from-[#1DB954] to-[#1ed760] rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
             <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -67,7 +77,11 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-[#191414] via-[#232323] to-[#1DB954] font-sans">
+    <div className={`flex h-screen font-sans ${
+      theme === 'light' 
+        ? 'bg-gradient-to-br from-gray-50 via-gray-100 to-[#1DB954]' 
+        : 'bg-gradient-to-br from-[#191414] via-[#232323] to-[#1DB954]'
+    }`}>
       {/* Sidebar */}
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       {/* Main content */}

@@ -50,12 +50,15 @@ export default function SettingsPage() {
     }
   }, []);
 
-  // Update theme when settings change
+  // Sync settings with theme and language contexts
   useEffect(() => {
     if (settings.preferences.theme !== theme) {
       setTheme(settings.preferences.theme as 'light' | 'dark');
     }
-  }, [settings.preferences.theme, theme, setTheme]);
+    if (settings.preferences.language !== language) {
+      setLanguage(settings.preferences.language as 'en' | 'es');
+    }
+  }, [settings.preferences.theme, settings.preferences.language, theme, language, setTheme, setLanguage]);
 
   const handlePreferenceChange = (key: keyof Settings['preferences'], value?: any) => {
     setSettings(prev => ({
@@ -75,8 +78,9 @@ export default function SettingsPage() {
       // Update autoSaveProfiles setting in localStorage
       localStorage.setItem('autoSaveProfiles', settings.preferences.autoSaveProfiles.toString());
       
-      // Update language setting
-      localStorage.setItem('language', settings.preferences.language);
+      // Update theme and language in contexts
+      setTheme(settings.preferences.theme as 'light' | 'dark');
+      setLanguage(settings.preferences.language as 'en' | 'es');
       
       showToast('Settings saved successfully!', 'success');
     } catch (error) {
@@ -86,9 +90,17 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#191414] via-[#232323] to-[#1DB954] p-4 sm:p-6 lg:p-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
+              <div className="max-w-4xl mx-auto">
+          {/* Theme indicator */}
+          <div className="mb-4 p-4 bg-[#1DB954]/10 rounded-lg border border-[#1DB954]/20">
+            <p className="text-white text-sm">
+              Current theme: <span className="font-bold">{theme}</span> | 
+              Current language: <span className="font-bold">{language}</span>
+            </p>
+          </div>
+          
+          {/* Header */}
+          <div className="mb-8">
           <div className="flex items-center gap-4 mb-4">
             <button
               onClick={() => window.history.back()}
