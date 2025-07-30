@@ -8,6 +8,24 @@
   --spotify-gray: #232323;
 }
 
+/* Light mode variables */
+.light {
+  --background: #ffffff;
+  --foreground: #1a1a1a;
+  --spotify-green: #1DB954;
+  --spotify-dark: #f8f9fa;
+  --spotify-gray: #e9ecef;
+}
+
+/* Dark mode variables */
+.dark {
+  --background: #191414;
+  --foreground: #fff;
+  --spotify-green: #1DB954;
+  --spotify-dark: #191414;
+  --spotify-gray: #232323;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -50,7 +68,7 @@ html {
 }
 
 ::-webkit-scrollbar-track {
-  background: #232323;
+  background: #e9ecef;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -63,18 +81,16 @@ html {
 }
 
 /* Dark mode scrollbar */
-@media (prefers-color-scheme: dark) {
-  ::-webkit-scrollbar-track {
-    background: #232323;
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    background: #1DB954;
-  }
-  
-  ::-webkit-scrollbar-thumb:hover {
-    background: #1ed760;
-  }
+.dark ::-webkit-scrollbar-track {
+  background: #232323;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #1DB954;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #1ed760;
 }
 
 @keyframes fade-in-down {

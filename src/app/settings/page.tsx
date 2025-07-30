@@ -3,7 +3,7 @@
 import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import { useToast } from '@/components/Toast';
-import { useTheme } from '@/components/Providers';
+import { useTheme, useLanguage } from '@/components/Providers';
 
 interface Settings {
   preferences: {
@@ -16,7 +16,8 @@ interface Settings {
 export default function SettingsPage() {
   const { data: session } = useSession();
   const { showToast } = useToast();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
+  const { language, setLanguage } = useLanguage();
   
   // Extend user type to include product
   type UserWithProduct = {
@@ -52,13 +53,9 @@ export default function SettingsPage() {
   // Update theme when settings change
   useEffect(() => {
     if (settings.preferences.theme !== theme) {
-      if (settings.preferences.theme === 'light' && theme === 'dark') {
-        toggleTheme();
-      } else if (settings.preferences.theme === 'dark' && theme === 'light') {
-        toggleTheme();
-      }
+      setTheme(settings.preferences.theme as 'light' | 'dark');
     }
-  }, [settings.preferences.theme, theme, toggleTheme]);
+  }, [settings.preferences.theme, theme, setTheme]);
 
   const handlePreferenceChange = (key: keyof Settings['preferences'], value?: any) => {
     setSettings(prev => ({
@@ -152,12 +149,9 @@ export default function SettingsPage() {
                   <select
                     value={theme}
                     onChange={(e) => {
-                      handlePreferenceChange('theme', e.target.value);
-                      if (e.target.value === 'light' && theme === 'dark') {
-                        toggleTheme();
-                      } else if (e.target.value === 'dark' && theme === 'light') {
-                        toggleTheme();
-                      }
+                      const newTheme = e.target.value as 'light' | 'dark';
+                      handlePreferenceChange('theme', newTheme);
+                      setTheme(newTheme);
                     }}
                     className="w-full px-4 py-3 bg-[#404040] text-white rounded-xl border border-[#282828] focus:ring-2 focus:ring-[#1DB954] focus:border-[#1DB954] appearance-none cursor-pointer transition-all duration-200 hover:border-[#1DB954]/50"
                   >
@@ -176,8 +170,12 @@ export default function SettingsPage() {
                 <p className="text-white font-medium mb-2">Language</p>
                 <div className="relative">
                   <select
-                    value={settings.preferences.language}
-                    onChange={(e) => handlePreferenceChange('language', e.target.value)}
+                    value={language}
+                    onChange={(e) => {
+                      const newLanguage = e.target.value as 'en' | 'es';
+                      handlePreferenceChange('language', newLanguage);
+                      setLanguage(newLanguage);
+                    }}
                     className="w-full px-4 py-3 bg-[#404040] text-white rounded-xl border border-[#282828] focus:ring-2 focus:ring-[#1DB954] focus:border-[#1DB954] appearance-none cursor-pointer transition-all duration-200 hover:border-[#1DB954]/50"
                   >
                     <option value="en">🇺🇸 English</option>
