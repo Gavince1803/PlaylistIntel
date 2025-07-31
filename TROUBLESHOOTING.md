@@ -1,67 +1,81 @@
 # Troubleshooting Guide
 
+This document outlines common issues and their solutions for the PlaylistIntel application.
+
 ## 403 Forbidden Errors
 
-### Problem
-You're seeing `403 Forbidden` errors when trying to log in with different Spotify accounts.
+**Problem**: You see "403 Forbidden" errors when trying to access playlists.
 
-### Cause
-Your Spotify app is in **Development Mode**. In Development Mode, only users who are explicitly added as "test users" can access the app.
+**Cause**: This typically occurs when your Spotify app is in "Development Mode" and the user account is not added as a test user.
 
-### Solution
-You have two options:
+**Solutions**:
+1. **Add test users** (Recommended for development):
+   - Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
+   - Select your app
+   - Go to "Users and Access" section
+   - Add the user's email address as a test user
+   - The user will need to log out and log back in
 
-#### Option 1: Add Test Users (Recommended for Development)
-1. Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
-2. Select your app
-3. Go to "Users and Access" section
-4. Add the email addresses of users who should be able to access the app
-5. Users will receive an email invitation to join
+2. **Switch to Production Mode** (For public apps):
+   - Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
+   - Select your app
+   - Go to "Settings"
+   - Change "App Mode" from "Development" to "Production"
+   - Note: This requires approval from Spotify
 
-#### Option 2: Switch to Production Mode
-1. Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
-2. Select your app
-3. Go to "App Settings"
-4. Change "App Mode" from "Development" to "Production"
-5. Fill out the required information for production approval
-
-**Note**: Production mode requires additional verification from Spotify and may take time to approve.
+**Current Status**: ✅ **RESOLVED** - The application now provides clear error messages and guidance when this occurs.
 
 ## 429 Rate Limit Exceeded Errors
 
-### Problem
-You're seeing `429 Rate Limit Exceeded` errors when making API calls.
+**Problem**: You see "429 API rate limit exceeded" errors when making requests.
 
-### Cause
-Spotify has rate limits on their API. The app is making too many requests too quickly.
+**Cause**: Spotify's API has rate limits to prevent abuse. The application was making too many requests too quickly.
 
-### Solution
-The app now includes:
-- **Automatic rate limiting**: Minimum 150ms between API calls
-- **Exponential backoff**: Increases delay when errors occur
-- **Automatic retries**: Retries rate limit errors up to 3 times
-- **Better error handling**: Shows user-friendly error messages
+**Solutions**:
+1. **Automatic Rate Limiting**: The application now includes built-in rate limiting with exponential backoff
+2. **Automatic Retries**: Failed requests are automatically retried with increasing delays
+3. **Better Error Handling**: User-friendly error messages with retry options
 
-### What's Been Improved
-1. **Rate Limiter**: Increased minimum interval between calls
-2. **Error Recovery**: Automatic retry with exponential backoff
-3. **User Feedback**: Clear error messages and retry buttons
-4. **API Error Handling**: Better handling of 403, 401, and 429 errors
+**Current Status**: ✅ **RESOLVED** - The application now handles rate limiting gracefully with automatic retries and user-friendly error messages.
 
-## Current Status
-- ✅ Rate limiting implemented
-- ✅ Error handling improved
-- ✅ Retry mechanism added
-- ✅ User-friendly error messages
-- ⚠️ 403 errors require manual fix (add test users or switch to production)
+## Missing Playlists
+
+**Problem**: Some public playlists that you know exist are not appearing in the application.
+
+**Cause**: The application was only fetching the first 50 playlists from Spotify due to API pagination limits.
+
+**Solutions**:
+1. **Automatic Pagination**: The application now automatically fetches ALL playlists from your Spotify account
+2. **Loading Indicators**: Shows progress while fetching additional playlists
+3. **Playlist Count Display**: Shows how many playlists were loaded
+
+**Current Status**: ✅ **RESOLVED** - The application now fetches all playlists automatically with proper pagination.
 
 ## Next Steps
-1. **For immediate testing**: Add your email as a test user in the Spotify Developer Dashboard
-2. **For production**: Consider switching to Production Mode
-3. **Monitor logs**: Check if rate limiting is working properly
 
-## Testing the Fixes
-1. Try logging in with a test user account
-2. Check if the retry mechanism works for rate limit errors
-3. Verify that error messages are clear and helpful
-4. Test the "Try Again" button in error states 
+If you encounter any other issues not covered in this guide, please:
+
+1. Check the browser console for error messages
+2. Check the application logs for detailed error information
+3. Ensure your Spotify app settings are correctly configured
+4. Contact support with specific error messages and steps to reproduce the issue
+
+## Technical Details
+
+### Rate Limiting Implementation
+- Minimum interval between API calls: 150ms
+- Exponential backoff for consecutive errors
+- Automatic retry for 429 errors with increasing delays
+- Maximum retry attempts: 3
+
+### Playlist Pagination
+- Fetches playlists in batches of 50
+- Automatically continues until all playlists are loaded
+- Shows loading indicator during pagination
+- Displays total playlist count when complete
+
+### Error Handling
+- Specific error messages for different HTTP status codes
+- User-friendly error descriptions
+- Retry mechanisms for transient errors
+- Graceful degradation when services are unavailable 

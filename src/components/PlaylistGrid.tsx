@@ -83,6 +83,8 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
   const [musicalProfileOpen, setMusicalProfileOpen] = useState(false);
   const [selectedPlaylistForAnalysis, setSelectedPlaylistForAnalysis] = useState<string | null>(null);
   const [likedPlaylists, setLikedPlaylists] = useState<Set<string>>(new Set());
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMorePlaylists, setHasMorePlaylists] = useState(true);
 
   useEffect(() => {
     if (!propPlaylists && session?.accessToken) {
@@ -93,12 +95,16 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
     }
   }, [session, propPlaylists]);
 
-  const fetchPlaylists = async (isRetry = false) => {
+  const fetchPlaylists = async (isRetry = false, offset = 0, existingPlaylists: SpotifyPlaylist[] = []) => {
     try {
-      setLoading(true);
-      setError(null);
+      if (offset === 0) {
+        setLoading(true);
+        setError(null);
+      } else {
+        setIsLoadingMore(true);
+      }
       
-      const response = await fetch('/api/playlists?limit=50');
+      const response = await fetch(`/api/playlists?limit=50&offset=${offset}`);
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         
@@ -112,7 +118,7 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
           // Retry rate limit errors up to 3 times
           setRetryCount(prev => prev + 1);
           showToast('Rate limit exceeded. Retrying...', 'info');
-          setTimeout(() => fetchPlaylists(true), 2000 * (retryCount + 1));
+          setTimeout(() => fetchPlaylists(true, offset, existingPlaylists), 2000 * (retryCount + 1));
           return;
         } else if (response.status === 429) {
           setError('Too many requests. Please try again in a few moments.');
@@ -126,14 +132,26 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
       }
       
       const data = await response.json();
-      setPlaylists(data.playlists || []);
-      setRetryCount(0); // Reset retry count on success
+      const newPlaylists = data.playlists || [];
+      const allPlaylists = [...existingPlaylists, ...newPlaylists];
+      
+      // If we got less than 50 playlists, we've reached the end
+      if (newPlaylists.length < 50) {
+        setHasMorePlaylists(false);
+        setPlaylists(allPlaylists);
+        setRetryCount(0); // Reset retry count on success
+      } else {
+        // Fetch more playlists recursively
+        await fetchPlaylists(isRetry, offset + 50, allPlaylists);
+        return; // Don't set playlists here as we're still fetching
+      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'An error occurred';
       setError(msg);
       showToast(msg, 'error');
     } finally {
       setLoading(false);
+      setIsLoadingMore(false);
     }
   };
 
@@ -445,7 +463,8 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
     <section className="p-6" aria-label="Your playlists">
       {/* Filter bar */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8 p-6">
-        <div className="flex gap-2 lg:gap-3 overflow-x-auto pb-2 lg:pb-0 scrollbar-hide">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+          <div className="flex gap-2 lg:gap-3 overflow-x-auto pb-2 lg:pb-0 scrollbar-hide">
           <button
             className={`px-4 lg:px-6 py-3 rounded-2xl font-semibold text-sm transition-all duration-200 shadow-lg whitespace-nowrap ${typeFilter === 'all' ? 'bg-[#1DB954] text-white shadow-[#1DB954]/25' : 'bg-[#2a2a2a] text-gray-300 border border-[#282828] hover:bg-[#282828] hover:border-[#1DB954]/30'}`}
             onClick={() => setTypeFilter('all')}
@@ -481,6 +500,15 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
               ({favoriteCount})
             </div>
           </button>
+        </div>
+        {!loading && playlists.length > 0 && (
+          <div className="text-sm text-gray-400">
+            Loaded {playlists.length} playlist{playlists.length !== 1 ? 's' : ''} from Spotify
+            {hasMorePlaylists && (
+              <span className="text-[#1DB954]"> • More available</span>
+            )}
+          </div>
+        )}
         </div>
       </div>
       
@@ -865,7 +893,15 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
         })}
       </div>
 
-
+      {/* Loading more playlists indicator */}
+      {isLoadingMore && (
+        <div className="flex justify-center items-center py-8">
+          <div className="flex items-center gap-3 text-[#1DB954]">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#1DB954]"></div>
+            <span className="text-sm font-medium">Loading more playlists...</span>
+          </div>
+        </div>
+      )}
 
       {/* Edit Modal */}
       <Modal open={editModalOpen} onClose={() => setEditModalOpen(false)} title="Edit Playlist">
