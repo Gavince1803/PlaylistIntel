@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Playlister - Create Playlists from Mixed Collections",
-  description: "A modern web app for creating new playlists from your mixed Spotify playlists",
+  title: "PlaylistIntel - Music Analytics & Insights",
+  description: "Advanced playlist analytics and music insights for Spotify users",
 };
 
 export default function RootLayout({

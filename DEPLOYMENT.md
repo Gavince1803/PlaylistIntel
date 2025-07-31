@@ -24,7 +24,7 @@
    - Click "New site from Git"
    - Choose "GitHub"
    - Authorize Netlify to access your repositories
-   - Select your `spotify-playlist-creator` repository
+   - Select your `playlistintel` repository
 
 2. **Configure Build Settings**:
    - Build command: `npm run build`

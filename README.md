@@ -1,4 +1,4 @@
-# Spotify Playlist Creator
+# PlaylistIntel
 
 A modern web app for users who want to organize and create new playlists from their mixed Spotify playlists. Easily split, filter, and manage your music collections with a beautiful dashboard interface.
 

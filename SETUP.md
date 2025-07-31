@@ -1,4 +1,4 @@
-# Spotify Playlist Creator - Setup Guide
+# PlaylistIntel - Setup Guide
 
 ## Current Issue
 The application is failing because of missing environment variables. The errors show:
@@ -28,7 +28,7 @@ NEXTAUTH_SECRET=your_nextauth_secret_here
 2. Log in with your Spotify account
 3. Click "Create App"
 4. Fill in the app details:
-   - App name: "Spotify Playlist Creator"
+   - App name: "PlaylistIntel"
    - App description: "Create playlists from mixed collections"
    - Redirect URI: `http://localhost:3000/api/auth/callback/spotify`
    - Website: `http://localhost:3000`
