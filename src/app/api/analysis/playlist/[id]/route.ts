@@ -96,9 +96,9 @@ export async function GET(
       
       if (audioFeatures.length > 0) {
         audioFeaturesAvailable = true;
-        audioFeatures.forEach(feature => {
-          audioFeaturesMap[feature.id] = feature;
-        });
+      audioFeatures.forEach(feature => {
+        audioFeaturesMap[feature.id] = feature;
+      });
       } else {
         console.log('⚠️ No audio features returned, using genre-based analysis');
       }

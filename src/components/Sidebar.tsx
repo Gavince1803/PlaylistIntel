@@ -121,11 +121,19 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
         {/* User section */}
         <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-[#282828] bg-[#191414]">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gray-500 rounded-full flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-              </svg>
-            </div>
+            {session?.user?.image ? (
+              <img
+                src={session.user.image}
+                alt={session.user.name || 'User'}
+                className="w-10 h-10 rounded-full border border-[#1DB954]/30 shadow-md"
+              />
+            ) : (
+              <div className="w-10 h-10 bg-gray-500 rounded-full flex items-center justify-center">
+                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                </svg>
+              </div>
+            )}
             <div>
               <p className="text-base font-semibold text-white">{session?.user?.name || 'User Name'}</p>
               <p className="text-xs text-gray-400">{session?.user?.email || 'user@example.com'}</p>

@@ -50,7 +50,7 @@ export default function MusicalProfile({ playlistId, onClose }: MusicalProfilePr
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<string>('');
   const { showToast } = useToast();
-  
+
   // Add playlist selection state
   const [showAddToPlaylistModal, setShowAddToPlaylistModal] = useState(false);
   const [selectedSong, setSelectedSong] = useState<{ title: string; artist: string; genre: string; reason: string; year?: number; spotifyUrl?: string } | null>(null);
@@ -701,7 +701,7 @@ export default function MusicalProfile({ playlistId, onClose }: MusicalProfilePr
               ) : (
                 <div className="space-y-2 max-h-60 overflow-y-auto">
                   {userPlaylists.map((playlist) => (
-                    <button
+            <button
                       key={playlist.id}
                       onClick={() => addSongToPlaylist(playlist.id, selectedSong)}
                       disabled={addingToPlaylist}
@@ -709,7 +709,7 @@ export default function MusicalProfile({ playlistId, onClose }: MusicalProfilePr
                     >
                       <div className="text-white font-medium text-sm">{playlist.name}</div>
                       <div className="text-gray-400 text-xs">{playlist.tracks.total} tracks</div>
-                    </button>
+            </button>
                   ))}
                 </div>
               )}
@@ -812,7 +812,7 @@ export default function MusicalProfile({ playlistId, onClose }: MusicalProfilePr
               </button>
             </div>
           </div>
-        </div>
+      </div>
       )}
     </div>
   );
