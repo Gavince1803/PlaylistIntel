@@ -15,8 +15,16 @@ export async function GET(request: NextRequest, context: any) {
     
     // Fetch tracks for the playlist
     console.log(`🎵 Fetching tracks for playlist: ${playlistId}`);
+    console.log(`🔍 Playlist ID being analyzed: ${playlistId}`);
+    
     const tracks = await spotifyService.getAllPlaylistTracks(playlistId, 2000);
-    console.log(`✅ Fetched ${tracks.length} tracks from playlist`);
+    console.log(`✅ Fetched ${tracks.length} tracks from playlist ${playlistId}`);
+    
+    if (tracks.length === 0) {
+      console.log(`⚠️ WARNING: No tracks found for playlist ${playlistId}`);
+    } else if (tracks.length < 100) {
+      console.log(`⚠️ WARNING: Only ${tracks.length} tracks found for playlist ${playlistId} - this might indicate an issue`);
+    }
     
     // Get unique artist IDs
     const artistIds = Array.from(new Set(tracks.flatMap(track => track.artists.map(a => a.id))));

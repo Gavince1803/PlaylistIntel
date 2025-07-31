@@ -59,11 +59,18 @@ export async function GET(
     const spotifyService = new SpotifyService(session.accessToken);
 
     console.log(`🔍 Starting analysis for playlist: ${playlistId}`);
+    console.log(`🎯 ANALYSIS TARGET: Playlist ID = ${playlistId}`);
 
     // Paso 1: Obtener tracks de la playlist (con paginación para playlists grandes)
     console.log('📀 Fetching playlist tracks...');
     const tracks = await spotifyService.getAllPlaylistTracks(playlistId, 2000); // Soporte hasta 2000 tracks
-    console.log(`✅ Found ${tracks.length} tracks total`);
+    console.log(`✅ Found ${tracks.length} tracks total for playlist ${playlistId}`);
+    
+    if (tracks.length === 0) {
+      console.log(`❌ ERROR: No tracks found for playlist ${playlistId} - this playlist might be empty or inaccessible`);
+    } else if (tracks.length < 200) {
+      console.log(`⚠️ WARNING: Only ${tracks.length} tracks found for playlist ${playlistId} - this might be incomplete`);
+    }
 
     if (tracks.length === 0) {
       return NextResponse.json({ error: 'Playlist is empty' }, { status: 400 });

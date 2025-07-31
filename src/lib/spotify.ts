@@ -188,7 +188,13 @@ export class SpotifyService {
         this.api.getPlaylistTracks(playlistId, { limit, offset })
       );
       
-      console.log(`📊 Spotify API returned ${response.body.items.length} items for playlist ${playlistId}`);
+      console.log(`📊 Spotify API returned ${response.body.items.length} items for playlist ${playlistId} at offset ${offset}`);
+      
+      // Log some details about the response
+      if (response.body.items.length > 0) {
+        const firstItem = response.body.items[0];
+        console.log(`🔍 First item has track: ${firstItem.track ? 'YES' : 'NO'}, track ID: ${firstItem.track?.id || 'N/A'}`);
+      }
       
       const filteredTracks = response.body.items
         .filter(item => item.track && item.track.id)
@@ -204,7 +210,12 @@ export class SpotifyService {
           uri: item.track!.uri
         }));
       
-      console.log(`✅ getPlaylistTracks returning ${filteredTracks.length} valid tracks`);
+      const nullTracks = response.body.items.filter(item => !item.track || !item.track.id).length;
+      if (nullTracks > 0) {
+        console.log(`⚠️ Found ${nullTracks} null/invalid tracks in response for playlist ${playlistId}`);
+      }
+      
+      console.log(`✅ getPlaylistTracks returning ${filteredTracks.length} valid tracks for playlist ${playlistId}`);
       return filteredTracks;
     } catch (error) {
       console.error('Error fetching playlist tracks:', error);
@@ -219,29 +230,39 @@ export class SpotifyService {
       const allTracks: SpotifyTrack[] = [];
       let offset = 0;
       const limit = 100;
+      let batchCount = 0;
 
       while (allTracks.length < maxTracks) {
-        console.log(`📥 Fetching tracks with offset: ${offset}, limit: ${limit}, current total: ${allTracks.length}`);
-        const tracks = await this.getPlaylistTracks(playlistId, limit, offset);
+        batchCount++;
+        console.log(`📥 Batch ${batchCount}: Fetching tracks with offset: ${offset}, limit: ${limit}, current total: ${allTracks.length}`);
         
-        console.log(`📊 Received ${tracks.length} tracks in this batch`);
-        
-        if (tracks.length === 0) {
-          console.log(`🛑 No more tracks found, breaking loop`);
-          break;
-        }
-        
-        allTracks.push(...tracks);
-        offset += limit;
-        
-        if (tracks.length < limit) {
-          console.log(`🛑 Received fewer tracks than limit (${tracks.length} < ${limit}), breaking loop`);
-          break;
+        try {
+          const tracks = await this.getPlaylistTracks(playlistId, limit, offset);
+          console.log(`📊 Batch ${batchCount}: Received ${tracks.length} tracks in this batch`);
+          
+          if (tracks.length === 0) {
+            console.log(`🛑 Batch ${batchCount}: No more tracks found, breaking loop`);
+            break;
+          }
+          
+          allTracks.push(...tracks);
+          console.log(`📈 Batch ${batchCount}: Total tracks so far: ${allTracks.length}`);
+          offset += limit;
+          
+          if (tracks.length < limit) {
+            console.log(`🛑 Batch ${batchCount}: Received fewer tracks than limit (${tracks.length} < ${limit}), breaking loop`);
+            break;
+          }
+        } catch (error) {
+          console.error(`❌ Batch ${batchCount}: Error fetching tracks at offset ${offset}:`, error);
+          throw error;
         }
       }
 
-      console.log(`✅ getAllPlaylistTracks completed. Total tracks fetched: ${allTracks.length}`);
-      return allTracks.slice(0, maxTracks);
+      console.log(`✅ getAllPlaylistTracks completed for playlist ${playlistId}. Total tracks fetched: ${allTracks.length}`);
+      const finalTracks = allTracks.slice(0, maxTracks);
+      console.log(`🎯 Final result: ${finalTracks.length} tracks (after maxTracks limit)`);
+      return finalTracks;
     } catch (error) {
       console.error('Error fetching all playlist tracks:', error);
       throw error;

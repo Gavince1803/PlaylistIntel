@@ -5,6 +5,7 @@ import { useSession, signIn, signOut } from 'next-auth/react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import PlaylistGrid from './PlaylistGrid';
+import FloatingMenuButton from './FloatingMenuButton';
 import { useToast } from './Toast';
 
 export default function Dashboard() {
@@ -203,6 +204,9 @@ export default function Dashboard() {
           </div>
         </main>
       </div>
+      
+      {/* Floating menu button for mobile */}
+      <FloatingMenuButton onMenuClick={() => setSidebarOpen(true)} />
     </div>
   );
 } 
