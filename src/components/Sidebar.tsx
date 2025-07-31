@@ -107,13 +107,13 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
         }}
       >
         <div className="flex items-center h-20 px-6 border-b border-[#282828]">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-[#1DB954] rounded-full flex items-center justify-center">
-              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10" />
-              </svg>
-            </div>
-                            <span className="text-2xl font-bold text-white tracking-tight">PlaylistIntel</span>
+                    <div className="flex items-center space-x-3">
+            <img 
+              src="/logo.png" 
+              alt="PlaylistIntel Logo" 
+              className="w-10 h-10 rounded-lg"
+            />
+            <span className="text-2xl font-bold text-white tracking-tight">PlaylistIntel</span>
           </div>
         </div>
 
