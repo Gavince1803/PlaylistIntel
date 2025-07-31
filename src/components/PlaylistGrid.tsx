@@ -72,6 +72,7 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
   const [sharePlaylist, setSharePlaylist] = useState<SpotifyPlaylist | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [typeFilter, setTypeFilter] = useState<'all' | 'mixed' | 'regular' | 'favorites'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'recent' | 'name' | 'tracks' | 'duration'>('recent');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [itemsPerPage, setItemsPerPage] = useState(12);
@@ -211,10 +212,7 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
   const toggleSelect = (id: string) => {
     setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   };
-  const selectAll = () => setSelectedIds(playlists.map(p => p.id));
   const deselectAll = () => setSelectedIds([]);
-  const allSelected = playlists.length > 0 && selectedIds.length === playlists.length;
-  const someSelected = selectedIds.length > 0 && !allSelected;
 
   // Bulk delete/share handlers
   // Like/Unlike functionality
@@ -299,6 +297,15 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
   // Filter and sort playlists
   const filteredAndSortedPlaylists = playlists
     .filter(p => {
+      // Search filter
+      const matchesSearch = searchQuery === '' || 
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.owner.display_name.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      if (!matchesSearch) return false;
+      
+      // Type filter
       let matchesType = true;
       if (typeFilter === 'mixed') {
         matchesType = p.collaborative || p.name.toLowerCase().includes('mix');
@@ -328,6 +335,13 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedPlaylists = filteredAndSortedPlaylists.slice(startIndex, endIndex);
+
+  // Selection state for filtered playlists
+  const allSelected = filteredAndSortedPlaylists.length > 0 && selectedIds.length === filteredAndSortedPlaylists.length;
+  const someSelected = selectedIds.length > 0 && !allSelected;
+  
+  // Select all filtered playlists
+  const selectAll = () => setSelectedIds(filteredAndSortedPlaylists.map(p => p.id));
 
   // Show genres for a playlist
   const showGenresForPlaylist = async (playlist: SpotifyPlaylist) => {
@@ -439,6 +453,46 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
           </button>
         </div>
       </div>
+      
+      {/* Search bar */}
+      <div className="mb-6">
+        <div className="relative max-w-md">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <input
+            type="text"
+            placeholder="Search playlists, descriptions, or creators..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1); // Reset to first page when searching
+            }}
+            className="block w-full pl-10 pr-3 py-3 border border-[#282828] rounded-xl bg-[#232323] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1DB954] focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                setCurrentPage(1);
+              }}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white transition-colors"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
+        </div>
+        {searchQuery && (
+          <p className="mt-2 text-sm text-gray-400">
+            Found {filteredAndSortedPlaylists.length} playlist{filteredAndSortedPlaylists.length !== 1 ? 's' : ''} matching "{searchQuery}"
+          </p>
+        )}
+      </div>
+      
       {/* Bulk action bar */}
       {selectedIds.length > 0 && (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-30 bg-[#232323] border border-[#282828] rounded-xl shadow-2xl px-6 py-3 flex items-center gap-6 animate-fade-in-up">
