@@ -361,3 +361,66 @@ html {
     }
   }
 }
+
+/* Mobile touch improvements */
+@media (max-width: 768px) {
+  /* Larger touch targets for mobile */
+  button, select, input {
+    min-height: 44px;
+  }
+  
+  /* Better spacing for mobile */
+  .mobile-padding {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  /* Improved mobile grid */
+  .mobile-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+}
+
+/* Loading animations */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.3s ease-out;
+}
+
+@keyframes scale-in {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out;
+}
+
+@keyframes checkmark {
+  from {
+    stroke-dasharray: 0 100;
+  }
+  to {
+    stroke-dasharray: 100 100;
+  }
+}
+
+.animate-checkmark {
+  animation: checkmark 0.3s ease-out;
+}

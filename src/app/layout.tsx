@@ -19,11 +19,7 @@ export const metadata: Metadata = {
   title: "PlaylistIntel - Music Analytics & Insights",
   description: "Advanced playlist analytics and music insights for Spotify users",
   icons: {
-    icon: [
-      { url: '/favicon.ico', sizes: 'any' },
-      { url: '/favicon.ico', sizes: '16x16', type: 'image/x-icon' },
-      { url: '/favicon.ico', sizes: '32x32', type: 'image/x-icon' },
-    ],
+    icon: '/favicon.ico',
     shortcut: '/favicon.ico',
     apple: '/favicon.ico',
   },

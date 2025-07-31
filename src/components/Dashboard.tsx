@@ -50,7 +50,7 @@ export default function Dashboard() {
   }
 
   // Show sign-in modal if not authenticated or if requested
-  if (status === 'unauthenticated' || showSignIn) {
+  if (status === 'unauthenticated') {
     return (
       <div className="flex h-screen font-sans items-center justify-center bg-gradient-to-br from-[#191414] via-[#232323] to-[#1DB954]">
         <div className="bg-gradient-to-br from-[#232323] to-[#2a2a2a] rounded-3xl p-8 lg:p-12 shadow-2xl border border-[#1DB954]/20 text-center max-w-md w-full mx-4 animate-fade-in-down">

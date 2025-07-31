@@ -56,6 +56,7 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
   const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>(propPlaylists || []);
   const [loading, setLoading] = useState(!propPlaylists);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const [selectedPlaylist, setSelectedPlaylist] = useState<SpotifyPlaylist | null>(null);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const menuButtonRefs = useRef<{ [id: string]: HTMLButtonElement | null }>({});
@@ -92,18 +93,41 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
     }
   }, [session, propPlaylists]);
 
-  const fetchPlaylists = async () => {
+  const fetchPlaylists = async (isRetry = false) => {
     try {
       setLoading(true);
       setError(null);
       
       const response = await fetch('/api/playlists?limit=50');
       if (!response.ok) {
-        throw new Error('Failed to fetch playlists');
+        const errorData = await response.json().catch(() => ({}));
+        
+        if (response.status === 403) {
+          setError('Access forbidden. Your Spotify app is in Development Mode. Please add your email as a test user or contact support.');
+          showToast('Access forbidden. Check Spotify app settings.', 'error');
+        } else if (response.status === 401) {
+          setError('Authentication failed. Please log in again.');
+          showToast('Please log in again.', 'error');
+        } else if (response.status === 429 && !isRetry && retryCount < 3) {
+          // Retry rate limit errors up to 3 times
+          setRetryCount(prev => prev + 1);
+          showToast('Rate limit exceeded. Retrying...', 'info');
+          setTimeout(() => fetchPlaylists(true), 2000 * (retryCount + 1));
+          return;
+        } else if (response.status === 429) {
+          setError('Too many requests. Please try again in a few moments.');
+          showToast('Rate limit exceeded. Please wait a moment.', 'error');
+        } else {
+          const errorMessage = errorData.message || 'Failed to fetch playlists';
+          setError(errorMessage);
+          showToast(errorMessage, 'error');
+        }
+        return;
       }
       
       const data = await response.json();
       setPlaylists(data.playlists || []);
+      setRetryCount(0); // Reset retry count on success
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'An error occurred';
       setError(msg);
@@ -113,6 +137,10 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
     }
   };
 
+  const handleRetry = () => {
+    setRetryCount(0);
+    fetchPlaylists();
+  };
 
 
   const formatDuration = (ms: number) => {
@@ -403,7 +431,7 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
           <h3 className="text-lg font-bold text-white mb-2">Error loading playlists</h3>
           <p className="text-gray-400 mb-6">{error}</p>
           <button 
-            onClick={fetchPlaylists}
+            onClick={handleRetry}
             className="bg-[#1DB954] hover:bg-[#1ed760] text-white px-6 py-2 rounded-full font-semibold transition-colors shadow-md"
           >
             Try Again
@@ -419,28 +447,28 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8 p-6">
         <div className="flex gap-2 lg:gap-3 overflow-x-auto pb-2 lg:pb-0 scrollbar-hide">
           <button
-            className={`px-6 py-3 rounded-2xl font-semibold text-sm transition-all duration-200 shadow-lg ${typeFilter === 'all' ? 'bg-[#1DB954] text-white shadow-[#1DB954]/25' : 'bg-[#2a2a2a] text-gray-300 border border-[#282828] hover:bg-[#282828] hover:border-[#1DB954]/30'}`}
+            className={`px-4 lg:px-6 py-3 rounded-2xl font-semibold text-sm transition-all duration-200 shadow-lg whitespace-nowrap ${typeFilter === 'all' ? 'bg-[#1DB954] text-white shadow-[#1DB954]/25' : 'bg-[#2a2a2a] text-gray-300 border border-[#282828] hover:bg-[#282828] hover:border-[#1DB954]/30'}`}
             onClick={() => setTypeFilter('all')}
             aria-pressed={typeFilter === 'all'}
           >
-            All Playlists ({playlists.length})
+            All ({playlists.length})
           </button>
           <button
-            className={`px-6 py-3 rounded-2xl font-semibold text-sm transition-all duration-200 shadow-lg ${typeFilter === 'mixed' ? 'bg-[#1DB954] text-white shadow-[#1DB954]/25' : 'bg-[#2a2a2a] text-gray-300 border border-[#282828] hover:bg-[#282828] hover:border-[#1DB954]/30'}`}
+            className={`px-4 lg:px-6 py-3 rounded-2xl font-semibold text-sm transition-all duration-200 shadow-lg whitespace-nowrap ${typeFilter === 'mixed' ? 'bg-[#1DB954] text-white shadow-[#1DB954]/25' : 'bg-[#2a2a2a] text-gray-300 border border-[#282828] hover:bg-[#282828] hover:border-[#1DB954]/30'}`}
             onClick={() => setTypeFilter('mixed')}
             aria-pressed={typeFilter === 'mixed'}
           >
             Mixed ({mixedCount})
           </button>
           <button
-            className={`px-6 py-3 rounded-2xl font-semibold text-sm transition-all duration-200 shadow-lg ${typeFilter === 'regular' ? 'bg-[#1DB954] text-white shadow-[#1DB954]/25' : 'bg-[#2a2a2a] text-gray-300 border border-[#282828] hover:bg-[#282828] hover:border-[#1DB954]/30'}`}
+            className={`px-4 lg:px-6 py-3 rounded-2xl font-semibold text-sm transition-all duration-200 shadow-lg whitespace-nowrap ${typeFilter === 'regular' ? 'bg-[#1DB954] text-white shadow-[#1DB954]/25' : 'bg-[#2a2a2a] text-gray-300 border border-[#282828] hover:bg-[#282828] hover:border-[#1DB954]/30'}`}
             onClick={() => setTypeFilter('regular')}
             aria-pressed={typeFilter === 'regular'}
           >
             Regular ({regularCount})
           </button>
           <button
-            className={`px-6 py-3 rounded-2xl font-semibold text-sm transition-all duration-200 shadow-lg ${typeFilter === 'favorites' ? 'bg-[#1DB954] text-white shadow-[#1DB954]/25' : 'bg-[#2a2a2a] text-gray-300 border border-[#282828] hover:bg-[#282828] hover:border-[#1DB954]/30'}`}
+            className={`px-4 lg:px-6 py-3 rounded-2xl font-semibold text-sm transition-all duration-200 shadow-lg whitespace-nowrap ${typeFilter === 'favorites' ? 'bg-[#1DB954] text-white shadow-[#1DB954]/25' : 'bg-[#2a2a2a] text-gray-300 border border-[#282828] hover:bg-[#282828] hover:border-[#1DB954]/30'}`}
             onClick={() => setTypeFilter('favorites')}
             aria-pressed={typeFilter === 'favorites'}
           >
@@ -448,14 +476,16 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
               </svg>
-              Favorites ({favoriteCount})
+              <span className="hidden sm:inline">Favorites</span>
+              <span className="sm:hidden">Fav</span>
+              ({favoriteCount})
             </div>
           </button>
         </div>
       </div>
       
       {/* Search bar */}
-      <div className="mb-6">
+      <div className="mb-6 px-6">
         <div className="relative max-w-md">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -519,8 +549,8 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
         </div>
       )}
       {/* Filters and actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 space-y-4 sm:space-y-0">
-        <div className="flex items-center space-x-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 space-y-4 sm:space-y-0 px-6">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
           {/* Select All Checkbox */}
           <label className="flex items-center gap-3 cursor-pointer select-none group">
             <div className={`relative w-5 h-5 rounded-md border-2 transition-all duration-200 checkbox-hover ${
@@ -569,40 +599,42 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
               Select All
             </span>
           </label>
-          <div className="relative">
-            <select 
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as 'recent' | 'name' | 'tracks' | 'duration')}
-              className="appearance-none px-3 py-2 border border-[#282828] rounded-lg bg-[#232323] text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#1DB954] font-sans pr-8 transition-shadow shadow-sm hover:shadow-md" 
-              style={{ minWidth: 140 }}
-            >
-              <option value="recent">Recently Added</option>
-              <option value="name">Name A-Z</option>
-              <option value="tracks">Most Songs</option>
-              <option value="duration">Longest Duration</option>
-            </select>
-            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-            </span>
-          </div>
-          <div className="relative">
-            <select 
-              value={itemsPerPage}
-              onChange={(e) => {
-                setItemsPerPage(Number(e.target.value));
-                setCurrentPage(1);
-              }}
-              className="appearance-none px-3 py-2 border border-[#282828] rounded-lg bg-[#232323] text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#1DB954] font-sans pr-8 transition-shadow shadow-sm hover:shadow-md" 
-              style={{ minWidth: 120 }}
-            >
-              <option value={8}>8 per page</option>
-              <option value={12}>12 per page</option>
-              <option value={16}>16 per page</option>
-              <option value={24}>24 per page</option>
-            </select>
-            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-            </span>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative">
+              <select 
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as 'recent' | 'name' | 'tracks' | 'duration')}
+                className="appearance-none px-3 py-2 border border-[#282828] rounded-lg bg-[#232323] text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#1DB954] font-sans pr-8 transition-shadow shadow-sm hover:shadow-md w-full sm:w-auto" 
+                style={{ minWidth: 140 }}
+              >
+                <option value="recent">Recently Added</option>
+                <option value="name">Name A-Z</option>
+                <option value="tracks">Most Songs</option>
+                <option value="duration">Longest Duration</option>
+              </select>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </span>
+            </div>
+            <div className="relative">
+              <select 
+                value={itemsPerPage}
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="appearance-none px-3 py-2 border border-[#282828] rounded-lg bg-[#232323] text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#1DB954] font-sans pr-8 transition-shadow shadow-sm hover:shadow-md w-full sm:w-auto" 
+                style={{ minWidth: 120 }}
+              >
+                <option value={8}>8 per page</option>
+                <option value={12}>12 per page</option>
+                <option value={16}>16 per page</option>
+                <option value={24}>24 per page</option>
+              </select>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </span>
+            </div>
           </div>
         </div>
         <div className="flex items-center space-x-2">
@@ -967,49 +999,57 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2 mt-8 mb-4">
-          <button
-            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-            disabled={currentPage === 1}
-            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-              currentPage === 1 
-                ? 'bg-gray-700 text-gray-500 cursor-not-allowed' 
-                : 'bg-[#1DB954] text-white hover:bg-[#1ed760] shadow-md'
-            }`}
-          >
-            Previous
-          </button>
-          
-          <div className="flex gap-1">
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              const pageNum = i + 1;
-              return (
-                <button
-                  key={pageNum}
-                  onClick={() => setCurrentPage(pageNum)}
-                  className={`px-3 py-2 rounded-lg font-semibold transition-colors ${
-                    currentPage === pageNum
-                      ? 'bg-[#1DB954] text-white shadow-md'
-                      : 'bg-[#2a2a2a] text-gray-300 hover:bg-[#282828]'
-                  }`}
-                >
-                  {pageNum}
-                </button>
-              );
-            })}
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-8 mb-4 px-6">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+              className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                currentPage === 1 
+                  ? 'bg-gray-700 text-gray-500 cursor-not-allowed' 
+                  : 'bg-[#1DB954] text-white hover:bg-[#1ed760] shadow-md'
+              }`}
+            >
+              <span className="hidden sm:inline">Previous</span>
+              <span className="sm:hidden">←</span>
+            </button>
+            
+            <div className="flex gap-1">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                const pageNum = i + 1;
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`px-3 py-2 rounded-lg font-semibold transition-colors ${
+                      currentPage === pageNum
+                        ? 'bg-[#1DB954] text-white shadow-md'
+                        : 'bg-[#2a2a2a] text-gray-300 hover:bg-[#282828]'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+            </div>
+            
+            <button
+              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+              disabled={currentPage === totalPages}
+              className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                currentPage === totalPages 
+                  ? 'bg-gray-700 text-gray-500 cursor-not-allowed' 
+                  : 'bg-[#1DB954] text-white hover:bg-[#1ed760] shadow-md'
+              }`}
+            >
+              <span className="hidden sm:inline">Next</span>
+              <span className="sm:hidden">→</span>
+            </button>
           </div>
           
-          <button
-            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-            disabled={currentPage === totalPages}
-            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-              currentPage === totalPages 
-                ? 'bg-gray-700 text-gray-500 cursor-not-allowed' 
-                : 'bg-[#1DB954] text-white hover:bg-[#1ed760] shadow-md'
-            }`}
-          >
-            Next
-          </button>
+          <div className="text-sm text-gray-400">
+            Page {currentPage} of {totalPages}
+          </div>
         </div>
       )}
 

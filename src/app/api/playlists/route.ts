@@ -35,6 +35,37 @@ export async function GET(request: NextRequest) {
       } : 'No playlists');
     } catch (error: any) {
       console.error('Error in getUserPlaylists:', error && (error.body || error.message || error));
+      
+      // Handle specific error types
+      if (error.message?.includes('Access forbidden')) {
+        return NextResponse.json(
+          { 
+            error: 'Access forbidden', 
+            message: 'Your Spotify app is in Development Mode. Please add your email as a test user or contact support.',
+            code: 'FORBIDDEN'
+          },
+          { status: 403 }
+        );
+      } else if (error.message?.includes('Authentication failed')) {
+        return NextResponse.json(
+          { 
+            error: 'Authentication failed', 
+            message: 'Please log in again.',
+            code: 'AUTH_FAILED'
+          },
+          { status: 401 }
+        );
+      } else if (error.statusCode === 429) {
+        return NextResponse.json(
+          { 
+            error: 'Rate limit exceeded', 
+            message: 'Too many requests. Please try again in a few moments.',
+            code: 'RATE_LIMIT'
+          },
+          { status: 429 }
+        );
+      }
+      
       throw error;
     }
 

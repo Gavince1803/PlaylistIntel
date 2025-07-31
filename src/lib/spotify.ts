@@ -1,5 +1,38 @@
 import SpotifyWebApi from 'spotify-web-api-node';
 
+// Rate limiting utility
+class RateLimiter {
+  private lastCall = 0;
+  private minInterval = 150; // Increased to 150ms between calls
+  private consecutiveErrors = 0;
+  private maxConsecutiveErrors = 3;
+
+  async waitForNextCall() {
+    const now = Date.now();
+    const timeSinceLastCall = now - this.lastCall;
+    
+    // Add exponential backoff if we've had consecutive errors
+    const backoffMultiplier = Math.min(2 ** this.consecutiveErrors, 8);
+    const adjustedInterval = this.minInterval * backoffMultiplier;
+    
+    if (timeSinceLastCall < adjustedInterval) {
+      await new Promise(resolve => setTimeout(resolve, adjustedInterval - timeSinceLastCall));
+    }
+    
+    this.lastCall = Date.now();
+  }
+
+  recordError() {
+    this.consecutiveErrors = Math.min(this.consecutiveErrors + 1, this.maxConsecutiveErrors);
+  }
+
+  recordSuccess() {
+    this.consecutiveErrors = 0;
+  }
+}
+
+const rateLimiter = new RateLimiter();
+
 const spotifyApi = new SpotifyWebApi({
   clientId: process.env.SPOTIFY_CLIENT_ID,
   clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
@@ -70,6 +103,7 @@ export interface SpotifyAudioFeatures {
 
 export class SpotifyService {
   private api: SpotifyWebApi;
+  private rateLimiter: RateLimiter;
 
   constructor(accessToken?: string) {
     this.api = new SpotifyWebApi({
@@ -77,15 +111,55 @@ export class SpotifyService {
       clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
       redirectUri: process.env.NEXTAUTH_URL + '/api/auth/callback/spotify'
     });
+    this.rateLimiter = new RateLimiter();
 
     if (accessToken) {
       this.api.setAccessToken(accessToken);
     }
   }
 
+  // Helper method to make rate-limited API calls
+  private async makeApiCall<T>(apiCall: () => Promise<T>): Promise<T> {
+    await this.rateLimiter.waitForNextCall();
+    
+    try {
+      const result = await apiCall();
+      this.rateLimiter.recordSuccess();
+      return result;
+    } catch (error: any) {
+      this.rateLimiter.recordError();
+      
+      if (error.statusCode === 429) {
+        // Rate limit exceeded, wait longer and retry with exponential backoff
+        const retryDelay = Math.min(2000 * (2 ** this.rateLimiter['consecutiveErrors']), 10000);
+        console.log(`Rate limit exceeded, waiting ${retryDelay}ms before retry...`);
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
+        await this.rateLimiter.waitForNextCall();
+        return await apiCall();
+      } else if (error.statusCode === 403) {
+        // Forbidden - likely due to development mode restrictions
+        console.log('403 Forbidden - This may be due to Spotify app being in Development Mode');
+        console.log('To fix this:');
+        console.log('1. Go to Spotify Developer Dashboard');
+        console.log('2. Add the user email as a test user, OR');
+        console.log('3. Switch the app to Production Mode');
+        throw new Error('Access forbidden. Please check Spotify app settings or contact support.');
+      } else if (error.statusCode === 401) {
+        // Unauthorized - token may be invalid
+        console.log('401 Unauthorized - Token may be invalid or expired');
+        throw new Error('Authentication failed. Please log in again.');
+      }
+      
+      throw error;
+    }
+  }
+
   async getUserPlaylists(limit = 50, offset = 0): Promise<SpotifyPlaylist[]> {
     try {
-      const response = await this.api.getUserPlaylists({ limit, offset });
+      const response = await this.makeApiCall(() => 
+        this.api.getUserPlaylists({ limit, offset })
+      );
+      
       return response.body.items.map(playlist => ({
         id: playlist.id,
         name: playlist.name,
@@ -108,27 +182,19 @@ export class SpotifyService {
 
   async getPlaylistTracks(playlistId: string, limit = 100, offset = 0): Promise<SpotifyTrack[]> {
     try {
-      // Log the access token used for getPlaylistTracks
-      // @ts-ignore
-      console.log('getPlaylistTracks: Access Token Excerpt:', this.api.getAccessToken()?.slice(0, 10));
-      const response = await this.api.getPlaylistTracks(playlistId, {
-        limit,
-        offset,
-        fields: 'items(track(id,name,artists(id,name),album(name,images),duration_ms,uri))'
-      });
+      const response = await this.makeApiCall(() => 
+        this.api.getPlaylistTracks(playlistId, { limit, offset })
+      );
       
       return response.body.items
-        .filter(item => item.track)
+        .filter(item => item.track && item.track.id)
         .map(item => ({
           id: item.track!.id,
           name: item.track!.name,
-          artists: item.track!.artists.map(artist => ({
-            id: artist.id,
-            name: artist.name
-          })),
+          artists: item.track!.artists.map(artist => ({ name: artist.name, id: artist.id })),
           album: {
             name: item.track!.album.name,
-            images: item.track!.album.images || []
+            images: item.track!.album.images
           },
           duration_ms: item.track!.duration_ms,
           uri: item.track!.uri
@@ -142,33 +208,22 @@ export class SpotifyService {
   // New method to get ALL tracks from a playlist using pagination
   async getAllPlaylistTracks(playlistId: string, maxTracks = 1000): Promise<SpotifyTrack[]> {
     try {
-      console.log(`🎵 Fetching ALL tracks from playlist: ${playlistId} (max: ${maxTracks})`);
-      
       const allTracks: SpotifyTrack[] = [];
       let offset = 0;
-      const limit = 100; // Spotify's max per request
-      
+      const limit = 100;
+
       while (allTracks.length < maxTracks) {
-        console.log(`📄 Fetching tracks ${offset + 1}-${offset + limit}...`);
-        
         const tracks = await this.getPlaylistTracks(playlistId, limit, offset);
         
-        if (tracks.length === 0) {
-          console.log('✅ No more tracks to fetch');
-          break;
-        }
+        if (tracks.length === 0) break;
         
         allTracks.push(...tracks);
         offset += limit;
         
-        // Add a small delay to avoid rate limiting
-        if (tracks.length === limit) {
-          await new Promise(resolve => setTimeout(resolve, 100));
-        }
+        if (tracks.length < limit) break;
       }
-      
-      console.log(`✅ Successfully fetched ${allTracks.length} tracks total`);
-      return allTracks;
+
+      return allTracks.slice(0, maxTracks);
     } catch (error) {
       console.error('Error fetching all playlist tracks:', error);
       throw error;
@@ -177,68 +232,38 @@ export class SpotifyService {
 
   async createPlaylist(userId: string, name: string, description?: string): Promise<string> {
     try {
-      console.log(`Creating playlist: ${name} for user: ${userId}`);
-      
-      // Log the access token to verify it's valid
-      const accessToken = this.api.getAccessToken();
-      console.log('Access token available:', !!accessToken);
-      
-      // Use direct API call as the primary method since the library seems to have issues
-      console.log('🎯 Using direct Spotify API call...');
-      const url = `https://api.spotify.com/v1/users/${userId}/playlists`;
-      
-      const apiResponse = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          name: name,
-          description: description || '',
+      const response = await this.makeApiCall(() => 
+        this.api.createPlaylist(name, {
+          description,
           public: false
         })
-      });
+      );
       
-      console.log('API Response status:', apiResponse.status);
-      
-      if (!apiResponse.ok) {
-        const errorData = await apiResponse.json().catch(() => ({}));
-        console.error('Spotify API error response:', errorData);
-        throw new Error(`Spotify API error: ${errorData.error?.message || apiResponse.statusText}`);
-      }
-      
-      const data = await apiResponse.json();
-      console.log('Spotify API success response:', { id: data.id, name: data.name });
-      
-      if (!data.id) {
-        throw new Error('No playlist ID in response');
-      }
-      
-      console.log('Playlist created successfully:', data.id);
-      return data.id;
+      return response.body.id;
     } catch (error) {
       console.error('Error creating playlist:', error);
-      console.error('Error details:', JSON.stringify(error, null, 2));
       throw error;
     }
   }
 
   async getCurrentUserId(): Promise<string> {
     try {
-      console.log('🔍 Getting current user info...');
-      const response = await this.api.getMe();
-      console.log('✅ User info received:', response.body?.id ? 'ID found' : 'No ID');
+      const response = await this.makeApiCall(() => 
+        this.api.getMe()
+      );
+      
       return response.body.id;
     } catch (error) {
-      console.error('❌ Error getting current user ID:', error);
+      console.error('Error getting current user ID:', error);
       throw error;
     }
   }
 
   async addTracksToPlaylist(playlistId: string, trackUris: string[]): Promise<void> {
     try {
-      await this.api.addTracksToPlaylist(playlistId, trackUris);
+      await this.makeApiCall(() => 
+        this.api.addTracksToPlaylist(playlistId, trackUris)
+      );
     } catch (error) {
       console.error('Error adding tracks to playlist:', error);
       throw error;
@@ -247,18 +272,18 @@ export class SpotifyService {
 
   async getCurrentUser(): Promise<{ id: string; display_name: string; email: string; images: Array<{ url: string }> }> {
     try {
-      // Log the access token used for getCurrentUser
-      // @ts-ignore
-      console.log('getCurrentUser: Access Token Excerpt:', this.api.getAccessToken()?.slice(0, 10));
-      const response = await this.api.getMe();
+      const response = await this.makeApiCall(() => 
+        this.api.getMe()
+      );
+      
       return {
         id: response.body.id,
-        display_name: response.body.display_name || '',
+        display_name: response.body.display_name || 'Unknown User',
         email: response.body.email || '',
         images: response.body.images || []
       };
     } catch (error) {
-      console.error('Error fetching current user:', error);
+      console.error('Error getting current user:', error);
       throw error;
     }
   }
@@ -266,11 +291,13 @@ export class SpotifyService {
   // Helper method to detect if a playlist is mixed (has tracks from different artists)
   async isMixedPlaylist(playlistId: string): Promise<boolean> {
     try {
-      const tracks = await this.getPlaylistTracks(playlistId);
-      if (tracks.length < 2) return false;
-
-      const firstArtist = tracks[0].artists[0]?.name;
-      return tracks.some(track => track.artists[0]?.name !== firstArtist);
+      const response = await this.makeApiCall(() => 
+        this.api.getPlaylist(playlistId)
+      );
+      
+      return response.body.collaborative || 
+             response.body.name.toLowerCase().includes('mix') ||
+             response.body.name.toLowerCase().includes('playlist');
     } catch (error) {
       console.error('Error checking if playlist is mixed:', error);
       return false;
@@ -290,14 +317,22 @@ export class SpotifyService {
       const allArtists: SpotifyArtist[] = [];
       
       for (const chunk of chunks) {
-        const response = await this.api.getArtists(chunk);
-        const artists = response.body.artists.map(artist => ({
-          id: artist.id,
-          name: artist.name,
-          genres: artist.genres || [],
-          popularity: artist.popularity || 0
-        }));
-        allArtists.push(...artists);
+        try {
+          const response = await this.makeApiCall(() => 
+            this.api.getArtists(chunk)
+          );
+          
+          const artists = response.body.artists.map(artist => ({
+            id: artist.id,
+            name: artist.name,
+            genres: artist.genres || [],
+            popularity: artist.popularity || 0
+          }));
+          allArtists.push(...artists);
+        } catch (err: any) {
+          console.error('❌ Spotify API error in getArtists:', err && (err.body || err.message || err));
+          console.log('⚠️ Skipping this chunk and continuing...');
+        }
       }
 
       return allArtists;
@@ -320,11 +355,11 @@ export class SpotifyService {
       const allFeatures: SpotifyAudioFeatures[] = [];
       
       for (const chunk of chunks) {
-        // Log chunk size, sample track ID, and access token excerpt
-        // @ts-ignore
-        console.log(`getAudioFeaturesForTracks: chunk size: ${chunk.length}, sample track ID: ${chunk[0]}, access token: ${this.api.getAccessToken()?.slice(0, 10)}`);
         try {
-          const response = await this.api.getAudioFeaturesForTracks(chunk);
+          const response = await this.makeApiCall(() => 
+            this.api.getAudioFeaturesForTracks(chunk)
+          );
+          
           const features = response.body.audio_features
             .filter(feature => feature !== null)
             .map(feature => ({
@@ -344,14 +379,15 @@ export class SpotifyService {
               time_signature: feature!.time_signature
             }));
           allFeatures.push(...features);
-          console.log(`Successfully fetched features for ${features.length} tracks`);
+          console.log(`✅ Successfully fetched audio features for ${features.length} tracks`);
         } catch (err: any) {
-          console.error('Spotify API error in getAudioFeaturesForTracks:', err && (err.body || err.message || err));
+          console.error('❌ Spotify API error in getAudioFeaturesForTracks:', err && (err.body || err.message || err));
           // Continue with other chunks instead of failing completely
-          console.log('Skipping this chunk and continuing...');
+          console.log('⚠️ Skipping this chunk and continuing...');
         }
       }
 
+      console.log(`✅ Successfully fetched audio features for ${allFeatures.length} tracks`);
       return allFeatures;
     } catch (error) {
       console.error('Error fetching audio features:', error);
@@ -364,7 +400,9 @@ export class SpotifyService {
     try {
       console.log(`🔍 Searching for tracks with query: "${query}"`);
       
-      const response = await this.api.searchTracks(query, { limit });
+      const response = await this.makeApiCall(() => 
+        this.api.searchTracks(query, { limit })
+      );
       
       return response.body.tracks?.items.map(track => ({
         id: track.id,
@@ -384,7 +422,10 @@ export class SpotifyService {
     try {
       console.log(`🎵 Getting track details for ID: ${trackId}`);
       
-      const response = await this.api.getTrack(trackId);
+      const response = await this.makeApiCall(() => 
+        this.api.getTrack(trackId)
+      );
+      
       const track = response.body;
       
       return {
