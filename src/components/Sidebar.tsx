@@ -113,7 +113,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                 <circle cx="12" cy="12" r="10" />
               </svg>
             </div>
-            <span className="text-2xl font-bold text-white tracking-tight">Music Taste</span>
+                            <span className="text-2xl font-bold text-white tracking-tight">PlaylistIntel</span>
           </div>
         </div>
 
