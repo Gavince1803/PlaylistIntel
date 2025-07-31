@@ -4,6 +4,7 @@ import "./globals.css";
 import Providers from "@/components/Providers";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { ToastProvider } from "@/components/Toast";
+import UserAvatar from "@/components/UserAvatar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,7 +34,8 @@ export default function RootLayout({
         <ErrorBoundary>
           <ToastProvider>
             <Providers>
-        {children}
+              {children}
+              <UserAvatar />
             </Providers>
           </ToastProvider>
         </ErrorBoundary>

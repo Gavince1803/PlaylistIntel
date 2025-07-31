@@ -9,8 +9,6 @@ interface HeaderProps {
 
 export default function Header({ onMenuClick }: HeaderProps) {
   const { data: session } = useSession();
-  const [userAvatar, setUserAvatar] = useState<string | null>(null);
-
   // Extiende el tipo de usuario para permitir 'product'
   type UserWithProduct = {
     name?: string | null;
@@ -20,14 +18,6 @@ export default function Header({ onMenuClick }: HeaderProps) {
     product?: string;
   };
   const user = session?.user as UserWithProduct | undefined;
-
-  // Load saved avatar from localStorage
-  useEffect(() => {
-    const savedAvatar = localStorage.getItem('userAvatar');
-    if (savedAvatar) {
-      setUserAvatar(savedAvatar);
-    }
-  }, []);
 
   return (
     <header className="bg-[#191414] shadow-md border-b border-[#282828]">
@@ -68,13 +58,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
 
           {/* User info */}
           <div className="flex items-center space-x-3 p-2">
-            {userAvatar ? (
-              <img
-                src={userAvatar}
-                alt={session?.user?.name || 'User'}
-                className="w-10 h-10 rounded-full object-cover"
-              />
-            ) : session?.user?.image ? (
+            {session?.user?.image ? (
               <img
                 src={session.user.image}
                 alt={session.user.name || 'User'}

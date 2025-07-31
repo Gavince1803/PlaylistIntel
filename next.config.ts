@@ -27,6 +27,8 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Ensure proper output for Netlify
+  output: 'standalone',
 };
 
 export default nextConfig;
