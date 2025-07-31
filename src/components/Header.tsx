@@ -19,6 +19,14 @@ export default function Header({ onMenuClick }: HeaderProps) {
   };
   const user = session?.user as UserWithProduct | undefined;
 
+  // Debug logging
+  console.log('🔍 Header - Session data:', {
+    user: session?.user,
+    product: user?.product,
+    name: user?.name,
+    email: user?.email
+  });
+
   return (
     <header className="bg-[#191414] shadow-md border-b border-[#282828]">
       <div className="flex items-center justify-between h-20 px-2 sm:px-8">

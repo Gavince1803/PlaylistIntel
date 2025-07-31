@@ -34,6 +34,7 @@ async function refreshAccessToken(token: any) {
 }
 
 export const authOptions = {
+  debug: true,
   providers: [
     SpotifyProvider({
       clientId: process.env.SPOTIFY_CLIENT_ID!,
@@ -69,16 +70,38 @@ export const authOptions = {
       // Obtener el tipo de cuenta (product) desde Spotify
       try {
         if (token.accessToken) {
+          console.log('🔍 Fetching user info from Spotify...');
           const res = await fetch('https://api.spotify.com/v1/me', {
             headers: { Authorization: `Bearer ${token.accessToken}` }
           });
+          
+          console.log('📊 Spotify API response status:', res.status);
+          
           if (res.ok) {
             const data = await res.json();
+            console.log('✅ User data received:', {
+              name: data.display_name,
+              email: data.email,
+              product: data.product,
+              id: data.id
+            });
             session.user.product = data.product;
+          } else if (res.status === 403) {
+            // Token no válido, limpiar
+            console.log('❌ Token no válido (403), limpiando sesión');
+            session.error = 'TokenInvalid';
+            session.accessToken = null;
+          } else {
+            console.log('⚠️ Unexpected response status:', res.status);
+            const errorText = await res.text();
+            console.log('Error response:', errorText);
           }
+        } else {
+          console.log('⚠️ No access token available');
         }
       } catch (e) {
-        // Si falla, no pasa nada, solo no se muestra el tipo de cuenta
+        console.error('❌ Error fetching user info:', e);
+        session.error = 'FetchError';
       }
       return session;
     }
