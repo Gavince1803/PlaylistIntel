@@ -14,7 +14,9 @@ export async function GET(request: NextRequest, context: any) {
     const spotifyService = new SpotifyService(session.accessToken);
     
     // Fetch tracks for the playlist
-    const tracks = await spotifyService.getPlaylistTracks(playlistId);
+    console.log(`🎵 Fetching tracks for playlist: ${playlistId}`);
+    const tracks = await spotifyService.getAllPlaylistTracks(playlistId, 2000);
+    console.log(`✅ Fetched ${tracks.length} tracks from playlist`);
     
     // Get unique artist IDs
     const artistIds = Array.from(new Set(tracks.flatMap(track => track.artists.map(a => a.id))));

@@ -182,11 +182,15 @@ export class SpotifyService {
 
   async getPlaylistTracks(playlistId: string, limit = 100, offset = 0): Promise<SpotifyTrack[]> {
     try {
+      console.log(`🎵 getPlaylistTracks called with playlistId: ${playlistId}, limit: ${limit}, offset: ${offset}`);
+      
       const response = await this.makeApiCall(() => 
         this.api.getPlaylistTracks(playlistId, { limit, offset })
       );
       
-      return response.body.items
+      console.log(`📊 Spotify API returned ${response.body.items.length} items for playlist ${playlistId}`);
+      
+      const filteredTracks = response.body.items
         .filter(item => item.track && item.track.id)
         .map(item => ({
           id: item.track!.id,
@@ -199,6 +203,9 @@ export class SpotifyService {
           duration_ms: item.track!.duration_ms,
           uri: item.track!.uri
         }));
+      
+      console.log(`✅ getPlaylistTracks returning ${filteredTracks.length} valid tracks`);
+      return filteredTracks;
     } catch (error) {
       console.error('Error fetching playlist tracks:', error);
       throw error;
@@ -208,21 +215,32 @@ export class SpotifyService {
   // New method to get ALL tracks from a playlist using pagination
   async getAllPlaylistTracks(playlistId: string, maxTracks = 1000): Promise<SpotifyTrack[]> {
     try {
+      console.log(`🔄 Starting getAllPlaylistTracks for playlist ${playlistId} with maxTracks: ${maxTracks}`);
       const allTracks: SpotifyTrack[] = [];
       let offset = 0;
       const limit = 100;
 
       while (allTracks.length < maxTracks) {
+        console.log(`📥 Fetching tracks with offset: ${offset}, limit: ${limit}, current total: ${allTracks.length}`);
         const tracks = await this.getPlaylistTracks(playlistId, limit, offset);
         
-        if (tracks.length === 0) break;
+        console.log(`📊 Received ${tracks.length} tracks in this batch`);
+        
+        if (tracks.length === 0) {
+          console.log(`🛑 No more tracks found, breaking loop`);
+          break;
+        }
         
         allTracks.push(...tracks);
         offset += limit;
         
-        if (tracks.length < limit) break;
+        if (tracks.length < limit) {
+          console.log(`🛑 Received fewer tracks than limit (${tracks.length} < ${limit}), breaking loop`);
+          break;
+        }
       }
 
+      console.log(`✅ getAllPlaylistTracks completed. Total tracks fetched: ${allTracks.length}`);
       return allTracks.slice(0, maxTracks);
     } catch (error) {
       console.error('Error fetching all playlist tracks:', error);
