@@ -15,14 +15,14 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
 
   // Load custom profile picture from localStorage
   useEffect(() => {
-    const savedCustomPicture = localStorage.getItem('customProfilePicture');
+    const savedCustomPicture = localStorage.getItem('userAvatar');
     if (savedCustomPicture) {
       setCustomProfilePicture(savedCustomPicture);
     }
 
     // Listen for changes to custom profile picture
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'customProfilePicture') {
+      if (e.key === 'userAvatar') {
         if (e.newValue) {
           setCustomProfilePicture(e.newValue);
         } else {
@@ -156,23 +156,27 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
         {/* User section */}
         <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-[#282828] bg-[#191414]">
           <div className="flex items-center space-x-3">
-            {customProfilePicture ? (
+            {/* Custom profile picture (priority) */}
+            {customProfilePicture && (
               <img
                 src={customProfilePicture}
                 alt={session?.user?.name || 'User'}
-                className="w-10 h-10 rounded-full border border-[#1DB954]/30 shadow-md"
+                className="w-10 h-10 rounded-full border-2 border-[#1DB954] shadow-md object-cover"
                 onError={(e) => {
-                  console.log('Custom profile image failed to load, falling back to default');
+                  console.log('Custom profile image failed to load, falling back to Spotify');
                   e.currentTarget.style.display = 'none';
-                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                  setCustomProfilePicture(null);
                 }}
                 onLoad={() => {
                   console.log('✅ Custom profile image loaded successfully');
                 }}
               />
-            ) : session?.user?.image ? (
+            )}
+            
+            {/* Spotify profile picture (fallback) */}
+            {!customProfilePicture && session?.user?.image && (
               <img
-                src={`/api/proxy/image?url=${encodeURIComponent(session.user.image)}`}
+                src={session.user.image}
                 alt={session.user.name || 'User'}
                 className="w-10 h-10 rounded-full border border-[#1DB954]/30 shadow-md"
                 onError={(e) => {
@@ -184,11 +188,13 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                   console.log('✅ Spotify profile image loaded successfully');
                 }}
               />
-            ) : null}
-            <div className={`w-10 h-10 bg-gray-500 rounded-full flex items-center justify-center ${customProfilePicture || session?.user?.image ? 'hidden' : ''}`}>
-              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-              </svg>
+            )}
+            
+            {/* Default avatar (final fallback) */}
+            <div className={`w-10 h-10 bg-[#1DB954] rounded-full flex items-center justify-center ${customProfilePicture || session?.user?.image ? 'hidden' : ''}`}>
+              <span className="text-lg font-bold text-white">
+                {session?.user?.name?.charAt(0) || 'U'}
+              </span>
             </div>
             <div>
               <p className="text-base font-semibold text-white">{session?.user?.name || 'User Name'}</p>
