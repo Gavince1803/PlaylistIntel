@@ -9,22 +9,22 @@ export default function FloatingMenuButton({ onMenuClick }: FloatingMenuButtonPr
     <button
       onClick={onMenuClick}
       className="
-        fixed top-6 left-6 z-50 lg:hidden
-        p-4 rounded-full bg-[#1DB954] hover:bg-[#1ed760] 
-        text-white shadow-xl transition-all duration-300 ease-in-out
-        transform hover:scale-110 active:scale-95
-        opacity-100
-        border-2 border-white/20
+        fixed top-4 left-4 z-40 lg:hidden
+        p-3 rounded-full bg-[#1DB954] hover:bg-[#1ed760] 
+        text-white shadow-lg transition-all duration-200 ease-in-out
+        transform hover:scale-105 active:scale-95
+        opacity-90 hover:opacity-100
+        border border-white/10
       "
       aria-label="Open sidebar menu"
       style={{
-        backdropFilter: 'blur(10px)',
-        backgroundColor: 'rgba(29, 185, 84, 0.95)',
-        boxShadow: '0 10px 25px rgba(29, 185, 84, 0.3)'
+        backdropFilter: 'blur(8px)',
+        backgroundColor: 'rgba(29, 185, 84, 0.85)',
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
       }}
     >
       <svg 
-        className="w-7 h-7" 
+        className="w-5 h-5" 
         fill="none" 
         stroke="currentColor" 
         viewBox="0 0 24 24"
