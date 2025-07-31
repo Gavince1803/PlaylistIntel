@@ -41,7 +41,7 @@ export const authOptions = {
       clientSecret: process.env.SPOTIFY_CLIENT_SECRET!,
       authorization: {
         params: {
-          scope: 'user-read-private user-read-email playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private user-library-read user-top-read'
+          scope: 'user-read-private user-read-email user-read-playback-state user-modify-playback-state playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private user-library-read user-top-read'
         }
       }
     })

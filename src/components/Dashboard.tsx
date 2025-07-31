@@ -13,6 +13,15 @@ export default function Dashboard() {
   const [showSignIn, setShowSignIn] = useState(false);
   const { showToast } = useToast();
 
+  // Debug logging for session data
+  console.log('🔍 Dashboard - Session data:', {
+    user: session?.user,
+    product: session?.user?.product,
+    name: session?.user?.name,
+    email: session?.user?.email,
+    status: status
+  });
+
   // Show loading state while checking authentication
   if (status === 'loading') {
     return (
@@ -98,7 +107,18 @@ export default function Dashboard() {
                     <h1 className="text-3xl lg:text-4xl font-extrabold text-white mb-1 tracking-tight">
                       Welcome back{session?.user?.name ? `, ${session.user.name}` : ''}! 🎵
                     </h1>
-                    <p className="text-lg text-gray-300">Discover insights about your music taste and create amazing playlists</p>
+                    <div className="flex items-center gap-3">
+                      <p className="text-lg text-gray-300">Discover insights about your music taste and create amazing playlists</p>
+                      {session?.user?.product && (
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          session.user.product === 'premium' 
+                            ? 'bg-gradient-to-r from-[#1DB954] to-[#1ed760] text-white' 
+                            : 'bg-gray-600 text-gray-200'
+                        }`}>
+                          {session.user.product.charAt(0).toUpperCase() + session.user.product.slice(1)}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
