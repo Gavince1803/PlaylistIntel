@@ -76,6 +76,7 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
   const [genresModalData, setGenresModalData] = useState<{playlistName: string, genres: Record<string, number>} | null>(null);
   const [musicalProfileOpen, setMusicalProfileOpen] = useState(false);
   const [selectedPlaylistForAnalysis, setSelectedPlaylistForAnalysis] = useState<string | null>(null);
+  const [likedPlaylists, setLikedPlaylists] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!propPlaylists && session?.accessToken) {
@@ -137,11 +138,33 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
     setEditModalOpen(true);
     setMenuOpenId(null);
   }, []);
-  const handleEditSave = () => {
+  const handleEditSave = async () => {
     if (editPlaylist) {
-      setPlaylists(prev => prev.map(p => p.id === editPlaylist.id ? { ...p, name: editName, description: editDesc } : p));
-      setEditModalOpen(false);
-      showToast('Playlist updated', 'success');
+      try {
+        const response = await fetch(`/api/playlists/${editPlaylist.id}/edit`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: editName,
+            description: editDesc,
+            public: editPlaylist.public
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to update playlist');
+        }
+
+        // Update local state
+        setPlaylists(prev => prev.map(p => p.id === editPlaylist.id ? { ...p, name: editName, description: editDesc } : p));
+        setEditModalOpen(false);
+        showToast('Playlist updated successfully!', 'success');
+      } catch (error) {
+        console.error('Error updating playlist:', error);
+        showToast('Failed to update playlist', 'error');
+      }
     }
   };
 
@@ -151,11 +174,25 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
     setDeleteConfirmOpen(true);
     setMenuOpenId(null);
   }, []);
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (deletePlaylist) {
-      setPlaylists(prev => prev.filter(p => p.id !== deletePlaylist.id));
-      setDeleteConfirmOpen(false);
-      showToast('Playlist deleted', 'success');
+      try {
+        const response = await fetch(`/api/playlists/${deletePlaylist.id}/delete`, {
+          method: 'DELETE',
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to delete playlist');
+        }
+
+        // Update local state
+        setPlaylists(prev => prev.filter(p => p.id !== deletePlaylist.id));
+        setDeleteConfirmOpen(false);
+        showToast('Playlist removed from your library', 'success');
+      } catch (error) {
+        console.error('Error deleting playlist:', error);
+        showToast('Failed to remove playlist', 'error');
+      }
     }
   };
 
@@ -176,6 +213,69 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
   const someSelected = selectedIds.length > 0 && !allSelected;
 
   // Bulk delete/share handlers
+  // Like/Unlike functionality
+  const handleLikePlaylist = async (playlistId: string) => {
+    try {
+      const isCurrentlyLiked = likedPlaylists.has(playlistId);
+      const action = isCurrentlyLiked ? 'unlike' : 'like';
+      
+      const response = await fetch(`/api/playlists/${playlistId}/like`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to ${action} playlist`);
+      }
+
+      // Update local state
+      if (isCurrentlyLiked) {
+        setLikedPlaylists(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(playlistId);
+          return newSet;
+        });
+        showToast('Playlist removed from favorites', 'success');
+      } else {
+        setLikedPlaylists(prev => new Set([...prev, playlistId]));
+        showToast('Playlist added to favorites', 'success');
+      }
+    } catch (error) {
+      console.error('Error liking playlist:', error);
+      showToast('Failed to update playlist like status', 'error');
+    }
+  };
+
+  // Check like status for all playlists
+  const checkLikeStatuses = async () => {
+    try {
+      const promises = playlists.map(async (playlist) => {
+        const response = await fetch(`/api/playlists/${playlist.id}/like`);
+        if (response.ok) {
+          const data = await response.json();
+          return { id: playlist.id, isLiked: data.isLiked };
+        }
+        return { id: playlist.id, isLiked: false };
+      });
+
+      const results = await Promise.all(promises);
+      const likedIds = results.filter(r => r.isLiked).map(r => r.id);
+      setLikedPlaylists(new Set(likedIds));
+    } catch (error) {
+      console.error('Error checking like statuses:', error);
+    }
+  };
+
+  // Check like statuses when playlists load
+  useEffect(() => {
+    if (playlists.length > 0) {
+      checkLikeStatuses();
+    }
+  }, [playlists]);
+
   const handleBulkDelete = () => {
     setPlaylists(prev => prev.filter(p => !selectedIds.includes(p.id)));
     setSelectedIds([]);
@@ -566,11 +666,18 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
                   </div>
                   <div className="flex items-center gap-1">
                     <button 
-                      className="p-1.5 text-gray-400 hover:text-[#1DB954] hover:bg-[#1DB954]/10 rounded-lg transition-all duration-200 relative z-10 hover:shadow-md" 
-                      aria-label="Like playlist"
-                      onClick={(e) => e.stopPropagation()}
+                      className={`p-1.5 rounded-lg transition-all duration-200 relative z-10 hover:shadow-md ${
+                        likedPlaylists.has(playlist.id) 
+                          ? 'text-[#1DB954] bg-[#1DB954]/10' 
+                          : 'text-gray-400 hover:text-[#1DB954] hover:bg-[#1DB954]/10'
+                      }`}
+                      aria-label={likedPlaylists.has(playlist.id) ? 'Unlike playlist' : 'Like playlist'}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleLikePlaylist(playlist.id);
+                      }}
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4" fill={likedPlaylists.has(playlist.id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                       </svg>
                     </button>
