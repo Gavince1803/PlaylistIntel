@@ -38,5 +38,4 @@ export default function FloatingMenuButton({ onMenuClick }: FloatingMenuButtonPr
       </svg>
     </button>
   );
-}
 } 
