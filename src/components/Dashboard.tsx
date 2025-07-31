@@ -11,7 +11,6 @@ export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { data: session, status } = useSession();
   const [showSignIn, setShowSignIn] = useState(false);
-  const [showCreateModal, setShowCreateModal] = useState(false);
   const { showToast } = useToast();
 
   // Show loading state while checking authentication
@@ -103,15 +102,8 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                  <button 
-                    onClick={() => {
-                      // Scroll to playlists section
-                      const playlistsSection = document.querySelector('[data-section="playlists"]');
-                      if (playlistsSection) {
-                        playlistsSection.scrollIntoView({ behavior: 'smooth' });
-                      }
-                    }}
-                    className="bg-[#232323]/50 rounded-xl p-4 border border-[#282828] hover:bg-[#2a2a2a]/50 hover:border-[#1DB954]/30 transition-all duration-200 cursor-pointer group"
+                  <div 
+                    className="bg-[#232323]/50 rounded-xl p-4 border border-[#282828] transition-all duration-200 group"
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-[#1DB954]/20 rounded-lg flex items-center justify-center group-hover:bg-[#1DB954]/30 transition-colors">
@@ -120,17 +112,14 @@ export default function Dashboard() {
                         </svg>
                       </div>
                       <div>
-                        <p className="text-white font-semibold group-hover:text-[#1DB954] transition-colors">Analyze Playlists</p>
+                        <p className="text-white font-semibold transition-colors">Analyze Playlists</p>
                         <p className="text-gray-400 text-sm">Get detailed insights</p>
                       </div>
                     </div>
-                  </button>
+                  </div>
                   
-                  <button 
-                    onClick={() => {
-                      setShowCreateModal(true);
-                    }}
-                    className="bg-[#232323]/50 rounded-xl p-4 border border-[#282828] hover:bg-[#2a2a2a]/50 hover:border-[#1DB954]/30 transition-all duration-200 cursor-pointer group"
+                  <div 
+                    className="bg-[#232323]/50 rounded-xl p-4 border border-[#282828] transition-all duration-200 group"
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-[#1DB954]/20 rounded-lg flex items-center justify-center group-hover:bg-[#1DB954]/30 transition-colors">
@@ -139,18 +128,14 @@ export default function Dashboard() {
                         </svg>
                       </div>
                       <div>
-                        <p className="text-white font-semibold group-hover:text-[#1DB954] transition-colors">Create Playlists</p>
+                        <p className="text-white font-semibold transition-colors">Create Playlists</p>
                         <p className="text-gray-400 text-sm">From recommendations</p>
                       </div>
                     </div>
-                  </button>
+                  </div>
                   
-                  <button 
-                    onClick={() => {
-                      // Navigate to Library to see saved profiles
-                      window.location.href = '/profiles';
-                    }}
-                    className="bg-[#232323]/50 rounded-xl p-4 border border-[#282828] hover:bg-[#2a2a2a]/50 hover:border-[#1DB954]/30 transition-all duration-200 cursor-pointer group"
+                  <div 
+                    className="bg-[#232323]/50 rounded-xl p-4 border border-[#282828] transition-all duration-200 group"
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-[#1DB954]/20 rounded-lg flex items-center justify-center group-hover:bg-[#1DB954]/30 transition-colors">
@@ -159,11 +144,11 @@ export default function Dashboard() {
                         </svg>
                       </div>
                       <div>
-                        <p className="text-white font-semibold group-hover:text-[#1DB954] transition-colors">Discover Music</p>
+                        <p className="text-white font-semibold transition-colors">Discover Music</p>
                         <p className="text-gray-400 text-sm">Find new favorites</p>
                       </div>
                     </div>
-                  </button>
+                  </div>
                 </div>
               </div>
             </section>
@@ -188,64 +173,6 @@ export default function Dashboard() {
           </div>
         </main>
       </div>
-      
-      {/* Create Playlist Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowCreateModal(false)}></div>
-          <div className="relative bg-[#232323] rounded-2xl p-6 max-w-md w-full mx-4 border border-[#282828] shadow-2xl">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">Create New Playlist</h2>
-              <button
-                onClick={() => setShowCreateModal(false)}
-                className="text-gray-400 hover:text-white transition-colors"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-white font-medium mb-2">Playlist Name</label>
-                <input
-                  type="text"
-                  placeholder="Enter playlist name..."
-                  className="w-full px-4 py-3 bg-[#404040] text-white rounded-xl border border-[#282828] focus:ring-2 focus:ring-[#1DB954] focus:border-[#1DB954] transition-all"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-white font-medium mb-2">Description (optional)</label>
-                <textarea
-                  placeholder="Describe your playlist..."
-                  rows={3}
-                  className="w-full px-4 py-3 bg-[#404040] text-white rounded-xl border border-[#282828] focus:ring-2 focus:ring-[#1DB954] focus:border-[#1DB954] transition-all resize-none"
-                />
-              </div>
-              
-              <div className="flex gap-3 pt-4">
-                <button
-                  onClick={() => setShowCreateModal(false)}
-                  className="flex-1 px-4 py-3 bg-[#404040] text-white rounded-xl hover:bg-[#505050] transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => {
-                    showToast('Playlist creation coming soon!', 'info');
-                    setShowCreateModal(false);
-                  }}
-                  className="flex-1 px-4 py-3 bg-[#1DB954] text-white rounded-xl hover:bg-[#1ed760] transition-colors font-semibold"
-                >
-                  Create Playlist
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 } 
