@@ -71,7 +71,7 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [sharePlaylist, setSharePlaylist] = useState<SpotifyPlaylist | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [typeFilter, setTypeFilter] = useState<'all' | 'mixed' | 'regular'>('all');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'mixed' | 'regular' | 'favorites'>('all');
   const [genresModalOpen, setGenresModalOpen] = useState(false);
   const [genresModalData, setGenresModalData] = useState<{playlistName: string, genres: Record<string, number>} | null>(null);
   const [musicalProfileOpen, setMusicalProfileOpen] = useState(false);
@@ -286,6 +286,11 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
     setShareModalOpen(true);
   };
 
+  // Calculate counts for different filter types
+  const favoriteCount = playlists.filter(p => likedPlaylists.has(p.id)).length;
+  const mixedCount = playlists.filter(p => p.collaborative || p.name.toLowerCase().includes('mix')).length;
+  const regularCount = playlists.filter(p => !p.collaborative && !p.name.toLowerCase().includes('mix')).length;
+
   // Filtering logic
   const filteredPlaylists = playlists.filter(p => {
     let matchesType = true;
@@ -293,6 +298,8 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
       matchesType = p.collaborative || p.name.toLowerCase().includes('mix');
     } else if (typeFilter === 'regular') {
       matchesType = !p.collaborative && !p.name.toLowerCase().includes('mix');
+    } else if (typeFilter === 'favorites') {
+      matchesType = likedPlaylists.has(p.id);
     }
     return matchesType;
   });
@@ -377,21 +384,33 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
             onClick={() => setTypeFilter('all')}
             aria-pressed={typeFilter === 'all'}
           >
-            All Playlists
+            All Playlists ({playlists.length})
           </button>
           <button
             className={`px-6 py-3 rounded-2xl font-semibold text-sm transition-all duration-200 shadow-lg ${typeFilter === 'mixed' ? 'bg-[#1DB954] text-white shadow-[#1DB954]/25' : 'bg-[#2a2a2a] text-gray-300 border border-[#282828] hover:bg-[#282828] hover:border-[#1DB954]/30'}`}
             onClick={() => setTypeFilter('mixed')}
             aria-pressed={typeFilter === 'mixed'}
           >
-            Mixed
+            Mixed ({mixedCount})
           </button>
           <button
             className={`px-6 py-3 rounded-2xl font-semibold text-sm transition-all duration-200 shadow-lg ${typeFilter === 'regular' ? 'bg-[#1DB954] text-white shadow-[#1DB954]/25' : 'bg-[#2a2a2a] text-gray-300 border border-[#282828] hover:bg-[#282828] hover:border-[#1DB954]/30'}`}
             onClick={() => setTypeFilter('regular')}
             aria-pressed={typeFilter === 'regular'}
           >
-            Regular
+            Regular ({regularCount})
+          </button>
+          <button
+            className={`px-6 py-3 rounded-2xl font-semibold text-sm transition-all duration-200 shadow-lg ${typeFilter === 'favorites' ? 'bg-[#1DB954] text-white shadow-[#1DB954]/25' : 'bg-[#2a2a2a] text-gray-300 border border-[#282828] hover:bg-[#282828] hover:border-[#1DB954]/30'}`}
+            onClick={() => setTypeFilter('favorites')}
+            aria-pressed={typeFilter === 'favorites'}
+          >
+            <div className="flex items-center gap-2">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+              </svg>
+              Favorites ({favoriteCount})
+            </div>
           </button>
         </div>
       </div>
