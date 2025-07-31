@@ -72,6 +72,10 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
   const [sharePlaylist, setSharePlaylist] = useState<SpotifyPlaylist | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [typeFilter, setTypeFilter] = useState<'all' | 'mixed' | 'regular' | 'favorites'>('all');
+  const [sortBy, setSortBy] = useState<'recent' | 'name' | 'tracks' | 'duration'>('recent');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [itemsPerPage, setItemsPerPage] = useState(12);
+  const [currentPage, setCurrentPage] = useState(1);
   const [genresModalOpen, setGenresModalOpen] = useState(false);
   const [genresModalData, setGenresModalData] = useState<{playlistName: string, genres: Record<string, number>} | null>(null);
   const [musicalProfileOpen, setMusicalProfileOpen] = useState(false);
@@ -292,17 +296,38 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
   const regularCount = playlists.filter(p => !p.collaborative && !p.name.toLowerCase().includes('mix')).length;
 
   // Filtering logic
-  const filteredPlaylists = playlists.filter(p => {
-    let matchesType = true;
-    if (typeFilter === 'mixed') {
-      matchesType = p.collaborative || p.name.toLowerCase().includes('mix');
-    } else if (typeFilter === 'regular') {
-      matchesType = !p.collaborative && !p.name.toLowerCase().includes('mix');
-    } else if (typeFilter === 'favorites') {
-      matchesType = likedPlaylists.has(p.id);
-    }
-    return matchesType;
-  });
+  // Filter and sort playlists
+  const filteredAndSortedPlaylists = playlists
+    .filter(p => {
+      let matchesType = true;
+      if (typeFilter === 'mixed') {
+        matchesType = p.collaborative || p.name.toLowerCase().includes('mix');
+      } else if (typeFilter === 'regular') {
+        matchesType = !p.collaborative && !p.name.toLowerCase().includes('mix');
+      } else if (typeFilter === 'favorites') {
+        matchesType = likedPlaylists.has(p.id);
+      }
+      return matchesType;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'name':
+          return a.name.localeCompare(b.name);
+        case 'tracks':
+          return b.tracks.total - a.tracks.total;
+        case 'duration':
+          return b.tracks.duration_ms - a.tracks.duration_ms;
+        case 'recent':
+        default:
+          return 0; // Keep original order for recent
+      }
+    });
+
+  // Pagination
+  const totalPages = Math.ceil(filteredAndSortedPlaylists.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedPlaylists = filteredAndSortedPlaylists.slice(startIndex, endIndex);
 
   // Show genres for a playlist
   const showGenresForPlaylist = async (playlist: SpotifyPlaylist) => {
@@ -378,7 +403,7 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
     <section className="p-6" aria-label="Your playlists">
       {/* Filter bar */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8 p-6">
-        <div className="flex gap-3">
+        <div className="flex gap-2 lg:gap-3 overflow-x-auto pb-2 lg:pb-0 scrollbar-hide">
           <button
             className={`px-6 py-3 rounded-2xl font-semibold text-sm transition-all duration-200 shadow-lg ${typeFilter === 'all' ? 'bg-[#1DB954] text-white shadow-[#1DB954]/25' : 'bg-[#2a2a2a] text-gray-300 border border-[#282828] hover:bg-[#282828] hover:border-[#1DB954]/30'}`}
             onClick={() => setTypeFilter('all')}
@@ -491,21 +516,35 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
             </span>
           </label>
           <div className="relative">
-            <select className="appearance-none px-3 py-2 border border-[#282828] rounded-lg bg-[#232323] text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#1DB954] font-sans pr-8 transition-shadow shadow-sm hover:shadow-md" style={{ minWidth: 140 }}>
-              <option>All Playlists</option>
-              <option>Mixed Playlists</option>
-              <option>Regular Playlists</option>
+            <select 
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as 'recent' | 'name' | 'tracks' | 'duration')}
+              className="appearance-none px-3 py-2 border border-[#282828] rounded-lg bg-[#232323] text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#1DB954] font-sans pr-8 transition-shadow shadow-sm hover:shadow-md" 
+              style={{ minWidth: 140 }}
+            >
+              <option value="recent">Recently Added</option>
+              <option value="name">Name A-Z</option>
+              <option value="tracks">Most Songs</option>
+              <option value="duration">Longest Duration</option>
             </select>
             <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
             </span>
           </div>
           <div className="relative">
-            <select className="appearance-none px-3 py-2 border border-[#282828] rounded-lg bg-[#232323] text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#1DB954] font-sans pr-8 transition-shadow shadow-sm hover:shadow-md" style={{ minWidth: 140 }}>
-              <option>Recently Added</option>
-              <option>Name A-Z</option>
-              <option>Most Songs</option>
-              <option>Longest Duration</option>
+            <select 
+              value={itemsPerPage}
+              onChange={(e) => {
+                setItemsPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="appearance-none px-3 py-2 border border-[#282828] rounded-lg bg-[#232323] text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#1DB954] font-sans pr-8 transition-shadow shadow-sm hover:shadow-md" 
+              style={{ minWidth: 120 }}
+            >
+              <option value={8}>8 per page</option>
+              <option value={12}>12 per page</option>
+              <option value={16}>16 per page</option>
+              <option value={24}>24 per page</option>
             </select>
             <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
@@ -513,12 +552,20 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          <button className="p-2 text-gray-400 hover:text-white hover:bg-[#282828] rounded-full focus:ring-2 focus:ring-[#1DB954]" aria-label="List view">
+          <button 
+            className={`p-2 rounded-full focus:ring-2 focus:ring-[#1DB954] transition-colors ${viewMode === 'list' ? 'text-[#1DB954] bg-[#1DB954]/20' : 'text-gray-400 hover:text-white hover:bg-[#282828]'}`} 
+            aria-label="List view"
+            onClick={() => setViewMode('list')}
+          >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <button className="p-2 text-gray-400 hover:text-white hover:bg-[#282828] rounded-full focus:ring-2 focus:ring-[#1DB954]" aria-label="Grid view">
+          <button 
+            className={`p-2 rounded-full focus:ring-2 focus:ring-[#1DB954] transition-colors ${viewMode === 'grid' ? 'text-[#1DB954] bg-[#1DB954]/20' : 'text-gray-400 hover:text-white hover:bg-[#282828]'}`} 
+            aria-label="Grid view"
+            onClick={() => setViewMode('grid')}
+          >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
             </svg>
@@ -527,8 +574,8 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
       </div>
 
       {/* Playlist grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-6">
-        {filteredPlaylists.map((playlist, index) => {
+      <div className={`${viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'flex flex-col'} gap-6 p-6`}>
+        {paginatedPlaylists.map((playlist, index) => {
           const badges = getBadges(playlist);
           const selected = selectedIds.includes(playlist.id);
           return (
@@ -862,6 +909,54 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
             onClose={() => setMusicalProfileOpen(false)}
           />
         </Modal>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-2 mt-8 mb-4">
+          <button
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+              currentPage === 1 
+                ? 'bg-gray-700 text-gray-500 cursor-not-allowed' 
+                : 'bg-[#1DB954] text-white hover:bg-[#1ed760] shadow-md'
+            }`}
+          >
+            Previous
+          </button>
+          
+          <div className="flex gap-1">
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              const pageNum = i + 1;
+              return (
+                <button
+                  key={pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={`px-3 py-2 rounded-lg font-semibold transition-colors ${
+                    currentPage === pageNum
+                      ? 'bg-[#1DB954] text-white shadow-md'
+                      : 'bg-[#2a2a2a] text-gray-300 hover:bg-[#282828]'
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+          </div>
+          
+          <button
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+              currentPage === totalPages 
+                ? 'bg-gray-700 text-gray-500 cursor-not-allowed' 
+                : 'bg-[#1DB954] text-white hover:bg-[#1ed760] shadow-md'
+            }`}
+          >
+            Next
+          </button>
+        </div>
       )}
 
       {/* Empty state */}

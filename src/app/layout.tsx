@@ -19,9 +19,25 @@ export const metadata: Metadata = {
   title: "PlaylistIntel - Music Analytics & Insights",
   description: "Advanced playlist analytics and music insights for Spotify users",
   icons: {
-    icon: '/favicon.ico',
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon.ico', sizes: '16x16', type: 'image/x-icon' },
+      { url: '/favicon.ico', sizes: '32x32', type: 'image/x-icon' },
+    ],
     shortcut: '/favicon.ico',
     apple: '/favicon.ico',
+  },
+  other: {
+    // iOS Safari status bar customization
+    'apple-mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-status-bar-style': 'black-translucent',
+    'apple-mobile-web-app-title': 'PlaylistIntel',
+    // Viewport settings for better mobile experience
+    'viewport': 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover',
+    // Theme color for browser UI
+    'theme-color': '#191414',
+    'msapplication-TileColor': '#191414',
+    'msapplication-navbutton-color': '#191414',
   },
 };
 
@@ -33,7 +49,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="bg-white text-gray-900 dark:bg-[#191414] dark:text-white">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-white text-gray-900 dark:bg-[#191414] dark:text-white transition-colors`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-white text-gray-900 dark:bg-[#191414] dark:text-white transition-colors ios-fullscreen`}
       >
         <ErrorBoundary>
           <ToastProvider>

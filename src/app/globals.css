@@ -317,3 +317,47 @@ html {
 .animate-fade-in-down {
   animation: fade-in-down 0.6s ease-out forwards;
 }
+
+/* Hide scrollbar for mobile filter bar */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
+}
+
+/* iOS Safari specific styles */
+@supports (-webkit-touch-callout: none) {
+  /* iOS Safari specific styles */
+  body {
+    /* Ensure content doesn't overlap with status bar */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  
+  /* Customize status bar appearance */
+  html {
+    /* Force dark status bar */
+    -webkit-text-size-adjust: 100%;
+  }
+  
+  /* Ensure the app takes full screen on iOS */
+  .ios-fullscreen {
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
+}
+
+/* Dark theme for iOS status bar */
+@media (prefers-color-scheme: dark) {
+  @supports (-webkit-touch-callout: none) {
+    body {
+      /* Additional dark mode adjustments for iOS */
+      background-color: #191414;
+    }
+  }
+}

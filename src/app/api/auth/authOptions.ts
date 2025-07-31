@@ -48,8 +48,16 @@ export const authOptions = {
   ],
   callbacks: {
     async jwt({ token, account }: any) {
+      console.log('🔄 JWT callback triggered:', {
+        hasAccount: !!account,
+        hasToken: !!token,
+        tokenExpiresAt: token.expiresAt,
+        currentTime: Math.floor(Date.now() / 1000)
+      });
+
       // Initial sign in
       if (account) {
+        console.log('✅ Initial sign in - setting up token');
         return {
           ...token,
           accessToken: account.access_token,
@@ -57,16 +65,27 @@ export const authOptions = {
           expiresAt: account.expires_at, // in seconds since epoch
         };
       }
+      
       // If token is still valid, return it
       if (token.expiresAt && Date.now() / 1000 < token.expiresAt) {
+        console.log('✅ Token still valid');
         return token;
       }
+      
       // Token expired, refresh it
+      console.log('🔄 Token expired, refreshing...');
       return await refreshAccessToken(token);
     },
     async session({ session, token }: any) {
+      console.log('🔄 Session callback triggered:', {
+        hasToken: !!token,
+        hasAccessToken: !!token.accessToken,
+        tokenError: token.error
+      });
+
       session.accessToken = token.accessToken;
       session.error = token.error;
+      
       // Obtener el tipo de cuenta (product) desde Spotify
       try {
         if (token.accessToken) {
@@ -103,6 +122,13 @@ export const authOptions = {
         console.error('❌ Error fetching user info:', e);
         session.error = 'FetchError';
       }
+      
+      console.log('📤 Returning session:', {
+        hasUser: !!session.user,
+        hasProduct: !!session.user?.product,
+        error: session.error
+      });
+      
       return session;
     }
   }

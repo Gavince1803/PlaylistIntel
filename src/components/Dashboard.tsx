@@ -19,8 +19,18 @@ export default function Dashboard() {
     product: session?.user?.product,
     name: session?.user?.name,
     email: session?.user?.email,
-    status: status
+    status: status,
+    showSignIn: showSignIn
   });
+
+  // Log authentication flow
+  if (status === 'unauthenticated') {
+    console.log('🚫 User is unauthenticated - showing sign-in modal');
+  } else if (status === 'authenticated') {
+    console.log('✅ User is authenticated - showing dashboard');
+  } else if (status === 'loading') {
+    console.log('⏳ Authentication status is loading...');
+  }
 
   // Show loading state while checking authentication
   if (status === 'loading') {
@@ -39,8 +49,8 @@ export default function Dashboard() {
     );
   }
 
-  // Show sign-in modal if requested
-  if (showSignIn) {
+  // Show sign-in modal if not authenticated or if requested
+  if (status === 'unauthenticated' || showSignIn) {
     return (
       <div className="flex h-screen font-sans items-center justify-center bg-gradient-to-br from-[#191414] via-[#232323] to-[#1DB954]">
         <div className="bg-gradient-to-br from-[#232323] to-[#2a2a2a] rounded-3xl p-8 lg:p-12 shadow-2xl border border-[#1DB954]/20 text-center max-w-md w-full mx-4 animate-fade-in-down">
