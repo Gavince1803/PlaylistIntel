@@ -3,6 +3,7 @@
 import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import { useToast } from '@/components/Toast';
+import GenreTracksModal from '@/components/GenreTracksModal';
 
 interface AnalyticsData {
   totalPlaylists: number;
@@ -15,15 +16,25 @@ interface AnalyticsData {
   moodDistribution: Array<{ mood: string; count: number }>;
 }
 
+interface GenreData {
+  genre: string;
+  trackCount: number;
+  tracks: any[];
+}
+
 export default function AnalyticsPage() {
   const { data: session } = useSession();
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
+  const [genresData, setGenresData] = useState<GenreData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
+  const [showGenreModal, setShowGenreModal] = useState(false);
   const { showToast } = useToast();
 
   useEffect(() => {
     if (session?.accessToken) {
       fetchAnalytics();
+      fetchGenres();
     }
   }, [session]);
 
@@ -44,6 +55,26 @@ export default function AnalyticsPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchGenres = async () => {
+    try {
+      const response = await fetch('/api/analytics/genres');
+      if (!response.ok) {
+        throw new Error('Failed to fetch genres data');
+      }
+      
+      const data = await response.json();
+      setGenresData(data.genres);
+    } catch (error) {
+      console.error('Error fetching genres:', error);
+      showToast('Failed to load genres data', 'error');
+    }
+  };
+
+  const handleGenreClick = (genre: string) => {
+    setSelectedGenre(genre);
+    setShowGenreModal(true);
   };
 
   const formatTime = (minutes: number) => {
@@ -148,23 +179,38 @@ export default function AnalyticsPage() {
             <section className="bg-gradient-to-br from-[#232323] to-[#2a2a2a] rounded-xl lg:rounded-2xl p-4 lg:p-6 border border-[#282828] shadow-xl">
               <h2 className="text-xl lg:text-2xl font-bold text-white mb-4 lg:mb-6">Top Genres</h2>
               <div className="space-y-3 lg:space-y-4">
-                {analyticsData.topGenres.map((genre, index) => (
-                  <div key={genre.genre} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3 lg:space-x-4 min-w-0 flex-1">
-                      <span className="text-base lg:text-lg font-bold text-[#1DB954] flex-shrink-0">#{index + 1}</span>
-                      <span className="text-white font-medium truncate">{genre.genre}</span>
-                    </div>
-                    <div className="flex items-center space-x-2 lg:space-x-4 flex-shrink-0">
-                      <div className="w-20 lg:w-32 bg-[#404040] rounded-full h-2">
-                        <div 
-                          className="bg-[#1DB954] h-2 rounded-full transition-all duration-500"
-                          style={{ width: `${genre.percentage}%` }}
-                        ></div>
+                {genresData.length > 0 ? (
+                  genresData.slice(0, 10).map((genre, index) => {
+                    const percentage = analyticsData ? (genre.trackCount / analyticsData.totalTracks) * 100 : 0;
+                    return (
+                      <div 
+                        key={genre.genre} 
+                        className="flex items-center justify-between p-3 rounded-lg hover:bg-[#2a2a2a] transition-colors cursor-pointer"
+                        onClick={() => handleGenreClick(genre.genre)}
+                      >
+                        <div className="flex items-center space-x-3 lg:space-x-4 min-w-0 flex-1">
+                          <span className="text-base lg:text-lg font-bold text-[#1DB954] flex-shrink-0">#{index + 1}</span>
+                          <span className="text-white font-medium truncate">{genre.genre}</span>
+                        </div>
+                        <div className="flex items-center space-x-2 lg:space-x-4 flex-shrink-0">
+                          <div className="w-20 lg:w-32 bg-[#404040] rounded-full h-2">
+                            <div 
+                              className="bg-[#1DB954] h-2 rounded-full transition-all duration-500"
+                              style={{ width: `${percentage}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-gray-400 text-xs lg:text-sm w-12 lg:w-16 text-right">
+                            {genre.trackCount} tracks
+                          </span>
+                        </div>
                       </div>
-                      <span className="text-gray-400 text-xs lg:text-sm w-12 lg:w-16 text-right">{genre.percentage}%</span>
-                    </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-400">Loading genres...</p>
                   </div>
-                ))}
+                )}
               </div>
             </section>
 
@@ -212,6 +258,13 @@ export default function AnalyticsPage() {
           </div>
         )}
       </div>
+
+      {/* Genre Tracks Modal */}
+      <GenreTracksModal
+        isOpen={showGenreModal}
+        onClose={() => setShowGenreModal(false)}
+        genre={selectedGenre || ''}
+      />
     </div>
   );
 } 

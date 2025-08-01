@@ -10,37 +10,87 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user's playlists
-    const playlistsResponse = await fetch('https://api.spotify.com/v1/me/playlists?limit=50', {
-      headers: {
-        'Authorization': `Bearer ${session.accessToken}`
-      }
-    });
-
-    if (!playlistsResponse.ok) {
-      throw new Error('Failed to fetch playlists');
-    }
-
-    const playlistsData = await playlistsResponse.json();
-    const playlists = playlistsData.items;
-
-    // Get detailed playlist data with tracks
-    const playlistsWithTracks = await Promise.all(
-      playlists.map(async (playlist: any) => {
-        const tracksResponse = await fetch(`https://api.spotify.com/v1/playlists/${playlist.id}/tracks?limit=100`, {
+    // Get ALL user's playlists using pagination
+    const getAllPlaylists = async () => {
+      const allPlaylists = [];
+      let offset = 0;
+      const limit = 50;
+      
+      while (true) {
+        const playlistsResponse = await fetch(`https://api.spotify.com/v1/me/playlists?limit=${limit}&offset=${offset}`, {
           headers: {
             'Authorization': `Bearer ${session.accessToken}`
           }
         });
 
-        if (tracksResponse.ok) {
-          const tracksData = await tracksResponse.json();
-          return {
-            ...playlist,
-            tracks: tracksData.items.map((item: any) => item.track).filter(Boolean)
-          };
+        if (!playlistsResponse.ok) {
+          throw new Error('Failed to fetch playlists');
         }
-        return playlist;
+
+        const playlistsData = await playlistsResponse.json();
+        const playlists = playlistsData.items;
+        
+        if (playlists.length === 0) {
+          break; // No more playlists
+        }
+        
+        allPlaylists.push(...playlists);
+        offset += limit;
+        
+        if (playlists.length < limit) {
+          break; // Last batch
+        }
+      }
+      
+      return allPlaylists;
+    };
+
+    const playlists = await getAllPlaylists();
+    console.log(`📊 Analytics: Fetched ${playlists.length} total playlists`);
+
+    // Get detailed playlist data with tracks (using pagination for each playlist)
+    const playlistsWithTracks = await Promise.all(
+      playlists.map(async (playlist: any) => {
+        const getAllTracksForPlaylist = async (playlistId: string) => {
+          const allTracks = [];
+          let offset = 0;
+          const limit = 100;
+          
+          while (true) {
+            const tracksResponse = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks?limit=${limit}&offset=${offset}`, {
+              headers: {
+                'Authorization': `Bearer ${session.accessToken}`
+              }
+            });
+
+            if (!tracksResponse.ok) {
+              console.warn(`Failed to fetch tracks for playlist ${playlistId}`);
+              break;
+            }
+
+            const tracksData = await tracksResponse.json();
+            const tracks = tracksData.items.map((item: any) => item.track).filter(Boolean);
+            
+            if (tracks.length === 0) {
+              break; // No more tracks
+            }
+            
+            allTracks.push(...tracks);
+            offset += limit;
+            
+            if (tracks.length < limit) {
+              break; // Last batch
+            }
+          }
+          
+          return allTracks;
+        };
+
+        const tracks = await getAllTracksForPlaylist(playlist.id);
+        return {
+          ...playlist,
+          tracks
+        };
       })
     );
 
@@ -48,6 +98,9 @@ export async function GET(request: NextRequest) {
     const totalPlaylists = playlists.length;
     const totalTracks = playlistsWithTracks.reduce((sum, playlist) => sum + (playlist.tracks?.length || 0), 0);
     const averagePlaylistLength = totalPlaylists > 0 ? Math.round(totalTracks / totalPlaylists) : 0;
+    
+    console.log(`📊 Analytics: Total tracks across all playlists: ${totalTracks}`);
+    console.log(`📊 Analytics: Average playlist length: ${averagePlaylistLength} tracks`);
 
     // Get unique artists and their track counts
     const artistCounts: { [key: string]: number } = {};
