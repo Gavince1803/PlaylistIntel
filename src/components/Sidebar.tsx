@@ -96,7 +96,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
       <aside
         aria-label="Sidebar navigation"
         className={`
-          fixed inset-y-0 left-0 z-50 w-64 bg-[#191414] shadow-lg transform transition-transform duration-300 ease-in-out
+          fixed inset-y-0 left-0 z-50 w-72 lg:w-64 bg-[#191414] shadow-lg transform transition-transform duration-300 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full'}
           lg:translate-x-0
         `}
@@ -106,25 +106,25 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
           if (!e.currentTarget.contains(e.relatedTarget)) setIsOpen(false);
         }}
       >
-        <div className="flex items-center h-20 px-6 border-b border-[#282828]">
-                    <div className="flex items-center space-x-3">
+        <div className="flex items-center h-16 lg:h-20 px-4 lg:px-6 border-b border-[#282828]">
+          <div className="flex items-center space-x-3">
             <img 
               src="/logo.png" 
               alt="PlaylistIntel Logo" 
-              className="w-10 h-10 rounded-lg"
+              className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg"
             />
-            <span className="text-2xl font-bold text-white tracking-tight">PlaylistIntel</span>
+            <span className="text-xl lg:text-2xl font-bold text-white tracking-tight">PlaylistIntel</span>
           </div>
         </div>
 
-        <nav className="mt-8 px-3" aria-label="Main navigation">
+        <nav className="mt-6 lg:mt-8 px-2 lg:px-3" aria-label="Main navigation">
           <ul className="space-y-1">
             {navigation.map((item) => (
               <li key={item.name}>
                 <a
                   href={item.href}
                   className={`
-                    group flex items-center px-4 py-2 text-base font-medium rounded-lg transition-colors
+                    group flex items-center px-3 lg:px-4 py-3 lg:py-2 text-sm lg:text-base font-medium rounded-lg transition-colors
                     ${item.current 
                       ? 'bg-[#1DB954]/20 text-[#1DB954]' 
                       : 'text-gray-300 hover:bg-[#282828] hover:text-white'
@@ -134,7 +134,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                 >
                   <svg
                     className={`
-                      mr-4 h-6 w-6 transition-colors
+                      mr-3 lg:mr-4 h-5 w-5 lg:h-6 lg:w-6 transition-colors flex-shrink-0
                       ${item.current 
                         ? 'text-[#1DB954]' 
                         : 'text-gray-400 group-hover:text-white'
@@ -146,7 +146,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
                   </svg>
-                  {item.name}
+                  <span className="truncate">{item.name}</span>
                 </a>
               </li>
             ))}
@@ -154,14 +154,14 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
         </nav>
 
         {/* User section */}
-        <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-[#282828] bg-[#191414]">
+        <div className="absolute bottom-0 left-0 right-0 p-4 lg:p-6 border-t border-[#282828] bg-[#191414]">
           <div className="flex items-center space-x-3">
             {/* Custom profile picture (priority) */}
             {customProfilePicture && (
               <img
                 src={customProfilePicture}
                 alt={session?.user?.name || 'User'}
-                className="w-10 h-10 rounded-full border-2 border-[#1DB954] shadow-md object-cover"
+                className="w-10 h-10 rounded-full border-2 border-[#1DB954] shadow-md object-cover flex-shrink-0"
                 onError={(e) => {
                   console.log('Custom profile image failed to load, falling back to Spotify');
                   e.currentTarget.style.display = 'none';
@@ -178,7 +178,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
               <img
                 src={session.user.image}
                 alt={session.user.name || 'User'}
-                className="w-10 h-10 rounded-full border border-[#1DB954]/30 shadow-md"
+                className="w-10 h-10 rounded-full border border-[#1DB954]/30 shadow-md flex-shrink-0"
                 onError={(e) => {
                   console.log('Spotify profile image failed to load, falling back to default');
                   e.currentTarget.style.display = 'none';
@@ -191,14 +191,14 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
             )}
             
             {/* Default avatar (final fallback) */}
-            <div className={`w-10 h-10 bg-[#1DB954] rounded-full flex items-center justify-center ${customProfilePicture || session?.user?.image ? 'hidden' : ''}`}>
+            <div className={`w-10 h-10 bg-[#1DB954] rounded-full flex items-center justify-center flex-shrink-0 ${customProfilePicture || session?.user?.image ? 'hidden' : ''}`}>
               <span className="text-lg font-bold text-white">
                 {session?.user?.name?.charAt(0) || 'U'}
               </span>
             </div>
-            <div>
-              <p className="text-base font-semibold text-white">{session?.user?.name || 'User Name'}</p>
-              <p className="text-xs text-gray-400">{session?.user?.email || 'user@example.com'}</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm lg:text-base font-semibold text-white truncate">{session?.user?.name || 'User Name'}</p>
+              <p className="text-xs text-gray-400 truncate">{session?.user?.email || 'user@example.com'}</p>
             </div>
           </div>
         </div>

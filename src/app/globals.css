@@ -379,6 +379,66 @@ html {
   .mobile-grid {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   }
+  
+  /* Mobile-specific improvements */
+  .mobile-optimized {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+  
+  /* Better card spacing for mobile */
+  .mobile-card {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 0.75rem;
+  }
+  
+  /* Optimize text sizes for mobile */
+  .mobile-text-sm {
+    font-size: 0.75rem;
+  }
+  
+  .mobile-text-base {
+    font-size: 0.875rem;
+  }
+  
+  .mobile-text-lg {
+    font-size: 1rem;
+  }
+  
+  .mobile-text-xl {
+    font-size: 1.125rem;
+  }
+  
+  .mobile-text-2xl {
+    font-size: 1.25rem;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  /* Larger touch targets */
+  .touch-optimized button,
+  .touch-optimized a {
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border-radius: 0.5rem;
+  }
+  
+  /* Better spacing for touch */
+  .touch-optimized .space-y-2 > * + * {
+    margin-top: 0.75rem;
+  }
+  
+  .touch-optimized .space-y-4 > * + * {
+    margin-top: 1.5rem;
+  }
+  
+  /* Improve scrolling on touch devices */
+  .touch-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
 }
 
 /* Loading animations */
