@@ -5,6 +5,7 @@ import { useSession, signIn, signOut } from 'next-auth/react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import PlaylistGrid from './PlaylistGrid';
+import MobilePlaylistView from './MobilePlaylistView';
 import { useToast } from './Toast';
 
 export default function Dashboard() {
@@ -46,11 +47,8 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-
-
-   
-  );
-}
+    );
+  }
 
   // Show sign-in modal if not authenticated or if requested
   if (status === 'unauthenticated') {
@@ -201,13 +199,20 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
-              <PlaylistGrid />
+              
+              {/* Mobile view for small screens */}
+              <div className="block lg:hidden">
+                <MobilePlaylistView />
+              </div>
+              
+              {/* Desktop view for larger screens */}
+              <div className="hidden lg:block">
+                <PlaylistGrid />
+              </div>
             </section>
           </div>
         </main>
       </div>
-
-
     </div>
   );
 } 
