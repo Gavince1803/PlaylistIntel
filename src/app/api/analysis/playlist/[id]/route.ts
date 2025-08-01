@@ -90,7 +90,7 @@ export async function GET(
       artistGenres[artist.id] = artist.genres;
     });
 
-    console.log(`🎤 Artist genres sample:`, Object.entries(artistGenres).slice(0, 3).map(([id, genres]) => ({ id, genres }));
+    console.log(`🎤 Artist genres sample:`, Object.entries(artistGenres).slice(0, 3).map(([id, genres]) => ({ id, genres })));
     console.log(`🎤 Artists with genres: ${Object.values(artistGenres).filter(genres => genres.length > 0).length}/${artists.length}`);
 
     // Paso 4: Obtener características de audio de los tracks (OPCIONAL)
