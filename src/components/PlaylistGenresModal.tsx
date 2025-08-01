@@ -39,7 +39,15 @@ export default function PlaylistGenresModal({
       const response = await fetch(`/api/playlists/${playlistId}/tracks`);
       
       if (!response.ok) {
-        throw new Error('Failed to fetch playlist tracks');
+        if (response.status === 403) {
+          throw new Error('Access denied. This playlist may be private or collaborative.');
+        } else if (response.status === 401) {
+          throw new Error('Authentication required. Please log in again.');
+        } else if (response.status === 429) {
+          throw new Error('Rate limit exceeded. Please try again in a moment.');
+        } else {
+          throw new Error('Failed to fetch playlist tracks');
+        }
       }
       
       const data = await response.json();
@@ -49,10 +57,12 @@ export default function PlaylistGenresModal({
       let totalTracks = 0;
       
       data.tracks.forEach((track: any) => {
-        if (track.genres) {
+        if (track.genres && Array.isArray(track.genres)) {
           track.genres.forEach((genre: string) => {
-            genreCounts[genre] = (genreCounts[genre] || 0) + 1;
-            totalTracks++;
+            if (genre && genre.trim()) {
+              genreCounts[genre] = (genreCounts[genre] || 0) + 1;
+              totalTracks++;
+            }
           });
         }
       });
@@ -70,7 +80,8 @@ export default function PlaylistGenresModal({
       setGenres(genresArray);
     } catch (error) {
       console.error('Error fetching playlist genres:', error);
-      showToast('Failed to load playlist genres', 'error');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load playlist genres';
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
     }

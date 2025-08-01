@@ -235,7 +235,39 @@ export async function GET(
     };
 
     console.log('✅ Musical profile analysis completed successfully!');
-    return NextResponse.json({ profile: musicalProfile });
+    
+    // Transformar la respuesta para que coincida con la estructura esperada por el frontend
+    const response = {
+      playlist: {
+        id: playlistId,
+        name: musicalProfile.playlistName,
+        description: `Analysis of ${musicalProfile.totalTracks} tracks`,
+        images: [], // La API de análisis no incluye imágenes de la playlist
+        tracks: {
+          total: musicalProfile.totalTracks
+        },
+        owner: {
+          display_name: 'User' // No tenemos esta información en el análisis
+        }
+      },
+      analytics: {
+        totalTracks: musicalProfile.totalTracks,
+        averageDuration: 0, // No calculamos esto en el análisis actual
+        topGenres: musicalProfile.genreAnalysis.topGenres,
+        topArtists: musicalProfile.artistAnalysis.topArtists,
+        moodDistribution: [
+          { mood: musicalProfile.audioAnalysis.mood, count: 1 }
+        ],
+        energyDistribution: [
+          { level: musicalProfile.recommendations.energyLevel, count: 1 }
+        ],
+        danceabilityDistribution: [
+          { level: 'medium', count: 1 } // Placeholder
+        ]
+      }
+    };
+    
+    return NextResponse.json(response);
 
   } catch (error: any) {
     console.error('❌ Error analyzing playlist:', error);

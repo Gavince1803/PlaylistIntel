@@ -140,7 +140,7 @@ export default function PlaylistAnalysisPage() {
           </button>
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-lg overflow-hidden bg-[#404040] flex-shrink-0">
-              {playlist.images && playlist.images.length > 0 && playlist.images[0].url ? (
+              {playlist.images && Array.isArray(playlist.images) && playlist.images.length > 0 && playlist.images[0] && playlist.images[0].url ? (
                 <img 
                   src={`/api/proxy/image?url=${encodeURIComponent(playlist.images[0].url)}`}
                   alt={playlist.name}

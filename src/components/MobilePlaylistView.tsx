@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useToast } from './Toast';
 import LoadingSpinner from './LoadingSpinner';
+import PlaylistGenresModal from './PlaylistGenresModal';
 
 interface SpotifyPlaylist {
   id: string;
@@ -33,6 +34,7 @@ export default function MobilePlaylistView() {
   const [retryCount, setRetryCount] = useState(0);
   const [selectedPlaylist, setSelectedPlaylist] = useState<SpotifyPlaylist | null>(null);
   const [showActions, setShowActions] = useState(false);
+  const [showGenresModal, setShowGenresModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | 'mixed' | 'regular' | 'favorites'>('all');
   const [likedPlaylists, setLikedPlaylists] = useState<Set<string>>(new Set());
@@ -203,8 +205,7 @@ export default function MobilePlaylistView() {
         window.location.href = `/analytics/playlist/${selectedPlaylist.id}`;
         break;
       case 'genres':
-        showToast('Loading genres...', 'info');
-        // TODO: Implement genre view
+        setShowGenresModal(true);
         break;
       case 'favorite':
         handleLikePlaylist(selectedPlaylist.id);
@@ -610,9 +611,19 @@ export default function MobilePlaylistView() {
                 Cancel
               </button>
             </div>
-          </div>
-        </div>
-      )}
-    </>
-  );
-} 
+                     </div>
+         </div>
+       )}
+
+       {/* Genres Modal */}
+       {selectedPlaylist && (
+         <PlaylistGenresModal
+           isOpen={showGenresModal}
+           onClose={() => setShowGenresModal(false)}
+           playlistId={selectedPlaylist.id}
+           playlistName={selectedPlaylist.name}
+         />
+       )}
+     </>
+   );
+ } 
