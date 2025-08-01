@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import { useToast } from '@/components/Toast';
 import GenreTracksModal from '@/components/GenreTracksModal';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 interface AnalyticsData {
   totalPlaylists: number;
@@ -29,6 +30,7 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
   const [showGenreModal, setShowGenreModal] = useState(false);
+  const [genreLoading, setGenreLoading] = useState(false);
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -72,9 +74,39 @@ export default function AnalyticsPage() {
     }
   };
 
-  const handleGenreClick = (genre: string) => {
-    setSelectedGenre(genre);
-    setShowGenreModal(true);
+  const handleGenreClick = async (genre: string) => {
+    try {
+      setGenreLoading(true);
+      console.log(`🎵 Clicking on genre: ${genre}`);
+      
+      // Test the API endpoint first
+      const response = await fetch(`/api/analytics/genres/${encodeURIComponent(genre)}/tracks`);
+      console.log(`🎵 API Response status: ${response.status}`);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`🎵 API Error: ${response.status} - ${errorText}`);
+        showToast(`Failed to load tracks for ${genre}`, 'error');
+        return;
+      }
+      
+      const data = await response.json();
+      console.log(`🎵 API Response data:`, data);
+      
+      if (data.tracks && data.tracks.length > 0) {
+        showToast(`Found ${data.tracks.length} tracks for ${genre}`, 'success');
+      } else {
+        showToast(`No tracks found for ${genre}`, 'info');
+      }
+      
+      setSelectedGenre(genre);
+      setShowGenreModal(true);
+    } catch (error) {
+      console.error('Error testing genre API:', error);
+      showToast(`Error loading ${genre} tracks`, 'error');
+    } finally {
+      setGenreLoading(false);
+    }
   };
 
   const formatTime = (minutes: number) => {
@@ -183,15 +215,20 @@ export default function AnalyticsPage() {
                   genresData.slice(0, 10).map((genre, index) => {
                     const percentage = analyticsData ? (genre.trackCount / analyticsData.totalTracks) * 100 : 0;
                     return (
-                      <div 
-                        key={genre.genre} 
-                        className="flex items-center justify-between p-3 rounded-lg hover:bg-[#2a2a2a] transition-colors cursor-pointer"
-                        onClick={() => handleGenreClick(genre.genre)}
-                      >
-                        <div className="flex items-center space-x-3 lg:space-x-4 min-w-0 flex-1">
-                          <span className="text-base lg:text-lg font-bold text-[#1DB954] flex-shrink-0">#{index + 1}</span>
-                          <span className="text-white font-medium truncate">{genre.genre}</span>
-                        </div>
+                                             <div 
+                         key={genre.genre} 
+                         className={`flex items-center justify-between p-3 rounded-lg transition-colors ${
+                           genreLoading ? 'cursor-not-allowed opacity-50' : 'hover:bg-[#2a2a2a] cursor-pointer'
+                         }`}
+                         onClick={() => !genreLoading && handleGenreClick(genre.genre)}
+                       >
+                                                 <div className="flex items-center space-x-3 lg:space-x-4 min-w-0 flex-1">
+                           <span className="text-base lg:text-lg font-bold text-[#1DB954] flex-shrink-0">#{index + 1}</span>
+                           <span className="text-white font-medium truncate">{genre.genre}</span>
+                           {genreLoading && (
+                             <LoadingSpinner size="sm" className="ml-2" />
+                           )}
+                         </div>
                         <div className="flex items-center space-x-2 lg:space-x-4 flex-shrink-0">
                           <div className="w-20 lg:w-32 bg-[#404040] rounded-full h-2">
                             <div 

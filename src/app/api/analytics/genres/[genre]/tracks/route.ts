@@ -18,6 +18,8 @@ export async function GET(
     const decodedGenre = decodeURIComponent(genre);
     
     console.log(`🎵 Genre Tracks API: Fetching tracks for genre: ${decodedGenre}`);
+    console.log(`🎵 Genre Tracks API: Original genre param: ${genre}`);
+    console.log(`🎵 Genre Tracks API: Decoded genre: ${decodedGenre}`);
 
     const spotifyService = new SpotifyService(session.accessToken);
 
@@ -91,6 +93,11 @@ export async function GET(
     });
 
     console.log(`🎵 Genre Tracks API: Found ${genreTracks.length} tracks for genre "${decodedGenre}"`);
+    console.log(`🎵 Genre Tracks API: Available genres in artistGenres:`, Object.keys(artistGenres).slice(0, 10));
+    console.log(`🎵 Genre Tracks API: Sample track genres:`, allTracks.slice(0, 3).map(track => ({
+      track: track.name,
+      genres: track.artists.flatMap((artist: any) => artistGenres[artist.id] || [])
+    })));
 
     // Remove duplicates based on track ID
     const uniqueTracks = genreTracks.filter((track, index, self) => 

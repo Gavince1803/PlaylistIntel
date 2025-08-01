@@ -29,6 +29,7 @@ interface SpotifyPlaylist {
 interface PlaylistGridProps {
   playlists?: SpotifyPlaylist[];
   customTitle?: string | null;
+  viewMode?: 'grid' | 'compact';
 }
 
 function PlaylistContextMenu({ onEdit, onDelete, onShare, onClose, anchorRef }: any) {
@@ -50,7 +51,7 @@ function PlaylistContextMenu({ onEdit, onDelete, onShare, onClose, anchorRef }: 
   );
 }
 
-export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: PlaylistGridProps) {
+export default function PlaylistGrid({ playlists: propPlaylists, customTitle, viewMode: propViewMode }: PlaylistGridProps) {
   const { data: session } = useSession();
   const { showToast } = useToast();
   const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>(propPlaylists || []);
@@ -75,7 +76,7 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle }: 
   const [typeFilter, setTypeFilter] = useState<'all' | 'mixed' | 'regular' | 'favorites'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'recent' | 'name' | 'tracks' | 'duration'>('recent');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>(propViewMode === 'compact' ? 'list' : 'grid');
   const [itemsPerPage, setItemsPerPage] = useState(12);
   const [currentPage, setCurrentPage] = useState(1);
   const [genresModalOpen, setGenresModalOpen] = useState(false);

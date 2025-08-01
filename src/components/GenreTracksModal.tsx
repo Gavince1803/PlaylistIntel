@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useToast } from './Toast';
+import LoadingSpinner from './LoadingSpinner';
 
 interface Track {
   id: string;
@@ -97,13 +98,14 @@ export default function GenreTracksModal({ isOpen, onClose, genre }: GenreTracks
 
         {/* Content */}
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="text-center">
-                <div className="w-12 h-12 border-4 border-[#1DB954] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p className="text-white">Loading tracks...</p>
-              </div>
-            </div>
+                     {loading ? (
+             <div className="flex items-center justify-center py-12">
+               <div className="text-center">
+                 <LoadingSpinner size="lg" className="mx-auto mb-4" />
+                 <p className="text-white">Loading tracks for {genre}...</p>
+                 <p className="text-gray-400 text-sm mt-2">This may take a few moments</p>
+               </div>
+             </div>
           ) : tracks.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-gray-400">No tracks found for this genre</p>

@@ -46,8 +46,11 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-    );
-  }
+
+
+    </div>
+  );
+}
 
   // Show sign-in modal if not authenticated or if requested
   if (status === 'unauthenticated') {
@@ -203,6 +206,8 @@ export default function Dashboard() {
           </div>
         </main>
       </div>
+
+
     </div>
   );
 } 
