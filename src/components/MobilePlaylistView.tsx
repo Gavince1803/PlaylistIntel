@@ -200,7 +200,7 @@ export default function MobilePlaylistView() {
     switch (action) {
       case 'analyze':
         showToast('Opening analysis...', 'info');
-        window.location.href = `/analysis/playlist/${selectedPlaylist.id}`;
+        window.location.href = `/analytics/playlist/${selectedPlaylist.id}`;
         break;
       case 'genres':
         showToast('Loading genres...', 'info');
@@ -477,7 +477,7 @@ export default function MobilePlaylistView() {
         <div className="text-center py-8 px-4">
           <div className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
             </svg>
           </div>
           <h3 className="text-lg font-bold text-white mb-2">No playlists found</h3>
