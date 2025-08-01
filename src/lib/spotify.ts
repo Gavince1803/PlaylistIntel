@@ -3,16 +3,18 @@ import SpotifyWebApi from 'spotify-web-api-node';
 // Rate limiting utility
 class RateLimiter {
   private lastCall = 0;
-  private minInterval = 150; // Increased to 150ms between calls
+  private minInterval = 300; // Increased to 300ms between calls to be more conservative
   private consecutiveErrors = 0;
   private maxConsecutiveErrors = 3;
+  private globalErrorCount = 0;
+  private maxGlobalErrors = 10;
 
   async waitForNextCall() {
     const now = Date.now();
     const timeSinceLastCall = now - this.lastCall;
     
     // Add exponential backoff if we've had consecutive errors
-    const backoffMultiplier = Math.min(2 ** this.consecutiveErrors, 8);
+    const backoffMultiplier = Math.min(2 ** this.consecutiveErrors, 16);
     const adjustedInterval = this.minInterval * backoffMultiplier;
     
     if (timeSinceLastCall < adjustedInterval) {
@@ -24,10 +26,23 @@ class RateLimiter {
 
   recordError() {
     this.consecutiveErrors = Math.min(this.consecutiveErrors + 1, this.maxConsecutiveErrors);
+    this.globalErrorCount = Math.min(this.globalErrorCount + 1, this.maxGlobalErrors);
+    
+    // If we've had too many global errors, increase the base interval
+    if (this.globalErrorCount > 5) {
+      this.minInterval = Math.min(this.minInterval * 1.5, 1000);
+    }
   }
 
   recordSuccess() {
     this.consecutiveErrors = 0;
+    // Gradually decrease the interval back to normal
+    if (this.globalErrorCount > 0) {
+      this.globalErrorCount = Math.max(this.globalErrorCount - 1, 0);
+      if (this.globalErrorCount <= 3) {
+        this.minInterval = Math.max(this.minInterval * 0.9, 300);
+      }
+    }
   }
 }
 
@@ -137,13 +152,10 @@ export class SpotifyService {
         await this.rateLimiter.waitForNextCall();
         return await apiCall();
       } else if (error.statusCode === 403) {
-        // Forbidden - likely due to development mode restrictions
-        console.log('403 Forbidden - This may be due to Spotify app being in Development Mode');
-        console.log('To fix this:');
-        console.log('1. Go to Spotify Developer Dashboard');
-        console.log('2. Add the user email as a test user, OR');
-        console.log('3. Switch the app to Production Mode');
-        throw new Error('Access forbidden. Please check Spotify app settings or contact support.');
+        // Forbidden - likely due to development mode restrictions or permission issues
+        console.log('403 Forbidden - This may be due to Spotify app being in Development Mode or permission issues');
+        // Don't throw error for 403, just return empty result to avoid breaking the app
+        return [] as T;
       } else if (error.statusCode === 401) {
         // Unauthorized - token may be invalid
         console.log('401 Unauthorized - Token may be invalid or expired');

@@ -10,13 +10,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get ALL user's playlists using pagination
-    const getAllPlaylists = async () => {
+    // Get user's playlists (limit to first 100 to avoid rate limiting)
+    const getPlaylists = async () => {
       const allPlaylists = [];
       let offset = 0;
       const limit = 50;
+      const maxPlaylists = 100; // Limit to first 100 playlists
       
-      while (true) {
+      while (allPlaylists.length < maxPlaylists) {
         const playlistsResponse = await fetch(`https://api.spotify.com/v1/me/playlists?limit=${limit}&offset=${offset}`, {
           headers: {
             'Authorization': `Bearer ${session.accessToken}`
@@ -24,6 +25,10 @@ export async function GET(request: NextRequest) {
         });
 
         if (!playlistsResponse.ok) {
+          if (playlistsResponse.status === 429) {
+            console.warn('Rate limit hit while fetching playlists, using partial data');
+            break;
+          }
           throw new Error('Failed to fetch playlists');
         }
 
@@ -45,18 +50,19 @@ export async function GET(request: NextRequest) {
       return allPlaylists;
     };
 
-    const playlists = await getAllPlaylists();
+    const playlists = await getPlaylists();
     console.log(`📊 Analytics: Fetched ${playlists.length} total playlists`);
 
-    // Get detailed playlist data with tracks (using pagination for each playlist)
+        // Get detailed playlist data with tracks (using pagination for each playlist)
     const playlistsWithTracks = await Promise.all(
       playlists.map(async (playlist: any) => {
-        const getAllTracksForPlaylist = async (playlistId: string) => {
+        const getTracksForPlaylist = async (playlistId: string) => {
           const allTracks = [];
           let offset = 0;
           const limit = 100;
+          const maxTracks = 500; // Limit to first 500 tracks per playlist
           
-          while (true) {
+          while (allTracks.length < maxTracks) {
             const tracksResponse = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks?limit=${limit}&offset=${offset}`, {
               headers: {
                 'Authorization': `Bearer ${session.accessToken}`
@@ -64,6 +70,10 @@ export async function GET(request: NextRequest) {
             });
 
             if (!tracksResponse.ok) {
+              if (tracksResponse.status === 429) {
+                console.warn(`Rate limit hit while fetching tracks for playlist ${playlistId}, using partial data`);
+                break;
+              }
               console.warn(`Failed to fetch tracks for playlist ${playlistId}`);
               break;
             }
@@ -86,7 +96,7 @@ export async function GET(request: NextRequest) {
           return allTracks;
         };
 
-        const tracks = await getAllTracksForPlaylist(playlist.id);
+        const tracks = await getTracksForPlaylist(playlist.id);
         return {
           ...playlist,
           tracks

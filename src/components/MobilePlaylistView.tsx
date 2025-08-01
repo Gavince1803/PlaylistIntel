@@ -113,26 +113,42 @@ export default function MobilePlaylistView() {
     
     try {
       setCheckingLikes(true);
-      const promises = playlists.map(async (playlist) => {
-        try {
-          const response = await fetch(`/api/playlists/${playlist.id}/like`);
-          if (response.ok) {
-            const data = await response.json();
-            return { id: playlist.id, isLiked: data.isLiked };
-          }
-          // Handle specific error statuses silently
-          if (response.status === 403 || response.status === 401 || response.status === 429) {
-            console.warn(`Skipping like check for playlist ${playlist.id}: ${response.status}`);
+      
+      // Process playlists in smaller batches to avoid overwhelming the API
+      const batchSize = 5;
+      const results: Array<{ id: string; isLiked: boolean }> = [];
+      
+      for (let i = 0; i < playlists.length; i += batchSize) {
+        const batch = playlists.slice(i, i + batchSize);
+        
+        const batchPromises = batch.map(async (playlist) => {
+          try {
+            const response = await fetch(`/api/playlists/${playlist.id}/like`);
+            if (response.ok) {
+              const data = await response.json();
+              return { id: playlist.id, isLiked: data.isLiked };
+            }
+            // Handle specific error statuses silently
+            if (response.status === 403 || response.status === 401 || response.status === 429) {
+              console.warn(`Skipping like check for playlist ${playlist.id}: ${response.status}`);
+              return { id: playlist.id, isLiked: false };
+            }
+            return { id: playlist.id, isLiked: false };
+          } catch (error) {
+            console.warn(`Error checking like status for playlist ${playlist.id}:`, error);
             return { id: playlist.id, isLiked: false };
           }
-          return { id: playlist.id, isLiked: false };
-        } catch (error) {
-          console.warn(`Error checking like status for playlist ${playlist.id}:`, error);
-          return { id: playlist.id, isLiked: false };
-        }
-      });
+        });
 
-      const results = await Promise.all(promises);
+        const batchResults = await Promise.all(batchPromises);
+        results.push(...batchResults);
+        
+        // Add a small delay between batches to be more respectful to the API
+        if (i + batchSize < playlists.length) {
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
+      }
+
       const likedIds = results.filter(r => r.isLiked).map(r => r.id);
       setLikedPlaylists(new Set(likedIds));
     } catch (error) {
@@ -143,10 +159,15 @@ export default function MobilePlaylistView() {
     }
   };
 
-  // Check like statuses when playlists load
+  // Check like statuses when playlists load, but only if we haven't checked recently
   useEffect(() => {
-    if (playlists.length > 0 && !loading) {
-      checkLikeStatuses();
+    if (playlists.length > 0 && !loading && !checkingLikes) {
+      // Add a small delay to avoid overwhelming the API
+      const timer = setTimeout(() => {
+        checkLikeStatuses();
+      }, 1000);
+      
+      return () => clearTimeout(timer);
     }
   }, [playlists, loading]);
 

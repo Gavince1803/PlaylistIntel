@@ -34,7 +34,7 @@ async function refreshAccessToken(token: any) {
 }
 
 export const authOptions = {
-  debug: true,
+  debug: false, // Disable debug mode to reduce logging
   providers: [
     SpotifyProvider({
       clientId: process.env.SPOTIFY_CLIENT_ID!,
