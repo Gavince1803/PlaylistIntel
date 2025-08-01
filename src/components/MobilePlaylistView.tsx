@@ -38,6 +38,7 @@ export default function MobilePlaylistView() {
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | 'mixed' | 'regular' | 'favorites'>('all');
   const [likedPlaylists, setLikedPlaylists] = useState<Set<string>>(new Set());
+  const [checkingLikes, setCheckingLikes] = useState(false);
 
   useEffect(() => {
     if (session?.accessToken) {
@@ -107,7 +108,11 @@ export default function MobilePlaylistView() {
 
   // Check like status for all playlists
   const checkLikeStatuses = async () => {
+    // Prevent multiple simultaneous calls
+    if (checkingLikes) return;
+    
     try {
+      setCheckingLikes(true);
       const promises = playlists.map(async (playlist) => {
         try {
           const response = await fetch(`/api/playlists/${playlist.id}/like`);
@@ -133,15 +138,17 @@ export default function MobilePlaylistView() {
     } catch (error) {
       console.error('Error checking like statuses:', error);
       // Don't show error to user for like status checks
+    } finally {
+      setCheckingLikes(false);
     }
   };
 
   // Check like statuses when playlists load
   useEffect(() => {
-    if (playlists.length > 0) {
+    if (playlists.length > 0 && !loading) {
       checkLikeStatuses();
     }
-  }, [playlists]);
+  }, [playlists, loading]);
 
   // Like/Unlike functionality
   const handleLikePlaylist = async (playlistId: string) => {

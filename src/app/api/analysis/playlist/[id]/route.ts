@@ -117,7 +117,16 @@ export async function GET(
       audioFeaturesAvailable = false;
     }
 
-    // Paso 5: Análisis de géneros
+    // Paso 5: Calcular duración promedio de los tracks
+    console.log('⏱️ Calculating average duration...');
+    const totalDurationMs = tracks.reduce((sum, track) => sum + (track.duration_ms || 0), 0);
+    const averageDurationMs = tracks.length > 0 ? totalDurationMs / tracks.length : 0;
+    const averageDurationSeconds = Math.round(averageDurationMs / 1000);
+    
+    console.log(`📊 Total duration: ${Math.round(totalDurationMs / 1000)}s`);
+    console.log(`📊 Average duration: ${averageDurationSeconds}s`);
+
+    // Paso 6: Análisis de géneros
     console.log('🎼 Analyzing genres...');
     const genreCounts: Record<string, number> = {};
     let totalGenreOccurrences = 0;
@@ -127,6 +136,11 @@ export async function GET(
       const trackGenres = Array.from(new Set(
         track.artists.flatMap(artist => artistGenres[artist.id] || [])
       ));
+      
+      // Debug: Log para tracks sin géneros
+      if (trackGenres.length === 0) {
+        console.log(`⚠️ Track "${track.name}" has no genres. Artists: ${track.artists.map(a => a.name).join(', ')}`);
+      }
       
       // Contar cada género
       trackGenres.forEach((genre: string) => {
@@ -261,7 +275,7 @@ export async function GET(
       },
       analytics: {
         totalTracks: musicalProfile.totalTracks,
-        averageDuration: 0, // No calculamos esto en el análisis actual
+        averageDuration: averageDurationSeconds, // Usar la duración promedio calculada
         topGenres: musicalProfile.genreAnalysis.topGenres,
         topArtists: musicalProfile.artistAnalysis.topArtists,
         moodDistribution: [
