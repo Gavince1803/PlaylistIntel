@@ -126,7 +126,7 @@ export async function GET(
       ));
       
       // Contar cada género
-      trackGenres.forEach(genre => {
+      trackGenres.forEach((genre: string) => {
         genreCounts[genre] = (genreCounts[genre] || 0) + 1;
         totalGenreOccurrences++;
       });

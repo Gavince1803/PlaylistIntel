@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../../auth/authOptions';
+import { authOptions } from '../../../../auth/authOptions';
 import { SpotifyService } from '@/lib/spotify';
 
 export async function GET(

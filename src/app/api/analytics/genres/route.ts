@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
     allTracks.forEach(track => {
       const trackGenres = track.artists.flatMap((artist: any) => artistGenres[artist.id] || []);
       
-      trackGenres.forEach(genre => {
+      trackGenres.forEach((genre: string) => {
         if (!genreTracks[genre]) {
           genreTracks[genre] = [];
         }
