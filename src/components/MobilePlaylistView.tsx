@@ -353,59 +353,74 @@ export default function MobilePlaylistView() {
           </p>
         )}
 
-        {/* Modern Filter Buttons */}
-        <div className="flex gap-1.5 overflow-x-auto pb-2 scrollbar-hide">
+        {/* Ultra Modern Filter Buttons */}
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
           <button
-            className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 whitespace-nowrap flex items-center gap-1.5 ${
+            className={`px-4 py-3 rounded-2xl text-xs font-bold transition-all duration-300 whitespace-nowrap flex items-center gap-2 ${
               typeFilter === 'all' 
-                ? 'bg-gradient-to-r from-[#1DB954] to-[#1ed760] text-white shadow-lg shadow-[#1DB954]/25' 
-                : 'bg-[#2a2a2a]/80 text-gray-300 border border-[#282828] hover:bg-[#333333] hover:border-[#404040] backdrop-blur-sm'
+                ? 'bg-gradient-to-r from-[#1DB954] via-[#1ed760] to-[#1DB954] text-white shadow-lg shadow-[#1DB954]/30 transform scale-105' 
+                : 'bg-gradient-to-r from-[#2a2a2a] to-[#333333] text-gray-300 border border-[#404040] hover:bg-gradient-to-r hover:from-[#333333] hover:to-[#404040] hover:border-[#1DB954]/50 hover:shadow-lg hover:shadow-[#1DB954]/10 backdrop-blur-sm'
             }`}
             onClick={() => setTypeFilter('all')}
           >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
             </svg>
-            All ({playlists.length})
+            <span className="font-bold">All</span>
+            <span className="bg-white/20 px-2 py-0.5 rounded-full text-[10px] font-bold">
+              {playlists.length}
+            </span>
           </button>
+          
           <button
-            className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 whitespace-nowrap flex items-center gap-1.5 ${
+            className={`px-4 py-3 rounded-2xl text-xs font-bold transition-all duration-300 whitespace-nowrap flex items-center gap-2 ${
               typeFilter === 'mixed' 
-                ? 'bg-gradient-to-r from-[#1DB954] to-[#1ed760] text-white shadow-lg shadow-[#1DB954]/25' 
-                : 'bg-[#2a2a2a]/80 text-gray-300 border border-[#282828] hover:bg-[#333333] hover:border-[#404040] backdrop-blur-sm'
+                ? 'bg-gradient-to-r from-[#FF6B35] via-[#FF8C42] to-[#FF6B35] text-white shadow-lg shadow-[#FF6B35]/30 transform scale-105' 
+                : 'bg-gradient-to-r from-[#2a2a2a] to-[#333333] text-gray-300 border border-[#404040] hover:bg-gradient-to-r hover:from-[#333333] hover:to-[#404040] hover:border-[#FF6B35]/50 hover:shadow-lg hover:shadow-[#FF6B35]/10 backdrop-blur-sm'
             }`}
             onClick={() => setTypeFilter('mixed')}
           >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
-            Mixed ({playlists.filter(p => p.collaborative || p.name.toLowerCase().includes('mix')).length})
+            <span className="font-bold">Mixed</span>
+            <span className="bg-white/20 px-2 py-0.5 rounded-full text-[10px] font-bold">
+              {playlists.filter(p => p.collaborative || p.name.toLowerCase().includes('mix')).length}
+            </span>
           </button>
+          
           <button
-            className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 whitespace-nowrap flex items-center gap-1.5 ${
+            className={`px-4 py-3 rounded-2xl text-xs font-bold transition-all duration-300 whitespace-nowrap flex items-center gap-2 ${
               typeFilter === 'regular' 
-                ? 'bg-gradient-to-r from-[#1DB954] to-[#1ed760] text-white shadow-lg shadow-[#1DB954]/25' 
-                : 'bg-[#2a2a2a]/80 text-gray-300 border border-[#282828] hover:bg-[#333333] hover:border-[#404040] backdrop-blur-sm'
+                ? 'bg-gradient-to-r from-[#6366F1] via-[#8B5CF6] to-[#6366F1] text-white shadow-lg shadow-[#6366F1]/30 transform scale-105' 
+                : 'bg-gradient-to-r from-[#2a2a2a] to-[#333333] text-gray-300 border border-[#404040] hover:bg-gradient-to-r hover:from-[#333333] hover:to-[#404040] hover:border-[#6366F1]/50 hover:shadow-lg hover:shadow-[#6366F1]/10 backdrop-blur-sm'
             }`}
             onClick={() => setTypeFilter('regular')}
           >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
             </svg>
-            Regular ({playlists.filter(p => !p.collaborative && !p.name.toLowerCase().includes('mix')).length})
+            <span className="font-bold">Regular</span>
+            <span className="bg-white/20 px-2 py-0.5 rounded-full text-[10px] font-bold">
+              {playlists.filter(p => !p.collaborative && !p.name.toLowerCase().includes('mix')).length}
+            </span>
           </button>
+          
           <button
-            className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 whitespace-nowrap flex items-center gap-1.5 ${
+            className={`px-4 py-3 rounded-2xl text-xs font-bold transition-all duration-300 whitespace-nowrap flex items-center gap-2 ${
               typeFilter === 'favorites' 
-                ? 'bg-gradient-to-r from-[#1DB954] to-[#1ed760] text-white shadow-lg shadow-[#1DB954]/25' 
-                : 'bg-[#2a2a2a]/80 text-gray-300 border border-[#282828] hover:bg-[#333333] hover:border-[#404040] backdrop-blur-sm'
+                ? 'bg-gradient-to-r from-[#EC4899] via-[#F472B6] to-[#EC4899] text-white shadow-lg shadow-[#EC4899]/30 transform scale-105' 
+                : 'bg-gradient-to-r from-[#2a2a2a] to-[#333333] text-gray-300 border border-[#404040] hover:bg-gradient-to-r hover:from-[#333333] hover:to-[#404040] hover:border-[#EC4899]/50 hover:shadow-lg hover:shadow-[#EC4899]/10 backdrop-blur-sm'
             }`}
             onClick={() => setTypeFilter('favorites')}
           >
-            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
             </svg>
-            Fav ({likedPlaylists.size})
+            <span className="font-bold">Favorites</span>
+            <span className="bg-white/20 px-2 py-0.5 rounded-full text-[10px] font-bold">
+              {likedPlaylists.size}
+            </span>
           </button>
         </div>
       </div>
