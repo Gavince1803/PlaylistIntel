@@ -107,12 +107,22 @@ export default function MobilePlaylistView() {
   const checkLikeStatuses = async () => {
     try {
       const promises = playlists.map(async (playlist) => {
-        const response = await fetch(`/api/playlists/${playlist.id}/like`);
-        if (response.ok) {
-          const data = await response.json();
-          return { id: playlist.id, isLiked: data.isLiked };
+        try {
+          const response = await fetch(`/api/playlists/${playlist.id}/like`);
+          if (response.ok) {
+            const data = await response.json();
+            return { id: playlist.id, isLiked: data.isLiked };
+          }
+          // Handle specific error statuses silently
+          if (response.status === 403 || response.status === 401 || response.status === 429) {
+            console.warn(`Skipping like check for playlist ${playlist.id}: ${response.status}`);
+            return { id: playlist.id, isLiked: false };
+          }
+          return { id: playlist.id, isLiked: false };
+        } catch (error) {
+          console.warn(`Error checking like status for playlist ${playlist.id}:`, error);
+          return { id: playlist.id, isLiked: false };
         }
-        return { id: playlist.id, isLiked: false };
       });
 
       const results = await Promise.all(promises);
@@ -120,6 +130,7 @@ export default function MobilePlaylistView() {
       setLikedPlaylists(new Set(likedIds));
     } catch (error) {
       console.error('Error checking like statuses:', error);
+      // Don't show error to user for like status checks
     }
   };
 
@@ -145,7 +156,17 @@ export default function MobilePlaylistView() {
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to ${action} playlist`);
+        let errorMessage = `Failed to ${action} playlist`;
+        
+        if (response.status === 403) {
+          errorMessage = 'Cannot modify this playlist. It may be collaborative or private.';
+        } else if (response.status === 401) {
+          errorMessage = 'Authentication required. Please refresh the page.';
+        } else if (response.status === 429) {
+          errorMessage = 'Rate limit exceeded. Please try again in a moment.';
+        }
+        
+        throw new Error(errorMessage);
       }
 
       if (isCurrentlyLiked) {
@@ -161,7 +182,8 @@ export default function MobilePlaylistView() {
       }
     } catch (error) {
       console.error('Error liking playlist:', error);
-      showToast('Failed to update playlist like status', 'error');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update playlist like status';
+      showToast(errorMessage, 'error');
     }
   };
 
@@ -227,21 +249,69 @@ export default function MobilePlaylistView() {
   }
 
   if (error) {
+    const isRateLimitError = error.includes('429') || error.includes('rate limit');
+    const isPermissionError = error.includes('403') || error.includes('permission');
+    const isAuthError = error.includes('401') || error.includes('unauthorized');
+    
     return (
       <div className="text-center py-8 px-4">
-        <div className="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-          <svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+        <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
+          isRateLimitError ? 'bg-orange-500/20' : 
+          isPermissionError ? 'bg-yellow-500/20' : 
+          isAuthError ? 'bg-red-500/20' : 'bg-red-500/20'
+        }`}>
+          {isRateLimitError ? (
+            <svg className="w-8 h-8 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          ) : isPermissionError ? (
+            <svg className="w-8 h-8 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          ) : (
+            <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          )}
         </div>
-        <h3 className="text-lg font-bold text-white mb-2">Error loading playlists</h3>
-        <p className="text-gray-400 mb-4 text-sm">{error}</p>
-        <button 
-          onClick={handleRetry}
-          className="bg-[#1DB954] hover:bg-[#1ed760] text-white px-4 py-2 rounded-full font-semibold transition-colors shadow-md text-sm"
-        >
-          Try Again
-        </button>
+        
+        <h3 className="text-lg font-bold text-white mb-2">
+          {isRateLimitError ? 'Rate Limit Exceeded' :
+           isPermissionError ? 'Permission Denied' :
+           isAuthError ? 'Authentication Error' :
+           'Error loading playlists'}
+        </h3>
+        
+        <p className="text-gray-400 mb-4 text-sm max-w-sm mx-auto">
+          {isRateLimitError ? 
+            'Spotify API rate limit exceeded. Please wait a moment and try again.' :
+           isPermissionError ? 
+            'Some playlists may not be accessible due to privacy settings. This is normal for collaborative playlists.' :
+           isAuthError ? 
+            'Authentication failed. Please refresh the page and try again.' :
+           error}
+        </p>
+        
+        <div className="flex gap-2 justify-center">
+          <button 
+            onClick={handleRetry}
+            className="bg-[#1DB954] hover:bg-[#1ed760] text-white px-4 py-2 rounded-xl font-semibold transition-all duration-200 shadow-lg text-sm flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Try Again
+          </button>
+          
+          {isRateLimitError && (
+            <button 
+              onClick={() => window.location.reload()}
+              className="bg-[#2a2a2a] hover:bg-[#333333] text-white px-4 py-2 rounded-xl font-semibold transition-all duration-200 border border-[#282828] text-sm"
+            >
+              Refresh Page
+            </button>
+          )}
+        </div>
       </div>
     );
   }
@@ -283,47 +353,59 @@ export default function MobilePlaylistView() {
           </p>
         )}
 
-        {/* Filter buttons */}
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+        {/* Modern Filter Buttons */}
+        <div className="flex gap-1.5 overflow-x-auto pb-2 scrollbar-hide">
           <button
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 whitespace-nowrap ${
+            className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 whitespace-nowrap flex items-center gap-1.5 ${
               typeFilter === 'all' 
-                ? 'bg-[#1DB954] text-white' 
-                : 'bg-[#2a2a2a] text-gray-300 border border-[#282828] hover:bg-[#282828]'
+                ? 'bg-gradient-to-r from-[#1DB954] to-[#1ed760] text-white shadow-lg shadow-[#1DB954]/25' 
+                : 'bg-[#2a2a2a]/80 text-gray-300 border border-[#282828] hover:bg-[#333333] hover:border-[#404040] backdrop-blur-sm'
             }`}
             onClick={() => setTypeFilter('all')}
           >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+            </svg>
             All ({playlists.length})
           </button>
           <button
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 whitespace-nowrap ${
+            className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 whitespace-nowrap flex items-center gap-1.5 ${
               typeFilter === 'mixed' 
-                ? 'bg-[#1DB954] text-white' 
-                : 'bg-[#2a2a2a] text-gray-300 border border-[#282828] hover:bg-[#282828]'
+                ? 'bg-gradient-to-r from-[#1DB954] to-[#1ed760] text-white shadow-lg shadow-[#1DB954]/25' 
+                : 'bg-[#2a2a2a]/80 text-gray-300 border border-[#282828] hover:bg-[#333333] hover:border-[#404040] backdrop-blur-sm'
             }`}
             onClick={() => setTypeFilter('mixed')}
           >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
             Mixed ({playlists.filter(p => p.collaborative || p.name.toLowerCase().includes('mix')).length})
           </button>
           <button
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 whitespace-nowrap ${
+            className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 whitespace-nowrap flex items-center gap-1.5 ${
               typeFilter === 'regular' 
-                ? 'bg-[#1DB954] text-white' 
-                : 'bg-[#2a2a2a] text-gray-300 border border-[#282828] hover:bg-[#282828]'
+                ? 'bg-gradient-to-r from-[#1DB954] to-[#1ed760] text-white shadow-lg shadow-[#1DB954]/25' 
+                : 'bg-[#2a2a2a]/80 text-gray-300 border border-[#282828] hover:bg-[#333333] hover:border-[#404040] backdrop-blur-sm'
             }`}
             onClick={() => setTypeFilter('regular')}
           >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+            </svg>
             Regular ({playlists.filter(p => !p.collaborative && !p.name.toLowerCase().includes('mix')).length})
           </button>
           <button
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 whitespace-nowrap ${
+            className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 whitespace-nowrap flex items-center gap-1.5 ${
               typeFilter === 'favorites' 
-                ? 'bg-[#1DB954] text-white' 
-                : 'bg-[#2a2a2a] text-gray-300 border border-[#282828] hover:bg-[#282828]'
+                ? 'bg-gradient-to-r from-[#1DB954] to-[#1ed760] text-white shadow-lg shadow-[#1DB954]/25' 
+                : 'bg-[#2a2a2a]/80 text-gray-300 border border-[#282828] hover:bg-[#333333] hover:border-[#404040] backdrop-blur-sm'
             }`}
             onClick={() => setTypeFilter('favorites')}
           >
-            ❤️ Fav ({likedPlaylists.size})
+            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+            Fav ({likedPlaylists.size})
           </button>
         </div>
       </div>
