@@ -117,36 +117,65 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#191414] via-[#232323] to-[#1DB954] p-3 sm:p-4 lg:p-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Theme indicator */}
-        <div className="mb-4 p-3 lg:p-4 bg-[#1DB954]/10 rounded-lg border border-[#1DB954]/20">
-          <p className="text-white text-xs lg:text-sm">
-            Current theme: <span className="font-bold">{theme}</span> | 
-            Current language: <span className="font-bold">{language}</span>
-          </p>
-        </div>
-        
+    <div className="flex h-screen font-sans bg-gradient-to-br from-[#191414] via-[#232323] to-[#1DB954]">
+      {/* Main content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="mb-6 lg:mb-8">
-          <div className="flex items-center gap-3 lg:gap-4 mb-3 lg:mb-4">
-            <button
+        <div className="bg-[#1a1a1a] border-b border-[#282828] p-4">
+          <div className="flex items-center gap-4">
+            <button 
               onClick={() => window.history.back()}
-              className="p-2 text-gray-400 hover:text-white hover:bg-[#282828] rounded-lg transition-colors"
-              aria-label="Go back"
+              className="p-2 hover:bg-[#2a2a2a] rounded-lg transition-colors"
             >
-              <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">Settings</h1>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 lg:w-10 lg:h-10 bg-[#1DB954] rounded-xl flex items-center justify-center flex-shrink-0">
+                <svg className="w-4 h-4 lg:w-5 lg:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-white">Settings</h1>
+                <p className="text-gray-400 text-sm">Customize your experience</p>
+              </div>
+            </div>
           </div>
-          <p className="text-gray-300 text-base lg:text-lg">Customize your experience</p>
         </div>
 
-        <div className="space-y-6 lg:space-y-8">
-          {/* Account Information */}
-          <section className="bg-gradient-to-br from-[#232323] to-[#2a2a2a] rounded-xl lg:rounded-2xl p-4 lg:p-6 border border-[#282828] shadow-xl">
+        {/* Main content area */}
+        <main className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-8 custom-scrollbar">
+          <div className="max-w-7xl mx-auto">
+            {/* Theme indicator */}
+            <div className="mb-4 p-3 lg:p-4 bg-[#1DB954]/10 rounded-lg border border-[#1DB954]/20">
+              <p className="text-white text-xs lg:text-sm">
+                Current theme: <span className="font-bold">{theme}</span> | 
+                Current language: <span className="font-bold">{language}</span>
+              </p>
+            </div>
+
+            <section className="bg-[#232323] rounded-2xl lg:rounded-3xl shadow-2xl border border-[#282828] overflow-hidden">
+              <div className="p-4 lg:p-8 border-b border-[#282828] bg-gradient-to-r from-[#232323] to-[#2a2a2a]">
+                <div className="flex items-center gap-3 lg:gap-4">
+                  <div className="w-8 h-8 lg:w-10 lg:h-10 bg-[#1DB954] rounded-xl flex items-center justify-center flex-shrink-0">
+                    <svg className="w-4 h-4 lg:w-5 lg:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h2 className="text-xl lg:text-3xl font-bold text-white">Settings</h2>
+                    <p className="text-gray-400 text-sm lg:text-base mt-1">Customize your experience</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-4 lg:p-8">
+                <div className="space-y-6 lg:space-y-8">
+                  {/* Account Information */}
+                  <div className="bg-gradient-to-br from-[#232323] to-[#2a2a2a] rounded-xl lg:rounded-2xl p-4 lg:p-6 border border-[#282828] shadow-xl">
             <h2 className="text-xl lg:text-2xl font-bold text-white mb-4 lg:mb-6">Account Information</h2>
             <div className="space-y-4 lg:space-y-6">
               {/* Spotify Account Info */}
@@ -296,7 +325,10 @@ export default function SettingsPage() {
               Save Settings
             </button>
           </div>
+            </div>
+          </section>
         </div>
+        </main>
       </div>
     </div>
   );

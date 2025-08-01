@@ -90,6 +90,9 @@ export async function GET(
       artistGenres[artist.id] = artist.genres;
     });
 
+    console.log(`🎤 Artist genres sample:`, Object.entries(artistGenres).slice(0, 3).map(([id, genres]) => ({ id, genres }));
+    console.log(`🎤 Artists with genres: ${Object.values(artistGenres).filter(genres => genres.length > 0).length}/${artists.length}`);
+
     // Paso 4: Obtener características de audio de los tracks (OPCIONAL)
     let audioFeatures: any[] = [];
     let audioFeaturesMap: Record<string, any> = {};
@@ -131,6 +134,12 @@ export async function GET(
         totalGenreOccurrences++;
       });
     });
+
+    console.log(`📊 Found ${Object.keys(genreCounts).length} unique genres`);
+    console.log(`📊 Total genre occurrences: ${totalGenreOccurrences}`);
+    if (Object.keys(genreCounts).length === 0) {
+      console.log('⚠️ No genres found - this might indicate an issue with artist data');
+    }
 
     // Calcular top géneros y diversidad
     const topGenres = Object.entries(genreCounts)
