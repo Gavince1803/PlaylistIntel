@@ -165,6 +165,9 @@ export async function GET(
       .sort((a, b) => b.count - a.count)
       .slice(0, 10); // Top 10 géneros
 
+    console.log(`🎵 Top genres found: ${topGenres.length}`);
+    console.log(`🎵 Sample genres:`, topGenres.slice(0, 3).map(g => `${g.genre} (${g.count})`));
+
     const dominantGenre = topGenres[0]?.genre || 'unknown';
     
     // Calcular diversidad de géneros (usando índice de Shannon)
@@ -219,10 +222,14 @@ export async function GET(
     });
 
     const uniqueArtists = Object.keys(artistCounts).length;
+    console.log(`👥 Found ${uniqueArtists} unique artists`);
     const topArtists = Object.entries(artistCounts)
       .map(([name, count]) => ({ name, trackCount: count }))
       .sort((a, b) => b.trackCount - a.trackCount)
       .slice(0, 10); // Top 10 artistas
+
+    console.log(`👥 Top artists found: ${topArtists.length}`);
+    console.log(`👥 Sample artists:`, topArtists.slice(0, 3).map(a => `${a.name} (${a.trackCount})`));
 
     const artistDiversity = calculateDiversity(Object.values(artistCounts));
 

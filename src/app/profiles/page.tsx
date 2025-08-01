@@ -228,75 +228,75 @@ export default function ProfilesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#191414] via-[#232323] to-[#1DB954] p-4 sm:p-6 lg:p-8 custom-scrollbar overflow-y-auto">
-      <div className="max-w-7xl mx-auto px-2">
+    <div className="min-h-screen bg-gradient-to-br from-[#191414] via-[#232323] to-[#1DB954] custom-scrollbar">
+      <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
         {/* Header Section */}
         <div className="mb-8 lg:mb-12 mt-4">
           <div className="bg-gradient-to-r from-[#1DB954]/10 to-[#1ed760]/10 rounded-3xl p-6 lg:p-8 border border-[#1DB954]/20">
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-[#1DB954] rounded-full flex items-center justify-center">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#1DB954] rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                 </div>
                 <div>
-                  <h1 className="text-3xl lg:text-4xl font-extrabold text-white mb-2 tracking-tight">
+                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white mb-1 sm:mb-2 tracking-tight">
                     Music Library 🎵
                   </h1>
-                  <p className="text-lg text-gray-300">
+                  <p className="text-sm sm:text-lg text-gray-300">
                     Your saved musical analyses and insights
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => window.history.back()}
-                className="flex items-center gap-2 px-4 py-2 bg-[#1DB954]/10 hover:bg-[#1DB954]/20 text-[#1DB954] hover:text-white rounded-xl transition-all duration-200 group"
+                className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-[#1DB954]/10 hover:bg-[#1DB954]/20 text-[#1DB954] hover:text-white rounded-xl transition-all duration-200 group"
                 title="Go back"
               >
-                <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                <span className="font-semibold">Back</span>
+                <span className="font-semibold text-sm sm:text-base">Back</span>
               </button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-              <div className="bg-[#232323]/50 rounded-xl p-4 border border-[#282828]">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-[#1DB954]/20 rounded-lg flex items-center justify-center">
-                    <svg className="w-4 h-4 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mt-4 sm:mt-6">
+              <div className="bg-[#232323]/50 rounded-xl p-3 sm:p-4 border border-[#282828]">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-[#1DB954]/20 rounded-lg flex items-center justify-center">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
                   <div>
-                    <p className="text-white font-semibold">{savedProfiles.length}</p>
-                    <p className="text-gray-400 text-sm">Saved profiles</p>
+                    <p className="text-white font-semibold text-sm sm:text-base">{savedProfiles.length}</p>
+                    <p className="text-gray-400 text-xs sm:text-sm">Saved profiles</p>
                   </div>
                 </div>
               </div>
-              <div className="bg-[#232323]/50 rounded-xl p-4 border border-[#282828]">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-[#1DB954]/20 rounded-lg flex items-center justify-center">
-                    <svg className="w-4 h-4 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-[#232323]/50 rounded-xl p-3 sm:p-4 border border-[#282828]">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-[#1DB954]/20 rounded-lg flex items-center justify-center">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                   </div>
                   <div>
-                    <p className="text-white font-semibold">Analytics</p>
-                    <p className="text-gray-400 text-sm">Detailed</p>
+                    <p className="text-white font-semibold text-sm sm:text-base">Analytics</p>
+                    <p className="text-gray-400 text-xs sm:text-sm">Detailed</p>
                   </div>
                 </div>
               </div>
-              <div className="bg-[#232323]/50 rounded-xl p-4 border border-[#282828]">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-[#1DB954]/20 rounded-lg flex items-center justify-center">
-                    <svg className="w-4 h-4 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-[#232323]/50 rounded-xl p-3 sm:p-4 border border-[#282828]">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-[#1DB954]/20 rounded-lg flex items-center justify-center">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
                   </div>
                   <div>
-                    <p className="text-white font-semibold">Recommendations</p>
-                    <p className="text-gray-400 text-sm">Personalized</p>
+                    <p className="text-white font-semibold text-sm sm:text-base">Recommendations</p>
+                    <p className="text-gray-400 text-xs sm:text-sm">Personalized</p>
                   </div>
                 </div>
               </div>
@@ -328,59 +328,59 @@ export default function ProfilesPage() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 custom-scrollbar max-h-[70vh] overflow-y-auto pr-2 pt-4 pl-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             {savedProfiles.map((profile, index) => (
               <div
                 key={profile.id}
-                className="bg-gradient-to-br from-[#282828] to-[#2a2a2a] rounded-3xl p-6 hover:bg-gradient-to-br hover:from-[#333333] hover:to-[#353535] transition-all duration-300 cursor-pointer group shadow-xl hover:shadow-2xl hover:scale-[1.02] border border-[#282828] hover:border-[#1DB954]/30 flex flex-col h-full animate-fade-in-down"
+                className="bg-gradient-to-br from-[#282828] to-[#2a2a2a] rounded-2xl sm:rounded-3xl p-4 sm:p-6 hover:bg-gradient-to-br hover:from-[#333333] hover:to-[#353535] transition-all duration-300 cursor-pointer group shadow-xl hover:shadow-2xl hover:scale-[1.02] border border-[#282828] hover:border-[#1DB954]/30 flex flex-col h-full animate-fade-in-down"
                 style={{ 
                   animationDelay: `${index * 100}ms`,
                   animationFillMode: 'both'
                 }}
                 onClick={() => setSelectedProfile(profile.playlistId)}
               >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-4">
+                <div className="flex items-start justify-between mb-3 sm:mb-4">
+                  <div className="flex items-center gap-3 sm:gap-4">
                     {profile.playlistImage ? (
                       <div className="relative">
                         <img
                           src={profile.playlistImage}
                           alt={profile.playlistName}
-                          className="w-16 h-16 rounded-2xl object-cover shadow-lg"
+                          className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl object-cover shadow-lg"
                         />
-                        <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#1DB954] rounded-full flex items-center justify-center">
-                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <div className="absolute -bottom-1 -right-1 w-5 h-5 sm:w-6 sm:h-6 bg-[#1DB954] rounded-full flex items-center justify-center">
+                          <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
                           </svg>
                         </div>
                       </div>
                     ) : (
                       <div className="relative">
-                        <div className="w-16 h-16 bg-[#1DB954]/20 rounded-2xl flex items-center justify-center shadow-lg">
-                          <svg className="w-8 h-8 text-[#1DB954]" fill="currentColor" viewBox="0 0 24 24">
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 bg-[#1DB954]/20 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
+                          <svg className="w-6 h-6 sm:w-8 sm:h-8 text-[#1DB954]" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
                           </svg>
                         </div>
-                        <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#1DB954] rounded-full flex items-center justify-center">
-                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <div className="absolute -bottom-1 -right-1 w-5 h-5 sm:w-6 sm:h-6 bg-[#1DB954] rounded-full flex items-center justify-center">
+                          <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
                           </svg>
                         </div>
                       </div>
                     )}
-                    <div>
-                      <h3 className="text-white font-bold text-xl truncate max-w-40 group-hover:text-[#1DB954] transition-colors">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-white font-bold text-base sm:text-xl truncate group-hover:text-[#1DB954] transition-colors">
                         {profile.playlistName}
                       </h3>
-                      <p className="text-gray-400 text-sm mt-1 italic">
+                      <p className="text-gray-400 text-xs sm:text-sm mt-1 italic truncate">
                         {generateProfileName(profile)}
                       </p>
-                      <div className="flex items-center gap-2 mt-2">
+                      <div className="flex items-center gap-2 mt-1 sm:mt-2">
                         <div className="flex items-center gap-1 bg-[#1DB954]/10 rounded-full px-2 py-1">
-                          <svg className="w-3 h-3 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                          <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
                           </svg>
-                          <span className="text-white font-semibold text-sm">{profile.totalTracks}</span>
+                          <span className="text-white font-semibold text-xs sm:text-sm">{profile.totalTracks}</span>
                         </div>
                       </div>
                     </div>
@@ -399,11 +399,11 @@ export default function ProfilesPage() {
                   </button>
                 </div>
 
-                <div className="space-y-4 mb-6">
-                  <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
                     <div className="bg-[#232323]/50 rounded-lg p-2 border border-[#282828]">
                       <div className="flex items-center gap-1 mb-1">
-                        <svg className="w-3 h-3 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                         </svg>
                         <span className="text-gray-400 text-xs">Genre</span>
@@ -415,7 +415,7 @@ export default function ProfilesPage() {
                     
                     <div className="bg-[#232323]/50 rounded-lg p-2 border border-[#282828]">
                       <div className="flex items-center gap-1 mb-1">
-                        <svg className="w-3 h-3 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <span className="text-gray-400 text-xs">Mood</span>
@@ -428,10 +428,10 @@ export default function ProfilesPage() {
                   
                   <div className="bg-[#232323]/50 rounded-lg p-2 border border-[#282828]">
                     <div className="flex items-center gap-1 mb-1">
-                      <svg className="w-3 h-3 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                       </svg>
-                                              <span className="text-gray-400 text-xs">Energy</span>
+                      <span className="text-gray-400 text-xs">Energy</span>
                     </div>
                     <span className={`font-semibold text-xs capitalize ${getEnergyColor(profile.energyLevel)}`}>
                       {profile.energyLevel}
@@ -439,14 +439,14 @@ export default function ProfilesPage() {
                   </div>
                   
                   <div className="flex items-center justify-between text-xs text-gray-400">
-                    <span>Analyzed on {formatDate(profile.analyzedAt)}</span>
+                    <span className="truncate">Analyzed on {formatDate(profile.analyzedAt)}</span>
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-[#404040] mt-auto">
-                  <button className="w-full bg-[#1DB954] hover:bg-[#1ed760] text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 text-sm shadow-md hover:shadow-xl group/btn">
-                    <span className="flex items-center justify-center gap-2">
-                      <svg className="w-4 h-4 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="pt-3 sm:pt-4 border-t border-[#404040] mt-auto">
+                  <button className="w-full bg-[#1DB954] hover:bg-[#1ed760] text-white font-semibold py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg transition-all duration-200 text-xs sm:text-sm shadow-md hover:shadow-xl group/btn">
+                    <span className="flex items-center justify-center gap-1.5 sm:gap-2">
+                      <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>

@@ -28,6 +28,7 @@ export default function AnalyticsPage() {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
   const [genresData, setGenresData] = useState<GenreData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [genresLoading, setGenresLoading] = useState(true);
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
   const [showGenreModal, setShowGenreModal] = useState(false);
   const [genreLoading, setGenreLoading] = useState(false);
@@ -35,8 +36,10 @@ export default function AnalyticsPage() {
 
   useEffect(() => {
     if (session?.accessToken) {
-      fetchAnalytics();
-      fetchGenres();
+      // Fetch analytics first, then genres
+      fetchAnalytics().then(() => {
+        fetchGenres();
+      });
     }
   }, [session]);
 
@@ -46,7 +49,8 @@ export default function AnalyticsPage() {
       
       const response = await fetch('/api/analytics/overview');
       if (!response.ok) {
-        throw new Error('Failed to fetch analytics data');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to fetch analytics data');
       }
       
       const data = await response.json();
@@ -61,16 +65,25 @@ export default function AnalyticsPage() {
 
   const fetchGenres = async () => {
     try {
+      setGenresLoading(true);
+      console.log('🎵 Fetching genres data...');
       const response = await fetch('/api/analytics/genres');
+      console.log('🎵 Genres API response status:', response.status);
+      
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('🎵 Genres API error:', errorText);
         throw new Error('Failed to fetch genres data');
       }
       
       const data = await response.json();
+      console.log('🎵 Genres data received:', data.genres?.length || 0, 'genres');
       setGenresData(data.genres);
     } catch (error) {
       console.error('Error fetching genres:', error);
       showToast('Failed to load genres data', 'error');
+    } finally {
+      setGenresLoading(false);
     }
   };
 
@@ -211,9 +224,16 @@ export default function AnalyticsPage() {
             <section className="bg-gradient-to-br from-[#232323] to-[#2a2a2a] rounded-xl lg:rounded-2xl p-4 lg:p-6 border border-[#282828] shadow-xl">
               <h2 className="text-xl lg:text-2xl font-bold text-white mb-4 lg:mb-6">Top Genres</h2>
               <div className="space-y-3 lg:space-y-4">
-                {genresData.length > 0 ? (
+                {genresLoading ? (
+                  <div className="text-center py-8">
+                    <div className="w-8 h-8 border-2 border-[#1DB954] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-gray-400">Loading genres...</p>
+                  </div>
+                ) : genresData.length > 0 ? (
                   genresData.slice(0, 10).map((genre, index) => {
-                    const percentage = analyticsData ? (genre.trackCount / analyticsData.totalTracks) * 100 : 0;
+                    // Calculate percentage based on total tracks in genres data
+                    const totalTracksInGenres = genresData.reduce((sum, g) => sum + g.trackCount, 0);
+                    const percentage = totalTracksInGenres > 0 ? (genre.trackCount / totalTracksInGenres) * 100 : 0;
                     return (
                                              <div 
                          key={genre.genre} 
@@ -245,7 +265,7 @@ export default function AnalyticsPage() {
                   })
                 ) : (
                   <div className="text-center py-8">
-                    <p className="text-gray-400">Loading genres...</p>
+                    <p className="text-gray-400">No genres found</p>
                   </div>
                 )}
               </div>

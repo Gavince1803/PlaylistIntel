@@ -159,20 +159,11 @@ export async function GET(request: NextRequest) {
         // Convert mood distribution to array format
         const moodArray = Object.entries(moodDistribution).map(([mood, count]) => ({ mood, count }));
         
-        // Mock genre data for now (Spotify doesn't provide genres in audio features)
-        const mockGenres = [
-          { genre: 'Pop', count: Math.floor(Math.random() * 50) + 20, percentage: 18.4 },
-          { genre: 'Rock', count: Math.floor(Math.random() * 40) + 15, percentage: 15.8 },
-          { genre: 'Hip Hop', count: Math.floor(Math.random() * 30) + 10, percentage: 11.6 },
-          { genre: 'Electronic', count: Math.floor(Math.random() * 25) + 8, percentage: 10.3 },
-          { genre: 'R&B', count: Math.floor(Math.random() * 20) + 5, percentage: 9.0 }
-        ];
-
         return NextResponse.json({
           totalPlaylists,
           totalTracks,
           averagePlaylistLength,
-          topGenres: mockGenres,
+          topGenres: [], // Will be populated by the genres API
           listeningTime: Math.floor(totalTracks * 3.5), // Estimate 3.5 minutes per track
           mostActiveMonth: new Date().toLocaleString('en', { month: 'long' }),
           favoriteArtists,
@@ -186,13 +177,7 @@ export async function GET(request: NextRequest) {
       totalPlaylists,
       totalTracks,
       averagePlaylistLength,
-      topGenres: [
-        { genre: 'Pop', count: 156, percentage: 18.4 },
-        { genre: 'Rock', count: 134, percentage: 15.8 },
-        { genre: 'Hip Hop', count: 98, percentage: 11.6 },
-        { genre: 'Electronic', count: 87, percentage: 10.3 },
-        { genre: 'R&B', count: 76, percentage: 9.0 }
-      ],
+      topGenres: [], // Will be populated by the genres API
       listeningTime: Math.floor(totalTracks * 3.5),
       mostActiveMonth: new Date().toLocaleString('en', { month: 'long' }),
       favoriteArtists,
