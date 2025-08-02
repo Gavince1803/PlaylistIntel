@@ -64,13 +64,36 @@ export async function GET(request: NextRequest) {
         })));
       } catch (error) {
         console.warn(`Failed to fetch tracks for playlist ${playlist.id}:`, error);
+        // Continue with other playlists even if one fails
       }
+    }
+
+    console.log(`📊 Genres API: Total tracks collected: ${allTracks.length}`);
+
+    if (allTracks.length === 0) {
+      console.log('📊 Genres API: No tracks found, returning empty result');
+      return NextResponse.json({
+        genres: [],
+        totalGenres: 0,
+        totalTracks: 0
+      });
     }
 
     console.log(`📊 Genres API: Total tracks collected: ${allTracks.length}`);
 
     // Get unique artist IDs
     const artistIds = Array.from(new Set(allTracks.flatMap(track => track.artists.map((a: any) => a.id))));
+    
+    console.log(`📊 Genres API: Found ${artistIds.length} unique artists`);
+    
+    if (artistIds.length === 0) {
+      console.log('📊 Genres API: No artists found, returning empty result');
+      return NextResponse.json({
+        genres: [],
+        totalGenres: 0,
+        totalTracks: allTracks.length
+      });
+    }
     
     // Fetch artist details and genres
     const artists = await spotifyService.getArtists(artistIds);
@@ -79,6 +102,8 @@ export async function GET(request: NextRequest) {
       artistGenres[artist.id] = artist.genres;
     });
 
+    console.log(`📊 Genres API: Successfully fetched genres for ${artists.length} artists`);
+
     // Group tracks by genre
     const genreTracks: Record<string, any[]> = {};
     
@@ -86,12 +111,16 @@ export async function GET(request: NextRequest) {
       const trackGenres = track.artists.flatMap((artist: any) => artistGenres[artist.id] || []);
       
       trackGenres.forEach((genre: string) => {
-        if (!genreTracks[genre]) {
-          genreTracks[genre] = [];
+        if (genre && genre.trim()) { // Only add non-empty genres
+          if (!genreTracks[genre]) {
+            genreTracks[genre] = [];
+          }
+          genreTracks[genre].push(track);
         }
-        genreTracks[genre].push(track);
       });
     });
+
+    console.log(`📊 Genres API: Found ${Object.keys(genreTracks).length} unique genres`);
 
     // Convert to array format with counts
     const genresWithTracks = Object.entries(genreTracks).map(([genre, tracks]) => ({

@@ -132,53 +132,26 @@ export default function Dashboard() {
                     </div>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4 mt-4 lg:mt-6">
-                  <div 
-                    className="bg-[#232323]/50 rounded-xl p-3 lg:p-4 border border-[#282828] transition-all duration-200 group"
-                  >
-                    <div className="flex items-center gap-2 lg:gap-3">
-                      <div className="w-8 h-8 bg-[#1DB954]/20 rounded-lg flex items-center justify-center group-hover:bg-[#1DB954]/30 transition-colors flex-shrink-0">
-                        <svg className="w-4 h-4 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                        </svg>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-white font-semibold transition-colors text-sm lg:text-base">Analyze Playlists</p>
-                        <p className="text-gray-400 text-xs lg:text-sm">Get detailed insights</p>
-                      </div>
-                    </div>
+                <div className="flex flex-wrap gap-2 lg:gap-3 mt-4 lg:mt-6">
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-[#232323]/30 rounded-lg border border-[#282828]/50">
+                    <svg className="w-3 h-3 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    <span className="text-gray-300 text-xs">Analyze Playlists</span>
                   </div>
                   
-                  <div 
-                    className="bg-[#232323]/50 rounded-xl p-3 lg:p-4 border border-[#282828] transition-all duration-200 group"
-                  >
-                    <div className="flex items-center gap-2 lg:gap-3">
-                      <div className="w-8 h-8 bg-[#1DB954]/20 rounded-lg flex items-center justify-center group-hover:bg-[#1DB954]/30 transition-colors flex-shrink-0">
-                        <svg className="w-4 h-4 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                        </svg>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-white font-semibold transition-colors text-sm lg:text-base">Create Playlists</p>
-                        <p className="text-gray-400 text-xs lg:text-sm">From recommendations</p>
-                      </div>
-                    </div>
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-[#232323]/30 rounded-lg border border-[#282828]/50">
+                    <svg className="w-3 h-3 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    <span className="text-gray-300 text-xs">Create Playlists</span>
                   </div>
                   
-                  <div 
-                    className="bg-[#232323]/50 rounded-xl p-3 lg:p-4 border border-[#282828] transition-all duration-200 group sm:col-span-2 lg:col-span-1"
-                  >
-                    <div className="flex items-center gap-2 lg:gap-3">
-                      <div className="w-8 h-8 bg-[#1DB954]/20 rounded-lg flex items-center justify-center group-hover:bg-[#1DB954]/30 transition-colors flex-shrink-0">
-                        <svg className="w-4 h-4 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-white font-semibold transition-colors text-sm lg:text-base">Discover Music</p>
-                        <p className="text-gray-400 text-xs lg:text-sm">Find new favorites</p>
-                      </div>
-                    </div>
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-[#232323]/30 rounded-lg border border-[#282828]/50">
+                    <svg className="w-3 h-3 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    <span className="text-gray-300 text-xs">Discover Music</span>
                   </div>
                 </div>
               </div>

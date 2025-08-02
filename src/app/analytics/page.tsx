@@ -38,7 +38,10 @@ export default function AnalyticsPage() {
     if (session?.accessToken) {
       // Fetch analytics first, then genres
       fetchAnalytics().then(() => {
-        fetchGenres();
+        // Add a small delay to ensure analytics are loaded before fetching genres
+        setTimeout(() => {
+          fetchGenres();
+        }, 500);
       });
     }
   }, [session]);
@@ -78,10 +81,21 @@ export default function AnalyticsPage() {
       
       const data = await response.json();
       console.log('🎵 Genres data received:', data.genres?.length || 0, 'genres');
-      setGenresData(data.genres);
+      
+      if (data.genres && Array.isArray(data.genres)) {
+        setGenresData(data.genres);
+        if (data.genres.length === 0) {
+          showToast('No genres found in your playlists', 'info');
+        }
+      } else {
+        console.warn('🎵 Genres API returned invalid data format:', data);
+        setGenresData([]);
+        showToast('No genre data available', 'info');
+      }
     } catch (error) {
       console.error('Error fetching genres:', error);
       showToast('Failed to load genres data', 'error');
+      setGenresData([]);
     } finally {
       setGenresLoading(false);
     }
@@ -234,6 +248,7 @@ export default function AnalyticsPage() {
                     // Calculate percentage based on total tracks in genres data
                     const totalTracksInGenres = genresData.reduce((sum, g) => sum + g.trackCount, 0);
                     const percentage = totalTracksInGenres > 0 ? (genre.trackCount / totalTracksInGenres) * 100 : 0;
+                    console.log(`🎵 Rendering genre: ${genre.genre} with ${genre.trackCount} tracks (${percentage.toFixed(1)}%)`);
                     return (
                                              <div 
                          key={genre.genre} 
@@ -266,6 +281,18 @@ export default function AnalyticsPage() {
                 ) : (
                   <div className="text-center py-8">
                     <p className="text-gray-400">No genres found</p>
+                    <p className="text-gray-500 text-sm mt-2">This might be because:</p>
+                    <ul className="text-gray-500 text-sm mt-1 space-y-1">
+                      <li>• Your playlists don't have enough genre data</li>
+                      <li>• Some playlists might be private or collaborative</li>
+                      <li>• Try refreshing the page</li>
+                    </ul>
+                    <button
+                      onClick={fetchGenres}
+                      className="mt-4 px-4 py-2 bg-[#1DB954] hover:bg-[#1ed760] text-white rounded-lg text-sm font-medium transition-colors"
+                    >
+                      Try Again
+                    </button>
                   </div>
                 )}
               </div>
