@@ -3,7 +3,7 @@
 import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import { useToast } from '@/components/Toast';
-import GenreTracksModal from '@/components/GenreTracksModal';
+import AnalyticsGenreTracksModal from '@/components/AnalyticsGenreTracksModal';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 interface AnalyticsData {
@@ -317,10 +317,10 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Genre Tracks Modal */}
-      <GenreTracksModal
+      <AnalyticsGenreTracksModal
         isOpen={showGenreModal}
         onClose={() => setShowGenreModal(false)}
-        genre={selectedGenre || ''}
+        selectedGenre={selectedGenre || ''}
       />
     </div>
   );

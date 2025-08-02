@@ -10,58 +10,50 @@ interface Track {
   artists: Array<{ name: string; id: string }>;
   duration_ms: number;
   external_urls: { spotify: string };
+  playlistName: string;
+  playlistId: string;
 }
 
-interface GenreTracksModalProps {
+interface AnalyticsGenreTracksModalProps {
   isOpen: boolean;
   onClose: () => void;
-  playlistId: string;
-  playlistName: string;
   selectedGenre: string;
 }
 
-export default function GenreTracksModal({ 
+export default function AnalyticsGenreTracksModal({ 
   isOpen, 
   onClose, 
-  playlistId, 
-  playlistName, 
   selectedGenre 
-}: GenreTracksModalProps) {
+}: AnalyticsGenreTracksModalProps) {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [loading, setLoading] = useState(false);
   const { showToast } = useToast();
 
   useEffect(() => {
-    if (isOpen && playlistId && selectedGenre) {
+    if (isOpen && selectedGenre) {
       fetchGenreTracks();
     }
-  }, [isOpen, playlistId, selectedGenre]);
+  }, [isOpen, selectedGenre]);
 
   const fetchGenreTracks = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/playlists/${playlistId}/tracks`);
+      const response = await fetch(`/api/analytics/genres/${encodeURIComponent(selectedGenre)}/tracks`);
       
       if (!response.ok) {
         if (response.status === 403) {
-          throw new Error('Access denied. This playlist may be private or collaborative.');
+          throw new Error('Access denied. This may be due to playlist permissions.');
         } else if (response.status === 401) {
           throw new Error('Authentication required. Please log in again.');
         } else if (response.status === 429) {
           throw new Error('Rate limit exceeded. Please try again in a moment.');
         } else {
-          throw new Error('Failed to fetch playlist tracks');
+          throw new Error('Failed to fetch genre tracks');
         }
       }
       
       const data = await response.json();
-      
-      // Filter tracks that contain the selected genre
-      const genreTracks = data.tracks.filter((track: any) => 
-        track.genres && Array.isArray(track.genres) && track.genres.includes(selectedGenre)
-      );
-      
-      setTracks(genreTracks);
+      setTracks(data.tracks || []);
     } catch (error) {
       console.error('Error fetching genre tracks:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to load tracks for this genre';
@@ -88,12 +80,12 @@ export default function GenreTracksModal({
       />
       
       {/* Modal */}
-      <div className="relative bg-[#232323] rounded-2xl shadow-2xl border border-[#282828] w-full max-w-2xl max-h-[90vh] overflow-hidden">
+      <div className="relative bg-[#232323] rounded-2xl shadow-2xl border border-[#282828] w-full max-w-4xl max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-[#282828]">
           <div className="min-w-0 flex-1">
-            <h2 className="text-xl font-bold text-white truncate">{playlistName}</h2>
-            <p className="text-[#1DB954] font-medium truncate">{selectedGenre}</p>
+            <h2 className="text-xl font-bold text-white truncate">{selectedGenre}</h2>
+            <p className="text-[#1DB954] font-medium truncate">Tracks across all playlists</p>
             <p className="text-gray-400 text-sm mt-1">{tracks.length} tracks</p>
           </div>
           <button
@@ -113,7 +105,7 @@ export default function GenreTracksModal({
               <div className="text-center">
                 <LoadingSpinner size="lg" className="mx-auto mb-4" />
                 <p className="text-white">Loading tracks...</p>
-                <p className="text-gray-400 text-sm mt-2">Finding {selectedGenre} tracks</p>
+                <p className="text-gray-400 text-sm mt-2">Finding {selectedGenre} tracks across all playlists</p>
               </div>
             </div>
           ) : tracks.length === 0 ? (
@@ -124,7 +116,7 @@ export default function GenreTracksModal({
             <div className="space-y-2">
               {tracks.map((track, index) => (
                 <div 
-                  key={track.id}
+                  key={`${track.id}-${track.playlistId}`}
                   className="flex items-center justify-between p-3 bg-[#2a2a2a] rounded-lg hover:bg-[#333333] transition-colors"
                 >
                   <div className="flex items-center space-x-3 min-w-0 flex-1">
@@ -133,6 +125,9 @@ export default function GenreTracksModal({
                       <p className="text-white font-medium truncate">{track.name}</p>
                       <p className="text-gray-400 text-sm truncate">
                         {track.artists.map(a => a.name).join(', ')}
+                      </p>
+                      <p className="text-[#1DB954] text-xs truncate">
+                        {track.playlistName}
                       </p>
                     </div>
                   </div>

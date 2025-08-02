@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useToast } from './Toast';
 import LoadingSpinner from './LoadingSpinner';
+import GenreTracksModal from './GenreTracksModal';
 
 interface GenreData {
   genre: string;
@@ -25,6 +26,8 @@ export default function PlaylistGenresModal({
 }: PlaylistGenresModalProps) {
   const [genres, setGenres] = useState<GenreData[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedGenre, setSelectedGenre] = useState<string>('');
+  const [showGenreTracks, setShowGenreTracks] = useState(false);
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -87,6 +90,16 @@ export default function PlaylistGenresModal({
     }
   };
 
+  const handleGenreClick = (genre: string) => {
+    setSelectedGenre(genre);
+    setShowGenreTracks(true);
+  };
+
+  const handleCloseGenreTracks = () => {
+    setShowGenreTracks(false);
+    setSelectedGenre('');
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -134,7 +147,8 @@ export default function PlaylistGenresModal({
               {genres.map((genre, index) => (
                 <div 
                   key={genre.genre}
-                  className="flex items-center justify-between p-3 bg-[#2a2a2a] rounded-lg"
+                  className="flex items-center justify-between p-3 bg-[#2a2a2a] rounded-lg hover:bg-[#333333] cursor-pointer transition-colors"
+                  onClick={() => handleGenreClick(genre.genre)}
                 >
                   <div className="flex items-center space-x-3 min-w-0 flex-1">
                     <span className="text-base font-bold text-[#1DB954] flex-shrink-0">#{index + 1}</span>
@@ -150,6 +164,9 @@ export default function PlaylistGenresModal({
                     <span className="text-gray-400 text-sm w-12 text-right">
                       {genre.trackCount}
                     </span>
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </div>
                 </div>
               ))}
@@ -157,6 +174,15 @@ export default function PlaylistGenresModal({
           )}
         </div>
       </div>
+
+      {/* Genre Tracks Modal */}
+      <GenreTracksModal
+        isOpen={showGenreTracks}
+        onClose={handleCloseGenreTracks}
+        playlistId={playlistId}
+        playlistName={playlistName}
+        selectedGenre={selectedGenre}
+      />
     </div>
   );
 } 
