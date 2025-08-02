@@ -10,12 +10,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user's playlists (limit to first 100 to avoid rate limiting)
+    // Get user's playlists (increased limit for better analytics)
     const getPlaylists = async () => {
       const allPlaylists = [];
       let offset = 0;
       const limit = 50;
-      const maxPlaylists = 100; // Limit to first 100 playlists
+      const maxPlaylists = 500; // Increased to 500 playlists for better analytics
       
       while (allPlaylists.length < maxPlaylists) {
         const playlistsResponse = await fetch(`https://api.spotify.com/v1/me/playlists?limit=${limit}&offset=${offset}`, {
@@ -26,8 +26,10 @@ export async function GET(request: NextRequest) {
 
         if (!playlistsResponse.ok) {
           if (playlistsResponse.status === 429) {
-            console.warn('Rate limit hit while fetching playlists, using partial data');
-            break;
+            console.warn('Rate limit hit while fetching playlists, waiting and retrying...');
+            // Wait 2 seconds before retrying
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            continue;
           }
           throw new Error('Failed to fetch playlists');
         }
@@ -42,6 +44,9 @@ export async function GET(request: NextRequest) {
         allPlaylists.push(...playlists);
         offset += limit;
         
+        // Add a small delay between requests to be respectful to the API
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         if (playlists.length < limit) {
           break; // Last batch
         }
@@ -52,6 +57,20 @@ export async function GET(request: NextRequest) {
 
     const playlists = await getPlaylists();
     console.log(`📊 Analytics: Fetched ${playlists.length} total playlists`);
+    
+    if (playlists.length === 0) {
+      console.log('📊 Analytics: No playlists found');
+      return NextResponse.json({
+        totalPlaylists: 0,
+        totalTracks: 0,
+        averagePlaylistLength: 0,
+        topGenres: [],
+        listeningTime: 0,
+        mostActiveMonth: new Date().toLocaleString('en', { month: 'long' }),
+        favoriteArtists: [],
+        moodDistribution: []
+      });
+    }
 
         // Get detailed playlist data with tracks (using pagination for each playlist)
     const playlistsWithTracks = await Promise.all(
@@ -60,7 +79,7 @@ export async function GET(request: NextRequest) {
           const allTracks = [];
           let offset = 0;
           const limit = 100;
-          const maxTracks = 500; // Limit to first 500 tracks per playlist
+          const maxTracks = 5000; // Increased to 5000 tracks per playlist for better analytics (supports very large playlists)
           
           while (allTracks.length < maxTracks) {
             const tracksResponse = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks?limit=${limit}&offset=${offset}`, {
@@ -71,8 +90,10 @@ export async function GET(request: NextRequest) {
 
             if (!tracksResponse.ok) {
               if (tracksResponse.status === 429) {
-                console.warn(`Rate limit hit while fetching tracks for playlist ${playlistId}, using partial data`);
-                break;
+                console.warn(`Rate limit hit while fetching tracks for playlist ${playlistId}, waiting and retrying...`);
+                // Wait 1 second before retrying
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                continue;
               }
               console.warn(`Failed to fetch tracks for playlist ${playlistId}`);
               break;
@@ -87,6 +108,9 @@ export async function GET(request: NextRequest) {
             
             allTracks.push(...tracks);
             offset += limit;
+            
+            // Add a small delay between requests to be respectful to the API
+            await new Promise(resolve => setTimeout(resolve, 50));
             
             if (tracks.length < limit) {
               break; // Last batch
@@ -111,6 +135,7 @@ export async function GET(request: NextRequest) {
     
     console.log(`📊 Analytics: Total tracks across all playlists: ${totalTracks}`);
     console.log(`📊 Analytics: Average playlist length: ${averagePlaylistLength} tracks`);
+    console.log(`📊 Analytics: Estimated listening time: ${Math.floor(totalTracks * 4.2)} minutes (${Math.floor(totalTracks * 4.2 / 60)} hours)`);
 
     // Get unique artists and their track counts
     const artistCounts: { [key: string]: number } = {};
@@ -174,7 +199,7 @@ export async function GET(request: NextRequest) {
           totalTracks,
           averagePlaylistLength,
           topGenres: [], // Will be populated by the genres API
-          listeningTime: Math.floor(totalTracks * 3.5), // Estimate 3.5 minutes per track
+          listeningTime: Math.floor(totalTracks * 4.2), // Estimate 4.2 minutes per track (more realistic)
           mostActiveMonth: new Date().toLocaleString('en', { month: 'long' }),
           favoriteArtists,
           moodDistribution: moodArray
@@ -188,7 +213,7 @@ export async function GET(request: NextRequest) {
       totalTracks,
       averagePlaylistLength,
       topGenres: [], // Will be populated by the genres API
-      listeningTime: Math.floor(totalTracks * 3.5),
+      listeningTime: Math.floor(totalTracks * 4.2), // Estimate 4.2 minutes per track
       mostActiveMonth: new Date().toLocaleString('en', { month: 'long' }),
       favoriteArtists,
       moodDistribution: [

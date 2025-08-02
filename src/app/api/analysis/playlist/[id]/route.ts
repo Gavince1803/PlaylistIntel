@@ -63,7 +63,7 @@ export async function GET(
 
     // Paso 1: Obtener tracks de la playlist (con paginación para playlists grandes)
     console.log('📀 Fetching playlist tracks...');
-    const tracks = await spotifyService.getAllPlaylistTracks(playlistId, 2000); // Soporte hasta 2000 tracks
+    const tracks = await spotifyService.getAllPlaylistTracks(playlistId, 5000); // Soporte hasta 5000 tracks para playlists muy grandes
     console.log(`✅ Found ${tracks.length} tracks total for playlist ${playlistId}`);
     
     if (tracks.length === 0) {
@@ -163,7 +163,7 @@ export async function GET(
         percentage: (count / totalGenreOccurrences) * 100
       }))
       .sort((a, b) => b.count - a.count)
-      .slice(0, 10); // Top 10 géneros
+      .slice(0, 20); // Top 20 géneros (aumentado para mostrar más variedad)
 
     console.log(`🎵 Top genres found: ${topGenres.length}`);
     console.log(`🎵 Sample genres:`, topGenres.slice(0, 3).map(g => `${g.genre} (${g.count})`));
@@ -226,7 +226,7 @@ export async function GET(
     const topArtists = Object.entries(artistCounts)
       .map(([name, count]) => ({ name, trackCount: count }))
       .sort((a, b) => b.trackCount - a.trackCount)
-      .slice(0, 10); // Top 10 artistas
+      .slice(0, 20); // Top 20 artistas (aumentado para mostrar más variedad)
 
     console.log(`👥 Top artists found: ${topArtists.length}`);
     console.log(`👥 Sample artists:`, topArtists.slice(0, 3).map(a => `${a.name} (${a.trackCount})`));
