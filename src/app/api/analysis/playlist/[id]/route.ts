@@ -294,7 +294,8 @@ export async function GET(
         danceabilityDistribution: [
           { level: 'medium', count: 1 } // Placeholder
         ]
-      }
+      },
+      recommendations: musicalProfile.recommendations // Incluir las recomendaciones en la respuesta
     };
     
     return NextResponse.json(response);

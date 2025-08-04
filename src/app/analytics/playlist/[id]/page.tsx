@@ -28,6 +28,15 @@ interface PlaylistAnalytics {
     energyDistribution: Array<{ level: string; count: number }>;
     danceabilityDistribution: Array<{ level: string; count: number }>;
   };
+  recommendations: {
+    similarGenres: string[];
+    recommendedArtists: Array<{ name: string; genre: string; reason: string }>;
+    recommendedSongs: Array<{ title: string; artist: string; genre: string; reason: string; year?: number; spotifyUrl?: string }>;
+    moodSuggestions: string[];
+    energyLevel: 'low' | 'medium' | 'high';
+    playlistSuggestions: string[];
+    discoveryTips: string[];
+  };
 }
 
 export default function PlaylistAnalysisPage() {
@@ -45,6 +54,50 @@ export default function PlaylistAnalysisPage() {
       fetchPlaylistAnalytics();
     }
   }, [session, playlistId]);
+
+  const handleAddSongToPlaylist = async (songTitle: string, artistName: string) => {
+    try {
+      // Buscar la canción en Spotify
+      const searchResponse = await fetch(`/api/search/tracks?q=${encodeURIComponent(`${songTitle} ${artistName}`)}`);
+      if (!searchResponse.ok) {
+        throw new Error('Failed to search for song');
+      }
+      
+      const searchData = await searchResponse.json();
+      const tracks = searchData.tracks || [];
+      
+      if (tracks.length === 0) {
+        showToast('Song not found on Spotify', 'error');
+        return;
+      }
+
+      // Tomar la primera canción encontrada
+      const track = tracks[0];
+      
+      // Agregar la canción a la playlist
+      const addResponse = await fetch(`/api/playlists/${playlistId}/add-tracks`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          trackUris: [track.uri]
+        })
+      });
+
+      if (!addResponse.ok) {
+        throw new Error('Failed to add song to playlist');
+      }
+
+      showToast(`Added "${track.name}" to playlist!`, 'success');
+      
+      // Refrescar los datos de la playlist
+      fetchPlaylistAnalytics();
+    } catch (error) {
+      console.error('Error adding song to playlist:', error);
+      showToast('Failed to add song to playlist', 'error');
+    }
+  };
 
   const fetchPlaylistAnalytics = async () => {
     try {
@@ -123,7 +176,7 @@ export default function PlaylistAnalysisPage() {
     );
   }
 
-  const { playlist, analytics } = analyticsData;
+  const { playlist, analytics, recommendations } = analyticsData;
 
   return (
     <div className="flex h-screen font-sans bg-gradient-to-br from-[#191414] via-[#232323] to-[#1DB954]">
@@ -366,6 +419,150 @@ export default function PlaylistAnalysisPage() {
                         <div key={dance.level} className="flex items-center justify-between p-3 bg-[#2a2a2a] rounded-lg">
                           <span className="font-medium text-white">{dance.level}</span>
                           <span className="text-[#1DB954] font-semibold">{dance.count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              {/* Recommended Artists */}
+              {recommendations?.recommendedArtists && recommendations.recommendedArtists.length > 0 && (
+                <section className="bg-[#232323] rounded-2xl lg:rounded-3xl shadow-2xl border border-[#282828] overflow-hidden">
+                  <div className="p-4 lg:p-8 border-b border-[#282828] bg-gradient-to-r from-[#232323] to-[#2a2a2a]">
+                    <div className="flex items-center gap-3 lg:gap-4">
+                      <div className="w-8 h-8 lg:w-10 lg:h-10 bg-[#1DB954] rounded-xl flex items-center justify-center flex-shrink-0">
+                        <svg className="w-4 h-4 lg:w-5 lg:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h2 className="text-xl lg:text-3xl font-bold text-white">Recommended Artists</h2>
+                        <p className="text-gray-400 text-sm lg:text-base mt-1">Artists you might like based on your taste</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-4 lg:p-8">
+                    <div className="space-y-3">
+                      {recommendations.recommendedArtists.slice(0, 6).map((artist, index) => (
+                        <div key={artist.name} className="flex items-center justify-between p-3 bg-[#2a2a2a] rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <div className="w-6 h-6 bg-[#1DB954] rounded-full flex items-center justify-center text-xs font-bold">
+                              {index + 1}
+                            </div>
+                            <div>
+                              <span className="font-medium text-white">{artist.name}</span>
+                              <p className="text-gray-400 text-xs">{artist.genre}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-[#1DB954] text-xs font-medium">{artist.reason}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              {/* Recommended Songs */}
+              {recommendations?.recommendedSongs && recommendations.recommendedSongs.length > 0 && (
+                <section className="bg-[#232323] rounded-2xl lg:rounded-3xl shadow-2xl border border-[#282828] overflow-hidden">
+                  <div className="p-4 lg:p-8 border-b border-[#282828] bg-gradient-to-r from-[#232323] to-[#2a2a2a]">
+                    <div className="flex items-center gap-3 lg:gap-4">
+                      <div className="w-8 h-8 lg:w-10 lg:h-10 bg-[#1DB954] rounded-xl flex items-center justify-center flex-shrink-0">
+                        <svg className="w-4 h-4 lg:w-5 lg:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                        </svg>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h2 className="text-xl lg:text-3xl font-bold text-white">Recommended Songs</h2>
+                        <p className="text-gray-400 text-sm lg:text-base mt-1">Songs you might enjoy</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-4 lg:p-8">
+                    <div className="space-y-3">
+                      {recommendations.recommendedSongs.slice(0, 6).map((song, index) => (
+                        <div key={`${song.title}-${song.artist}`} className="flex items-center justify-between p-3 bg-[#2a2a2a] rounded-lg">
+                          <div className="flex items-center gap-3 flex-1">
+                            <div className="w-6 h-6 bg-[#1DB954] rounded-full flex items-center justify-center text-xs font-bold">
+                              {index + 1}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <span className="font-medium text-white block truncate">{song.title}</span>
+                              <p className="text-gray-400 text-xs truncate">{song.artist} • {song.genre}</p>
+                              {song.year && <p className="text-gray-500 text-xs">{song.year}</p>}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <p className="text-[#1DB954] text-xs font-medium max-w-24 text-right">{song.reason}</p>
+                            <button
+                              onClick={() => handleAddSongToPlaylist(song.title, song.artist)}
+                              className="bg-[#1DB954] hover:bg-[#1ed760] text-white px-3 py-1 rounded-lg text-xs font-semibold transition-all duration-200 shadow-lg"
+                            >
+                              Add
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              {/* Similar Genres */}
+              {recommendations?.similarGenres && recommendations.similarGenres.length > 0 && (
+                <section className="bg-[#232323] rounded-2xl lg:rounded-3xl shadow-2xl border border-[#282828] overflow-hidden">
+                  <div className="p-4 lg:p-8 border-b border-[#282828] bg-gradient-to-r from-[#232323] to-[#2a2a2a]">
+                    <div className="flex items-center gap-3 lg:gap-4">
+                      <div className="w-8 h-8 lg:w-10 lg:h-10 bg-[#1DB954] rounded-xl flex items-center justify-center flex-shrink-0">
+                        <svg className="w-4 h-4 lg:w-5 lg:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                        </svg>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h2 className="text-xl lg:text-3xl font-bold text-white">Similar Genres</h2>
+                        <p className="text-gray-400 text-sm lg:text-base mt-1">Genres you might enjoy exploring</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-4 lg:p-8">
+                    <div className="flex flex-wrap gap-2">
+                      {recommendations.similarGenres.slice(0, 8).map((genre) => (
+                        <span key={genre} className="bg-[#1DB954] text-white px-3 py-1 rounded-full text-sm font-medium">
+                          {genre}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              {/* Discovery Tips */}
+              {recommendations?.discoveryTips && recommendations.discoveryTips.length > 0 && (
+                <section className="bg-[#232323] rounded-2xl lg:rounded-3xl shadow-2xl border border-[#282828] overflow-hidden">
+                  <div className="p-4 lg:p-8 border-b border-[#282828] bg-gradient-to-r from-[#232323] to-[#2a2a2a]">
+                    <div className="flex items-center gap-3 lg:gap-4">
+                      <div className="w-8 h-8 lg:w-10 lg:h-10 bg-[#1DB954] rounded-xl flex items-center justify-center flex-shrink-0">
+                        <svg className="w-4 h-4 lg:w-5 lg:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                        </svg>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h2 className="text-xl lg:text-3xl font-bold text-white">Discovery Tips</h2>
+                        <p className="text-gray-400 text-sm lg:text-base mt-1">Tips to expand your musical horizons</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-4 lg:p-8">
+                    <div className="space-y-3">
+                      {recommendations.discoveryTips.map((tip, index) => (
+                        <div key={index} className="flex items-start gap-3 p-3 bg-[#2a2a2a] rounded-lg">
+                          <div className="w-6 h-6 bg-[#1DB954] rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
+                            💡
+                          </div>
+                          <p className="text-white text-sm">{tip}</p>
                         </div>
                       ))}
                     </div>
