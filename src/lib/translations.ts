@@ -30,7 +30,7 @@ export const translations = {
     musicalProfile: 'Musical Profile',
     recommendations: 'Recommendations',
     addToPlaylist: 'Add to Playlist',
-    createPlaylist: 'Create Playlist',
+  
     playlistName: 'Playlist Name',
     playlistDescription: 'Description (optional)',
     create: 'Create',
@@ -70,7 +70,7 @@ export const translations = {
     
     // Toast messages
     profileSaved: 'Profile saved to your library',
-    playlistCreated: 'Playlist created successfully!',
+  
     songAdded: 'Song added to playlist!',
     errorOccurred: 'An error occurred',
   },
@@ -107,7 +107,7 @@ export const translations = {
     musicalProfile: 'Perfil Musical',
     recommendations: 'Recomendaciones',
     addToPlaylist: 'Añadir a Playlist',
-    createPlaylist: 'Crear Playlist',
+
     playlistName: 'Nombre de Playlist',
     playlistDescription: 'Descripción (opcional)',
     create: 'Crear',
@@ -147,7 +147,7 @@ export const translations = {
     
     // Toast messages
     profileSaved: 'Perfil guardado en tu biblioteca',
-    playlistCreated: '¡Playlist creada exitosamente!',
+
     songAdded: '¡Canción añadida a la playlist!',
     errorOccurred: 'Ocurrió un error',
   }

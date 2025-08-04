@@ -483,32 +483,36 @@ export default function PlaylistAnalysisPage() {
                   </div>
                   <div className="p-4 lg:p-8">
                     <div className="space-y-3">
-                      {recommendations.recommendedSongs.slice(0, 6).map((song, index) => (
-                        <div key={`${song.title}-${song.artist}`} className="flex items-center justify-between p-3 bg-[#2a2a2a] rounded-lg">
-                          <div className="flex items-center gap-3 flex-1">
-                            <div className="w-6 h-6 bg-[#1DB954] rounded-full flex items-center justify-center text-xs font-bold">
-                              {index + 1}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <span className="font-medium text-white block truncate">{song.title}</span>
-                              <p className="text-gray-400 text-xs truncate">{song.artist} • {song.genre}</p>
-                              {song.year && <p className="text-gray-500 text-xs">{song.year}</p>}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <p className="text-[#1DB954] text-xs font-medium max-w-24 text-right">{song.reason}</p>
-                                                         <button
-                               onClick={() => handleAddSongToPlaylist(song.title, song.artist)}
-                               className="bg-gradient-to-r from-[#1DB954] to-[#1ed760] hover:from-[#1ed760] hover:to-[#1DB954] text-white px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2"
-                             >
-                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                               </svg>
-                               Add to Playlist
-                             </button>
-                          </div>
-                        </div>
-                      ))}
+                                             {recommendations.recommendedSongs.slice(0, 6).map((song, index) => (
+                         <div key={`${song.title}-${song.artist}`} className="p-3 bg-[#2a2a2a] rounded-lg">
+                           <div className="flex items-start gap-3">
+                             <div className="w-6 h-6 bg-[#1DB954] rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
+                               {index + 1}
+                             </div>
+                             <div className="flex-1 min-w-0">
+                               <div className="flex items-start justify-between gap-3">
+                                 <div className="flex-1 min-w-0">
+                                   <span className="font-medium text-white block truncate">{song.title}</span>
+                                   <p className="text-gray-400 text-xs truncate">{song.artist} • {song.genre}</p>
+                                   {song.year && <p className="text-gray-500 text-xs">{song.year}</p>}
+                                 </div>
+                                 <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                                   <p className="text-[#1DB954] text-xs font-medium text-right max-w-32">{song.reason}</p>
+                                   <button
+                                     onClick={() => handleAddSongToPlaylist(song.title, song.artist)}
+                                     className="bg-gradient-to-r from-[#1DB954] to-[#1ed760] hover:from-[#1ed760] hover:to-[#1DB954] text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-1.5 whitespace-nowrap"
+                                   >
+                                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                     </svg>
+                                     Add
+                                   </button>
+                                 </div>
+                               </div>
+                             </div>
+                           </div>
+                         </div>
+                       ))}
                     </div>
                   </div>
                 </section>

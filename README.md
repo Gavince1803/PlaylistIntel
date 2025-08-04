@@ -1,6 +1,6 @@
 # PlaylistIntel
 
-A modern web app for users who want to organize and create new playlists from their mixed Spotify playlists. Easily split, filter, and manage your music collections with a beautiful dashboard interface.
+A modern web app for users who want to analyze and discover insights from their Spotify playlists. Easily analyze, filter, and explore your music collections with a beautiful dashboard interface.
 
 ![Dashboard Screenshot](./public/next.svg) <!-- Replace with real screenshot later -->
 
@@ -8,7 +8,7 @@ A modern web app for users who want to organize and create new playlists from th
 
 - 🎵 **Dashboard**: View and manage all your playlists in one place
 - 🟠 **Mixed Playlist Detection**: Identify and split mixed playlists
-- 🆕 **Create Playlists**: Start new playlists from scratch or from existing ones
+
 - 🔄 **Import from Spotify**: Connect your Spotify account and import playlists
 - 🔍 **Search & Filter**: Quickly find playlists, songs, or artists
 - 🌙 **Dark Mode**: Automatic dark/light theme support
@@ -44,7 +44,7 @@ yarn dev
 ## Usage
 - Connect your Spotify account
 - View and filter your playlists
-- Create new playlists from mixed ones
+
 - Enjoy a clean, modern dashboard experience
 
 ## Contributing

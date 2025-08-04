@@ -37,7 +37,7 @@ NEXTAUTH_SECRET=your_nextauth_secret_here
 3. Click "Create App"
 4. Fill in the app details:
    - App name: "PlaylistIntel"
-   - App description: "Create playlists from mixed collections"
+   - App description: "Analyze and discover insights from your Spotify playlists"
    - Redirect URI: `http://localhost:3000/api/auth/callback/spotify`
    - Website: `http://localhost:3000`
 5. Click "Save"

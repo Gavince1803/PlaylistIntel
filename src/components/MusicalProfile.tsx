@@ -58,11 +58,7 @@ export default function MusicalProfile({ playlistId, onClose }: MusicalProfilePr
   const [loadingPlaylists, setLoadingPlaylists] = useState(false);
   const [addingToPlaylist, setAddingToPlaylist] = useState(false);
   
-  // Create playlist state
-  const [showCreatePlaylistModal, setShowCreatePlaylistModal] = useState(false);
-  const [newPlaylistName, setNewPlaylistName] = useState('');
-  const [newPlaylistDescription, setNewPlaylistDescription] = useState('');
-  const [creatingPlaylist, setCreatingPlaylist] = useState(false);
+
 
   // Cargar el perfil musical cuando el componente se monta
   useEffect(() => {
@@ -303,58 +299,7 @@ export default function MusicalProfile({ playlistId, onClose }: MusicalProfilePr
     fetchUserPlaylists();
   };
 
-  // Function to create new playlist
-  const createNewPlaylist = async (song: { title: string; artist: string }) => {
-    try {
-      setCreatingPlaylist(true);
-      
-      // Search for the track to get its URI
-      const trackUri = await searchTrack(song.title, song.artist);
-      if (!trackUri) {
-        throw new Error('Could not find track on Spotify');
-      }
 
-      // Create playlist with the track
-      const response = await fetch('/api/playlists/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: newPlaylistName,
-          description: newPlaylistDescription,
-          trackUris: [trackUri]
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create playlist');
-      }
-
-      const result = await response.json();
-      showToast(`Playlist "${newPlaylistName}" created with "${song.title}"!`, 'success');
-      setShowCreatePlaylistModal(false);
-      setShowAddToPlaylistModal(false);
-      setSelectedSong(null);
-      setNewPlaylistName('');
-      setNewPlaylistDescription('');
-      
-      // Refresh playlists list
-      fetchUserPlaylists();
-    } catch (error: any) {
-      console.error('Error creating playlist:', error);
-      showToast(error.message || 'Failed to create playlist', 'error');
-    } finally {
-      setCreatingPlaylist(false);
-    }
-  };
-
-  // Function to open create playlist modal
-  const handleCreatePlaylist = () => {
-    setShowCreatePlaylistModal(true);
-    setShowAddToPlaylistModal(false);
-  };
 
   // Estado de carga
   if (loading) {
@@ -677,26 +622,15 @@ export default function MusicalProfile({ playlistId, onClose }: MusicalProfilePr
             </div>
 
             <div className="mb-4">
-              <div className="flex items-center justify-between mb-3">
+              <div className="mb-3">
                 <h4 className="text-white font-semibold">Select a Playlist</h4>
-                <button
-                  onClick={handleCreatePlaylist}
-                  className="text-[#1DB954] hover:text-white text-sm font-medium transition-colors"
-                >
-                  + Create New
-                </button>
               </div>
               {loadingPlaylists ? (
                 <div className="text-gray-400 text-center py-4">Loading playlists...</div>
               ) : userPlaylists.length === 0 ? (
                 <div className="text-center py-4">
                   <div className="text-gray-400 mb-3">No playlists found</div>
-                  <button
-                    onClick={handleCreatePlaylist}
-                    className="bg-[#1DB954] hover:bg-[#1ed760] text-white px-4 py-2 rounded-lg font-medium transition-colors"
-                  >
-                    Create Your First Playlist
-                  </button>
+                  <div className="text-gray-500 text-sm">Create a playlist in Spotify first</div>
                 </div>
               ) : (
                 <div className="space-y-2 max-h-60 overflow-y-auto">
@@ -727,93 +661,7 @@ export default function MusicalProfile({ playlistId, onClose }: MusicalProfilePr
         </div>
       )}
 
-      {/* Create Playlist Modal */}
-      {showCreatePlaylistModal && selectedSong && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#232323] rounded-2xl p-6 max-w-md w-full">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-white">Create New Playlist</h3>
-              <button
-                onClick={() => {
-                  setShowCreatePlaylistModal(false);
-                  setShowAddToPlaylistModal(true);
-                  setNewPlaylistName('');
-                  setNewPlaylistDescription('');
-                }}
-                className="text-gray-400 hover:text-white"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
 
-            <div className="mb-4">
-              <div className="bg-[#191414] rounded-lg p-3 border border-[#404040]">
-                <div className="text-white font-medium text-sm">{selectedSong.title}</div>
-                <div className="text-[#1DB954] text-xs mt-1">{selectedSong.artist}</div>
-                <div className="text-gray-400 text-xs mt-1">{selectedSong.genre}</div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-white font-medium text-sm mb-2">
-                  Playlist Name *
-                </label>
-                <input
-                  type="text"
-                  value={newPlaylistName}
-                  onChange={(e) => setNewPlaylistName(e.target.value)}
-                  placeholder="Enter playlist name"
-                  className="w-full bg-[#282828] border border-[#404040] rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-[#1DB954]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-white font-medium text-sm mb-2">
-                  Description (optional)
-                </label>
-                <textarea
-                  value={newPlaylistDescription}
-                  onChange={(e) => setNewPlaylistDescription(e.target.value)}
-                  placeholder="Describe your playlist"
-                  rows={3}
-                  className="w-full bg-[#282828] border border-[#404040] rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-[#1DB954] resize-none"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={() => {
-                  setShowCreatePlaylistModal(false);
-                  setShowAddToPlaylistModal(true);
-                  setNewPlaylistName('');
-                  setNewPlaylistDescription('');
-                }}
-                className="flex-1 bg-[#404040] hover:bg-[#505050] text-white px-4 py-2 rounded-lg font-medium transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => createNewPlaylist(selectedSong)}
-                disabled={!newPlaylistName.trim() || creatingPlaylist}
-                className="flex-1 bg-[#1DB954] hover:bg-[#1ed760] disabled:bg-[#404040] disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors"
-              >
-                {creatingPlaylist ? (
-                  <div className="flex items-center justify-center">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                    Creating...
-                  </div>
-                ) : (
-                  'Create Playlist'
-                )}
-              </button>
-            </div>
-          </div>
-      </div>
-      )}
     </div>
   );
 } 

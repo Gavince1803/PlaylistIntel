@@ -281,21 +281,7 @@ export class SpotifyService {
     }
   }
 
-  async createPlaylist(userId: string, name: string, description?: string): Promise<string> {
-    try {
-      const response = await this.makeApiCall(() => 
-        this.api.createPlaylist(name, {
-          description,
-          public: false
-        })
-      );
-      
-      return response.body.id;
-    } catch (error) {
-      console.error('Error creating playlist:', error);
-      throw error;
-    }
-  }
+
 
   async getCurrentUserId(): Promise<string> {
     try {
