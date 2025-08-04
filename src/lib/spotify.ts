@@ -355,6 +355,27 @@ export class SpotifyService {
     }
   }
 
+  // Get playlist information
+  async getPlaylist(playlistId: string): Promise<{ name: string; description: string; images: Array<{ url: string }>; owner: { display_name: string } }> {
+    try {
+      const response = await this.makeApiCall(() => 
+        this.api.getPlaylist(playlistId)
+      );
+      
+      return {
+        name: response.body.name,
+        description: response.body.description || '',
+        images: response.body.images || [],
+        owner: {
+          display_name: response.body.owner.display_name || 'Unknown'
+        }
+      };
+    } catch (error) {
+      console.error('Error fetching playlist info:', error);
+      throw error;
+    }
+  }
+
   async getArtists(artistIds: string[]): Promise<SpotifyArtist[]> {
     try {
       if (artistIds.length === 0) return [];
