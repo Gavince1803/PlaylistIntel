@@ -558,7 +558,7 @@ export default function AnalyticsPage() {
                   onClick={() => setShowTopTracksModal(true)}
                   className="px-6 py-3 bg-[#1DB954] hover:bg-[#1ed760] text-white rounded-lg font-medium transition-colors"
                 >
-                  Explore Top Tracks
+                  View All Tracks
                 </button>
               </div>
             </section>
