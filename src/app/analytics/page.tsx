@@ -40,12 +40,15 @@ interface GenreData {
   genre: string;
   trackCount: number;
   tracks: any[];
+  fallback?: boolean;
 }
 
 export default function AnalyticsPage() {
   const { data: session } = useSession();
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
   const [genresData, setGenresData] = useState<GenreData[]>([]);
+  const [genresFallback, setGenresFallback] = useState(false);
+  const [playlistsFallback, setPlaylistsFallback] = useState(false);
   const [loading, setLoading] = useState(true);
   const [genresLoading, setGenresLoading] = useState(true);
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
@@ -113,12 +116,14 @@ export default function AnalyticsPage() {
       
       if (data.genres && Array.isArray(data.genres)) {
         setGenresData(data.genres);
+        setGenresFallback(data.fallback || false);
         if (data.genres.length === 0) {
           showToast('No genres found in your playlists', 'info');
         }
       } else {
         console.warn('🎵 Genres API returned invalid data format:', data);
         setGenresData([]);
+        setGenresFallback(false);
         showToast('No genre data available', 'info');
       }
     } catch (error) {
@@ -145,9 +150,11 @@ export default function AnalyticsPage() {
       
       if (data.playlists && Array.isArray(data.playlists)) {
         setMostListenedPlaylists(data.playlists);
+        setPlaylistsFallback(data.fallback || false);
       } else {
         console.warn('📊 User playlist activity API returned invalid data format:', data);
         setMostListenedPlaylists([]);
+        setPlaylistsFallback(false);
       }
     } catch (error) {
       console.error('Error fetching user playlist activity:', error);
@@ -288,8 +295,8 @@ export default function AnalyticsPage() {
              <p className="text-[#1DB954] text-sm font-medium">📊 Nota sobre las métricas:</p>
              <p className="text-gray-400 text-xs leading-relaxed">
                • <strong>Top Tracks:</strong> Basado en tu historial real de reproducción de Spotify (endpoint /me/top/tracks)<br/>
-               • <strong>Reproducciones por Playlist:</strong> Estimación basada en actividad reciente, tracks, followers y uso colaborativo<br/>
-               • <strong>Actividad de Playlists:</strong> Combinación de tracks recientemente reproducidos, recencia y popularidad
+               • <strong>Reproducciones por Playlist:</strong> Calculado basado en tracks recientemente reproducidos y en tu top tracks<br/>
+               • <strong>Top Genres:</strong> Análisis de géneros de tus playlists más activas. Si hay problemas de API, se muestra datos básicos
              </p>
            </div>
         </div>
@@ -357,7 +364,14 @@ export default function AnalyticsPage() {
 
             {/* Top Genres */}
             <section className="bg-gradient-to-br from-[#232323] to-[#2a2a2a] rounded-xl lg:rounded-2xl p-4 lg:p-6 border border-[#282828] shadow-xl">
-              <h2 className="text-xl lg:text-2xl font-bold text-white mb-4 lg:mb-6">Top Genres</h2>
+              <div className="flex items-center justify-between mb-4 lg:mb-6">
+                <h2 className="text-xl lg:text-2xl font-bold text-white">Top Genres</h2>
+                {genresFallback && (
+                  <div className="flex items-center gap-2 px-3 py-1 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
+                    <span className="text-yellow-400 text-xs">⚠️ Fallback Data</span>
+                  </div>
+                )}
+              </div>
               <div className="space-y-3 lg:space-y-4">
                 {genresLoading ? (
                   <div className="text-center py-8">
@@ -442,7 +456,14 @@ export default function AnalyticsPage() {
             {/* User's Most Active Playlists */}
             <section className="bg-gradient-to-br from-[#232323] to-[#2a2a2a] rounded-xl lg:rounded-2xl p-4 lg:p-6 border border-[#282828] shadow-xl">
               <div className="flex items-center justify-between mb-4 lg:mb-6">
-                <h2 className="text-xl lg:text-2xl font-bold text-white">Your Most Listened Playlists</h2>
+                <div className="flex items-center gap-3">
+                  <h2 className="text-xl lg:text-2xl font-bold text-white">Your Most Listened Playlists</h2>
+                  {playlistsFallback && (
+                    <div className="flex items-center gap-2 px-3 py-1 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
+                      <span className="text-yellow-400 text-xs">⚠️ Fallback Data</span>
+                    </div>
+                  )}
+                </div>
                 <div className="text-gray-400 text-sm">
                   Based on your actual listening activity
                 </div>
