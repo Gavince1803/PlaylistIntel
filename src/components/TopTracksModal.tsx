@@ -11,9 +11,13 @@ interface Track {
   album: { name: string; images: Array<{ url: string }> };
   duration_ms: number;
   popularity: number;
-  playCount: number;
-  playlists: string[];
+  playCount?: number;
+  playlists?: string[];
   external_urls: { spotify: string };
+  // New properties from user top tracks API
+  rank?: number;
+  timeRange?: string;
+  estimatedPlays?: number;
 }
 
 interface TopTracksModalProps {
@@ -37,7 +41,7 @@ export default function TopTracksModal({ isOpen, onClose }: TopTracksModalProps)
       setLoading(true);
       setError(null);
       
-      const response = await fetch('/api/analytics/tracks/most-played');
+      const response = await fetch('/api/analytics/tracks/user-top?time_range=medium_term');
       if (!response.ok) {
         throw new Error('Failed to fetch top tracks');
       }
@@ -63,7 +67,7 @@ export default function TopTracksModal({ isOpen, onClose }: TopTracksModalProps)
   };
 
   return (
-    <Modal open={isOpen} onClose={onClose} title="Top 25 Most Played Tracks">
+    <Modal open={isOpen} onClose={onClose} title="Your Top Tracks from Spotify">
       <div className="max-h-[70vh] overflow-y-auto">
         {loading ? (
           <div className="text-center py-8">
@@ -93,7 +97,7 @@ export default function TopTracksModal({ isOpen, onClose }: TopTracksModalProps)
                   <span className={`text-lg font-bold ${
                     index < 3 ? 'text-[#1DB954]' : 'text-gray-400'
                   }`}>
-                    #{index + 1}
+                    #{track.rank || index + 1}
                   </span>
                 </div>
 
@@ -119,13 +123,13 @@ export default function TopTracksModal({ isOpen, onClose }: TopTracksModalProps)
                   </p>
                 </div>
 
-                {/* Play Count */}
+                {/* Estimated Plays */}
                 <div className="flex-shrink-0 text-center">
                   <div className="text-[#1DB954] font-bold text-lg">
-                    {track.playCount}
+                    {track.estimatedPlays || track.playCount}
                   </div>
                   <div className="text-gray-400 text-xs">
-                    {track.playCount === 1 ? 'playlist' : 'playlists'}
+                    plays
                   </div>
                 </div>
 
