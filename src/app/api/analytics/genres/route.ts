@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
           const tracksData = await tracksResponse.json();
           const tracks = tracksData.items.map((item: any) => item.track).filter(Boolean);
           
-          allTracks.push(...tracks.map(track => ({
+          allTracks.push(...tracks.map((track: any) => ({
             ...track,
             playlistName: playlist.name,
             playlistId: playlist.id
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get unique artist IDs
-    const artistIds = Array.from(new Set(allTracks.flatMap(track => track.artists.map((a: any) => a.id))));
+    const artistIds = Array.from(new Set(allTracks.flatMap((track: any) => track.artists.map((a: any) => a.id))));
     console.log(`🎵 Genres API: Found ${artistIds.length} unique artists`);
 
     if (artistIds.length === 0) {
@@ -112,7 +112,7 @@ export async function GET(request: NextRequest) {
 
     // Create artist-genre mapping
     const artistGenres: Record<string, string[]> = {};
-    artists.forEach(artist => {
+    artists.forEach((artist: any) => {
       if (artist && artist.genres) {
         artistGenres[artist.id] = artist.genres;
       }
@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
     // Group tracks by genre
     const genreTracks: Record<string, any[]> = {};
     
-    allTracks.forEach(track => {
+    allTracks.forEach((track: any) => {
       const trackGenres = track.artists.flatMap((artist: any) => artistGenres[artist.id] || []);
       
       trackGenres.forEach((genre: string) => {
