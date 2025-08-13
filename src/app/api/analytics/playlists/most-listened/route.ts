@@ -111,7 +111,10 @@ export async function GET(request: NextRequest) {
     // Filter out failed playlists and sort by popularity
     const validPlaylists = playlistsWithDetails
       .filter(Boolean)
-      .sort((a, b) => b.popularityScore - a.popularityScore)
+      .sort((a, b) => {
+        if (!a || !b) return 0;
+        return b.popularityScore - a.popularityScore;
+      })
       .slice(0, 10); // Top 10
 
     console.log(`📊 Most Listened: Processed ${validPlaylists.length} playlists`);

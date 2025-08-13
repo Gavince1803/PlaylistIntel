@@ -63,7 +63,7 @@ export default function TopTracksModal({ isOpen, onClose }: TopTracksModalProps)
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Top 25 Most Played Tracks">
+    <Modal open={isOpen} onClose={onClose} title="Top 25 Most Played Tracks">
       <div className="max-h-[70vh] overflow-y-auto">
         {loading ? (
           <div className="text-center py-8">
