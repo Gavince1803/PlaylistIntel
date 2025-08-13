@@ -71,8 +71,8 @@ export default function TopTracksModal({ isOpen, onClose }: TopTracksModalProps)
 
   return (
     <Modal open={isOpen} onClose={onClose} title="Your Top Tracks from Spotify">
-      {/* Back Button */}
-      <div className="absolute top-4 left-4">
+      {/* Back Button - Repositioned to not collide with header */}
+      <div className="absolute top-6 left-6 z-10">
         <button
           onClick={onClose}
           className="p-2 text-gray-400 hover:text-white hover:bg-[#282828] rounded-lg transition-colors"
@@ -83,97 +83,104 @@ export default function TopTracksModal({ isOpen, onClose }: TopTracksModalProps)
           </svg>
         </button>
       </div>
-      <div className="max-h-[70vh] overflow-y-auto">
-        {loading ? (
-          <div className="text-center py-8">
-            <LoadingSpinner size="lg" />
-            <p className="text-gray-400 mt-4">Loading your top tracks...</p>
-          </div>
-        ) : error ? (
-          <div className="text-center py-8">
-            <p className="text-red-400 mb-4">{error}</p>
-            <button
-              onClick={fetchTopTracks}
-              className="px-4 py-2 bg-[#1DB954] hover:bg-[#1ed760] text-white rounded-lg text-sm font-medium transition-colors"
-            >
-              Try Again
-            </button>
-          </div>
-        ) : tracks.length > 0 ? (
-          <div className="space-y-3">
-            {tracks.map((track, index) => (
-              <div
-                key={track.id}
-                className="flex items-center space-x-4 p-3 rounded-lg hover:bg-[#2a2a2a] transition-colors cursor-pointer group"
-                onClick={() => openInSpotify(track.external_urls.spotify)}
+
+      {/* Main Content - Better spacing and removed bottom tab */}
+      <div className="pt-12 pb-6 px-2">
+        <div className="max-h-[65vh] overflow-y-auto pr-2">
+          {loading ? (
+            <div className="text-center py-12">
+              <LoadingSpinner size="lg" />
+              <p className="text-gray-400 mt-4 text-lg">Loading your top tracks...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <p className="text-red-400 mb-4 text-lg">{error}</p>
+              <button
+                onClick={fetchTopTracks}
+                className="px-6 py-3 bg-[#1DB954] hover:bg-[#1ed760] text-white rounded-lg text-sm font-medium transition-colors"
               >
-                {/* Rank */}
-                <div className="flex-shrink-0">
-                  <span className={`text-lg font-bold ${
-                    index < 3 ? 'text-[#1DB954]' : 'text-gray-400'
-                  }`}>
-                    #{track.rank || index + 1}
-                  </span>
-                </div>
-
-                {/* Album Art */}
-                <div className="flex-shrink-0">
-                  <img
-                    src={track.album.images[0]?.url || '/logo.png'}
-                    alt={track.album.name}
-                    className="w-12 h-12 rounded-md object-cover"
-                  />
-                </div>
-
-                {/* Track Info */}
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-white font-medium text-base leading-tight group-hover:text-[#1DB954] transition-colors" title={track.name}>
-                    {track.name.length > 35 ? `${track.name.substring(0, 35)}...` : track.name}
-                  </h3>
-                  <p className="text-gray-400 text-sm leading-tight mt-1">
-                    {track.artists.map(artist => artist.name).join(', ')}
-                  </p>
-                  <p className="text-gray-500 text-xs leading-tight mt-1">
-                    {track.album.name}
-                  </p>
-                </div>
-
-                {/* Estimated Plays */}
-                <div className="flex-shrink-0 text-center">
-                  <div className="text-[#1DB954] font-bold text-lg">
-                    {track.estimatedPlays || track.playCount}
+                Try Again
+              </button>
+            </div>
+          ) : tracks.length > 0 ? (
+            <div className="space-y-4">
+              {tracks.map((track, index) => (
+                <div
+                  key={track.id}
+                  className="flex items-center space-x-4 p-4 rounded-xl hover:bg-[#2a2a2a] transition-all duration-200 cursor-pointer group border border-transparent hover:border-[#404040]"
+                  onClick={() => openInSpotify(track.external_urls.spotify)}
+                >
+                  {/* Rank - Better styling */}
+                  <div className="flex-shrink-0">
+                    <span className={`text-xl font-bold ${
+                      index < 3 ? 'text-[#1DB954]' : 'text-gray-400'
+                    }`}>
+                      #{track.rank || index + 1}
+                    </span>
                   </div>
-                  <div className="text-gray-400 text-xs">
-                    plays
+
+                  {/* Album Art - Better sizing */}
+                  <div className="flex-shrink-0">
+                    <img
+                      src={track.album.images[0]?.url || '/logo.png'}
+                      alt={track.album.name}
+                      className="w-14 h-14 rounded-lg object-cover shadow-lg"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = '/logo.png';
+                      }}
+                    />
+                  </div>
+
+                  {/* Track Info - Better text handling and spacing */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-white font-semibold text-base leading-tight group-hover:text-[#1DB954] transition-colors" title={track.name}>
+                      {track.name.length > 40 ? `${track.name.substring(0, 40)}...` : track.name}
+                    </h3>
+                    <p className="text-gray-300 text-sm leading-tight mt-1 font-medium">
+                      {track.artists.map(artist => artist.name).join(', ')}
+                    </p>
+                    <p className="text-gray-500 text-xs leading-tight mt-1">
+                      {track.album.name}
+                    </p>
+                  </div>
+
+                  {/* Estimated Plays - Better styling */}
+                  <div className="flex-shrink-0 text-center">
+                    <div className="text-[#1DB954] font-bold text-xl">
+                      {track.estimatedPlays || track.playCount || 0}
+                    </div>
+                    <div className="text-gray-400 text-xs font-medium">
+                      plays
+                    </div>
+                  </div>
+
+                  {/* Duration - Better styling */}
+                  <div className="flex-shrink-0 text-gray-400 text-sm font-medium bg-[#282828] px-3 py-1 rounded-lg">
+                    {formatDuration(track.duration_ms)}
                   </div>
                 </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-400 text-lg">No tracks found</p>
+              <p className="text-gray-500 text-sm mt-2">
+                This might be because you don't have enough playlists or tracks.
+              </p>
+            </div>
+          )}
+        </div>
 
-                {/* Duration */}
-                <div className="flex-shrink-0 text-gray-400 text-sm">
-                  {formatDuration(track.duration_ms)}
-                </div>
-
-
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-8">
-            <p className="text-gray-400">No tracks found</p>
-            <p className="text-gray-500 text-sm mt-2">
-              This might be because you don't have enough playlists or tracks.
+        {/* Footer info - Integrated into main content, no separate tab */}
+        {tracks.length > 0 && (
+          <div className="mt-6 pt-4 border-t border-[#404040]">
+            <p className="text-gray-400 text-sm text-center">
+              💡 Click on any track to open it in Spotify
             </p>
           </div>
         )}
       </div>
-
-      {tracks.length > 0 && (
-        <div className="mt-6 pt-4 border-t border-[#404040]">
-          <p className="text-gray-400 text-sm text-center">
-            Click on any track to open it in Spotify
-          </p>
-        </div>
-      )}
     </Modal>
   );
 }
