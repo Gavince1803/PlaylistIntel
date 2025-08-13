@@ -286,7 +286,15 @@ export default function AnalyticsPage() {
             </button>
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">Analytics Dashboard</h1>
           </div>
-          <p className="text-gray-300 text-base lg:text-lg">Discover insights about your music taste</p>
+                     <p className="text-gray-300 text-base lg:text-lg">Discover insights about your music taste</p>
+           <div className="bg-[#1DB954]/10 border border-[#1DB954]/20 rounded-lg p-3 mt-3">
+             <p className="text-[#1DB954] text-sm font-medium">📊 Nota sobre las métricas:</p>
+             <p className="text-gray-400 text-xs leading-relaxed">
+               • <strong>Top Tracks:</strong> Basado en tu historial real de reproducción de Spotify (endpoint /me/top/tracks)<br/>
+               • <strong>Reproducciones por Playlist:</strong> Estimación basada en actividad reciente, tracks, followers y uso colaborativo<br/>
+               • <strong>Actividad de Playlists:</strong> Combinación de tracks recientemente reproducidos, recencia y popularidad
+             </p>
+           </div>
         </div>
 
         {analyticsData ? (
@@ -394,23 +402,27 @@ export default function AnalyticsPage() {
                       </div>
                     );
                   })
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-gray-400">No genres found</p>
-                    <p className="text-gray-500 text-sm mt-2">This might be because:</p>
-                    <ul className="text-gray-500 text-sm mt-1 space-y-1">
-                      <li>• Your playlists don't have enough genre data</li>
-                      <li>• Some playlists might be private or collaborative</li>
-                      <li>• Try refreshing the page</li>
-                    </ul>
-                    <button
-                      onClick={fetchGenres}
-                      className="mt-4 px-4 py-2 bg-[#1DB954] hover:bg-[#1ed760] text-white rounded-lg text-sm font-medium transition-colors"
-                    >
-                      Try Again
-                    </button>
-                  </div>
-                )}
+                                 ) : (
+                   <div className="text-center py-8">
+                     <p className="text-gray-400">No genres found</p>
+                     <p className="text-gray-500 text-sm mt-2">This might be because:</p>
+                     <ul className="text-gray-500 text-sm mt-1 space-y-1">
+                       <li>• Your playlists don't have enough genre data</li>
+                       <li>• Some playlists might be private or collaborative</li>
+                       <li>• Rate limits from Spotify API</li>
+                       <li>• Try refreshing the page</li>
+                     </ul>
+                     <button
+                       onClick={fetchGenres}
+                       className="mt-4 px-4 py-2 bg-[#1DB954] hover:bg-[#1ed760] text-white rounded-lg text-sm font-medium transition-colors"
+                     >
+                       Try Again
+                     </button>
+                     <div className="mt-3 text-xs text-gray-500">
+                       💡 Tip: Genres are fetched from your first 5 playlists to avoid API limits
+                     </div>
+                   </div>
+                 )}
               </div>
             </section>
 
@@ -529,8 +541,10 @@ export default function AnalyticsPage() {
                     <LoadingSpinner size="sm" />
                     <p className="text-gray-400 mt-2">Loading your top tracks...</p>
                   </div>
-                ) : userTopTracks.length > 0 ? (
-                  userTopTracks.slice(0, 5).map((track, index) => (
+                                 ) : userTopTracks.length > 0 ? (
+                   userTopTracks
+                     .sort((a, b) => (b.estimatedPlays || 0) - (a.estimatedPlays || 0))
+                     .slice(0, 5).map((track, index) => (
                     <div key={track.id} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-[#2a2a2a] transition-colors">
                       {/* Rank */}
                       <div className="flex-shrink-0">
