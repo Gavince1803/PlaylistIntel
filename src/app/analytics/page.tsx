@@ -34,6 +34,7 @@ interface MostListenedPlaylist {
   // New properties for user activity
   activityScore: number;
   estimatedUsage: number;
+  estimatedTotalPlays: number;
   daysSinceCreation?: number;
   recentlyPlayedTracks?: number;
 }
@@ -300,7 +301,7 @@ export default function AnalyticsPage() {
                   </div>
                   <div className="w-10 h-10 lg:w-12 lg:h-12 bg-[#1DB954]/20 rounded-lg lg:rounded-xl flex items-center justify-center flex-shrink-0">
                     <svg className="w-5 h-5 lg:w-6 lg:h-6 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3" />
                     </svg>
                   </div>
                 </div>
@@ -314,7 +315,7 @@ export default function AnalyticsPage() {
                   </div>
                   <div className="w-10 h-10 lg:w-12 lg:h-12 bg-[#1DB954]/20 rounded-lg lg:rounded-xl flex items-center justify-center flex-shrink-0">
                     <svg className="w-5 h-5 lg:w-6 lg:h-6 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3" />
                     </svg>
                   </div>
                 </div>
@@ -365,20 +366,20 @@ export default function AnalyticsPage() {
                     const percentage = totalTracksInGenres > 0 ? (genre.trackCount / totalTracksInGenres) * 100 : 0;
                     console.log(`🎵 Rendering genre: ${genre.genre} with ${genre.trackCount} tracks (${percentage.toFixed(1)}%)`);
                     return (
-                                             <div 
-                         key={genre.genre} 
-                         className={`flex items-center justify-between p-3 rounded-lg transition-colors ${
-                           genreLoading ? 'cursor-not-allowed opacity-50' : 'hover:bg-[#2a2a2a] cursor-pointer'
-                         }`}
-                         onClick={() => !genreLoading && handleGenreClick(genre.genre)}
-                       >
-                                                 <div className="flex items-center space-x-3 lg:space-x-4 min-w-0 flex-1">
-                           <span className="text-base lg:text-lg font-bold text-[#1DB954] flex-shrink-0">#{index + 1}</span>
-                           <span className="text-white font-medium truncate">{genre.genre}</span>
-                           {genreLoading && (
-                             <LoadingSpinner size="sm" className="ml-2" />
-                           )}
-                         </div>
+                      <div 
+                        key={genre.genre} 
+                        className={`flex items-center justify-between p-3 rounded-lg transition-colors ${
+                          genreLoading ? 'cursor-not-allowed opacity-50' : 'hover:bg-[#2a2a2a] cursor-pointer'
+                        }`}
+                        onClick={() => !genreLoading && handleGenreClick(genre.genre)}
+                      >
+                        <div className="flex items-center space-x-3 lg:space-x-4 min-w-0 flex-1">
+                          <span className="text-base lg:text-lg font-bold text-[#1DB954] flex-shrink-0">#{index + 1}</span>
+                          <span className="text-white font-medium truncate">{genre.genre}</span>
+                          {genreLoading && (
+                            <LoadingSpinner size="sm" className="ml-2" />
+                          )}
+                        </div>
                         <div className="flex items-center space-x-2 lg:space-x-4 flex-shrink-0">
                           <div className="w-20 lg:w-32 bg-[#404040] rounded-full h-2">
                             <div 
@@ -413,43 +414,21 @@ export default function AnalyticsPage() {
               </div>
             </section>
 
-            {/* Favorite Artists & Mood Distribution */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-              <section className="bg-gradient-to-br from-[#232323] to-[#2a2a2a] rounded-xl lg:rounded-2xl p-4 lg:p-6 border border-[#282828] shadow-xl">
-                <h2 className="text-xl lg:text-2xl font-bold text-white mb-4 lg:mb-6">Favorite Artists</h2>
-                <div className="space-y-3 lg:space-y-4">
-                  {analyticsData.favoriteArtists.map((artist, index) => (
-                    <div key={artist.name} className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3 lg:space-x-4 min-w-0 flex-1">
-                        <span className="text-base lg:text-lg font-bold text-[#1DB954] flex-shrink-0">#{index + 1}</span>
-                        <span className="text-white font-medium truncate">{artist.name}</span>
-                      </div>
-                      <span className="text-gray-400 text-xs lg:text-sm flex-shrink-0">{artist.trackCount} tracks</span>
+            {/* Favorite Artists */}
+            <section className="bg-gradient-to-br from-[#232323] to-[#2a2a2a] rounded-xl lg:rounded-2xl p-4 lg:p-6 border border-[#282828] shadow-xl">
+              <h2 className="text-xl lg:text-2xl font-bold text-white mb-4 lg:mb-6">Favorite Artists</h2>
+              <div className="space-y-3 lg:space-y-4">
+                {analyticsData.favoriteArtists.map((artist, index) => (
+                  <div key={artist.name} className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3 lg:space-x-4 min-w-0 flex-1">
+                      <span className="text-base lg:text-lg font-bold text-[#1DB954] flex-shrink-0">#{index + 1}</span>
+                      <span className="text-white font-medium truncate">{artist.name}</span>
                     </div>
-                  ))}
-                </div>
-              </section>
-
-              <section className="bg-gradient-to-br from-[#232323] to-[#2a2a2a] rounded-xl lg:rounded-2xl p-4 lg:p-6 border border-[#282828] shadow-xl">
-                <h2 className="text-xl lg:text-2xl font-bold text-white mb-4 lg:mb-6">Mood Distribution</h2>
-                <div className="space-y-3 lg:space-y-4">
-                  {analyticsData.moodDistribution.map((mood, index) => (
-                    <div key={mood.mood} className="flex items-center justify-between">
-                      <span className="text-white font-medium text-sm lg:text-base truncate min-w-0 flex-1">{mood.mood}</span>
-                      <div className="flex items-center space-x-2 lg:space-x-4 flex-shrink-0">
-                        <div className="w-20 lg:w-32 bg-[#404040] rounded-full h-2">
-                          <div 
-                            className="bg-[#1DB954] h-2 rounded-full transition-all duration-500"
-                            style={{ width: `${(mood.count / analyticsData.moodDistribution.reduce((sum, m) => sum + m.count, 0)) * 100}%` }}
-                          ></div>
-                        </div>
-                        <span className="text-gray-400 text-xs lg:text-sm w-12 lg:w-16 text-right">{mood.count}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            </div>
+                    <span className="text-gray-400 text-xs lg:text-sm flex-shrink-0">{artist.trackCount} tracks</span>
+                  </div>
+                ))}
+              </div>
+            </section>
 
             {/* User's Most Active Playlists */}
             <section className="bg-gradient-to-br from-[#232323] to-[#2a2a2a] rounded-xl lg:rounded-2xl p-4 lg:p-6 border border-[#282828] shadow-xl">
@@ -497,12 +476,12 @@ export default function AnalyticsPage() {
                         </p>
                       </div>
 
-                      {/* Activity Score */}
+                      {/* Total Plays All Time */}
                       <div className="flex-shrink-0 text-center">
                         <div className="text-[#1DB954] font-bold text-lg">
-                          {playlist.estimatedUsage}
+                          {playlist.estimatedTotalPlays}
                         </div>
-                        <div className="text-gray-400 text-xs">activity</div>
+                        <div className="text-gray-400 text-xs">total plays</div>
                       </div>
 
                       {/* Activity Score Bar */}
@@ -537,29 +516,73 @@ export default function AnalyticsPage() {
             <section className="bg-gradient-to-br from-[#232323] to-[#2a2a2a] rounded-xl lg:rounded-2xl p-4 lg:p-6 border border-[#282828] shadow-xl">
               <div className="flex items-center justify-between mb-4 lg:mb-6">
                 <h2 className="text-xl lg:text-2xl font-bold text-white">Your Top Tracks</h2>
-                                  <button
-                    onClick={() => setShowTopTracksModal(true)}
-                    className="px-4 py-2 bg-[#1DB954] hover:bg-[#1ed760] text-white rounded-lg text-sm font-medium transition-colors"
-                  >
-                    View All Tracks
-                  </button>
-              </div>
-              <div className="text-center py-8">
-                <div className="w-16 h-16 bg-[#1DB954]/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-                  </svg>
-                </div>
-                <p className="text-white font-medium mb-2">Your Top Tracks from Spotify</p>
-                <p className="text-gray-400 text-sm mb-4">
-                  Based on your actual listening history and preferences
-                </p>
                 <button
                   onClick={() => setShowTopTracksModal(true)}
-                  className="px-6 py-3 bg-[#1DB954] hover:bg-[#1ed760] text-white rounded-lg font-medium transition-colors"
+                  className="px-4 py-2 bg-[#1DB954] hover:bg-[#1ed760] text-white rounded-lg text-sm font-medium transition-colors"
                 >
                   View All Tracks
                 </button>
+              </div>
+              <div className="space-y-3 lg:space-y-4">
+                {topTracksLoading ? (
+                  <div className="text-center py-8">
+                    <LoadingSpinner size="sm" />
+                    <p className="text-gray-400 mt-2">Loading your top tracks...</p>
+                  </div>
+                ) : userTopTracks.length > 0 ? (
+                  userTopTracks.slice(0, 5).map((track, index) => (
+                    <div key={track.id} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-[#2a2a2a] transition-colors">
+                      {/* Rank */}
+                      <div className="flex-shrink-0">
+                        <span className={`text-lg font-bold ${
+                          index < 3 ? 'text-[#1DB954]' : 'text-gray-400'
+                        }`}>
+                          #{track.rank}
+                        </span>
+                      </div>
+
+                      {/* Track Image */}
+                      <div className="flex-shrink-0">
+                        <img
+                          src={track.album.images[0]?.url || '/logo.png'}
+                          alt={track.name}
+                          className="w-12 h-12 rounded-md object-cover"
+                        />
+                      </div>
+
+                      {/* Track Info - Better text handling */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-white font-medium text-sm leading-tight" title={track.name}>
+                          {track.name.length > 25 ? `${track.name.substring(0, 25)}...` : track.name}
+                        </h3>
+                        <p className="text-gray-400 text-xs leading-tight mt-1">
+                          {track.artists.map((artist: any) => artist.name).join(', ')}
+                        </p>
+                        <p className="text-gray-500 text-xs leading-tight mt-1">
+                          {track.album.name}
+                        </p>
+                      </div>
+
+                      {/* Estimated Plays */}
+                      <div className="flex-shrink-0 text-center">
+                        <div className="text-[#1DB954] font-bold text-lg">
+                          {track.estimatedPlays}
+                        </div>
+                        <div className="text-gray-400 text-xs">plays</div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-400">No top tracks data available</p>
+                    <p className="text-gray-500 text-sm mt-2">This might be because:</p>
+                    <ul className="text-gray-500 text-sm mt-1 space-y-1">
+                      <li>• You haven't listened to enough tracks yet</li>
+                      <li>• Your listening history is private</li>
+                      <li>• Try refreshing the page</li>
+                    </ul>
+                  </div>
+                )}
               </div>
             </section>
 

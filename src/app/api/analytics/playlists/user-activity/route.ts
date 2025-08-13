@@ -118,6 +118,14 @@ export async function GET(request: NextRequest) {
             (Math.min(followers, 100) * 0.2)
           );
 
+          // Calculate estimated total plays based on activity score and track count
+          const estimatedTotalPlays = Math.round(
+            (activityScore * 2) + 
+            (trackCount * 0.8) + 
+            (recentlyPlayedFromPlaylist * 15) +
+            (Math.min(followers, 50) * 0.5)
+          );
+
           return {
             id: playlist.id,
             name: playlist.name,
@@ -133,7 +141,9 @@ export async function GET(request: NextRequest) {
             recentlyPlayedTracks: recentlyPlayedFromPlaylist,
             activityScore: Math.round(activityScore),
             // Convert to estimated usage frequency
-            estimatedUsage: Math.round(activityScore * 0.8)
+            estimatedUsage: Math.round(activityScore * 0.8),
+            // New field for total plays all time
+            estimatedTotalPlays
           };
         } catch (error) {
           console.warn(`Failed to get details for playlist ${playlist.id}:`, error);
