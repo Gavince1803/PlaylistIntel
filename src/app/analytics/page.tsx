@@ -21,22 +21,19 @@ interface AnalyticsData {
 interface MostListenedPlaylist {
   id: string;
   name: string;
-  description: string;
+  description?: string;
   images: Array<{ url: string }>;
-  owner: { display_name: string };
-  public: boolean;
-  collaborative: boolean;
+  owner?: { display_name: string };
+  public?: boolean;
+  collaborative?: boolean;
   trackCount: number;
-  followers: number;
-  createdAt: string;
-  popularityScore?: number;
-  estimatedListens?: number;
-  // New properties for user activity
-  activityScore: number;
-  estimatedUsage: number;
-  estimatedTotalPlays: number;
-  daysSinceCreation?: number;
-  recentlyPlayedTracks?: number;
+  followers?: number;
+  createdAt?: string;
+  // New properties for actual user listens
+  actualListens: number;
+  recentlyPlayedFromPlaylist: number;
+  topTracksFromPlaylist: number;
+  externalUrl?: string;
 }
 
 interface GenreData {
@@ -138,7 +135,7 @@ export default function AnalyticsPage() {
       setPlaylistsLoading(true);
       console.log('📊 Fetching user playlist activity...');
       
-      const response = await fetch('/api/analytics/playlists/user-activity');
+      const response = await fetch('/api/analytics/playlists/user-listens');
       if (!response.ok) {
         throw new Error('Failed to fetch user playlist activity');
       }
@@ -445,16 +442,16 @@ export default function AnalyticsPage() {
             {/* User's Most Active Playlists */}
             <section className="bg-gradient-to-br from-[#232323] to-[#2a2a2a] rounded-xl lg:rounded-2xl p-4 lg:p-6 border border-[#282828] shadow-xl">
               <div className="flex items-center justify-between mb-4 lg:mb-6">
-                <h2 className="text-xl lg:text-2xl font-bold text-white">Your Most Active Playlists</h2>
+                <h2 className="text-xl lg:text-2xl font-bold text-white">Your Most Listened Playlists</h2>
                 <div className="text-gray-400 text-sm">
-                  Based on real user activity
+                  Based on your actual listening activity
                 </div>
               </div>
               <div className="space-y-3 lg:space-y-4">
                 {playlistsLoading ? (
                   <div className="text-center py-8">
                     <LoadingSpinner size="sm" />
-                    <p className="text-gray-400 mt-2">Loading your playlist activity...</p>
+                    <p className="text-gray-400 mt-2">Loading your playlist listens...</p>
                   </div>
                 ) : mostListenedPlaylists.length > 0 ? (
                   mostListenedPlaylists.slice(0, 5).map((playlist, index) => (
@@ -481,38 +478,33 @@ export default function AnalyticsPage() {
                       <div className="flex-1 min-w-0">
                         <h3 className="text-white font-medium truncate">{playlist.name}</h3>
                         <p className="text-gray-400 text-sm truncate">
-                          {playlist.owner.display_name} • {playlist.trackCount} tracks
+                          {playlist.trackCount} tracks
                         </p>
                         <p className="text-gray-500 text-xs truncate">
-                          {playlist.collaborative ? 'Collaborative' : playlist.public ? 'Public' : 'Private'}
+                          Recently played: {playlist.recentlyPlayedFromPlaylist} tracks
                         </p>
                       </div>
 
-                      {/* Total Plays All Time */}
+                      {/* Actual User Listens */}
                       <div className="flex-shrink-0 text-center">
                         <div className="text-[#1DB954] font-bold text-lg">
-                          {playlist.estimatedTotalPlays}
+                          {playlist.actualListens}
                         </div>
-                        <div className="text-gray-400 text-xs">total plays</div>
+                        <div className="text-gray-400 text-xs">times listened</div>
                       </div>
 
-                      {/* Activity Score Bar */}
-                      <div className="flex-shrink-0">
-                        <div className="w-20 bg-[#404040] rounded-full h-2">
-                          <div 
-                            className="bg-[#1DB954] h-2 rounded-full transition-all duration-500"
-                            style={{ width: `${Math.min((playlist.activityScore / 100) * 100, 100)}%` }}
-                          ></div>
+                      {/* Top Tracks from Playlist */}
+                      <div className="flex-shrink-0 text-center">
+                        <div className="text-[#1DB954] font-bold text-lg">
+                          {playlist.topTracksFromPlaylist}
                         </div>
-                        <div className="text-gray-400 text-xs text-center mt-1">
-                          {playlist.activityScore}
-                        </div>
+                        <div className="text-gray-400 text-xs">in top tracks</div>
                       </div>
                     </div>
                   ))
                 ) : (
                   <div className="text-center py-8">
-                    <p className="text-gray-400">No playlist activity data available</p>
+                    <p className="text-gray-400">No playlist listens data available</p>
                     <p className="text-gray-500 text-sm mt-2">This might be because:</p>
                     <ul className="text-gray-500 text-sm mt-1 space-y-1">
                       <li>• You haven't played any tracks recently</li>

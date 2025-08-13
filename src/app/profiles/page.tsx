@@ -233,8 +233,18 @@ export default function ProfilesPage() {
         {/* Header Section */}
         <div className="mb-8 lg:mb-12 mt-4">
           <div className="bg-gradient-to-r from-[#1DB954]/10 to-[#1ed760]/10 rounded-3xl p-6 lg:p-8 border border-[#1DB954]/20">
-            <div className="flex items-center justify-between mb-4">
+            <div className="mb-4">
               <div className="flex items-center gap-3 sm:gap-4">
+                {/* Back Button - Left side */}
+                <button
+                  onClick={() => window.history.back()}
+                  className="p-2 text-gray-400 hover:text-white hover:bg-[#282828] rounded-lg transition-colors"
+                  aria-label="Go back"
+                >
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#1DB954] rounded-full flex items-center justify-center">
                   <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -249,16 +259,7 @@ export default function ProfilesPage() {
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => window.history.back()}
-                className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-[#1DB954]/10 hover:bg-[#1DB954]/20 text-[#1DB954] hover:text-white rounded-xl transition-all duration-200 group"
-                title="Go back"
-              >
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                <span className="font-semibold text-sm sm:text-base">Back</span>
-              </button>
+
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mt-4 sm:mt-6">
               <div className="bg-[#232323]/50 rounded-xl p-3 sm:p-4 border border-[#282828]">
