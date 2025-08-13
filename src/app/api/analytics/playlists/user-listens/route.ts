@@ -107,6 +107,8 @@ export async function GET(request: NextRequest) {
         
         // Get tracks from this playlist (limit to 50 tracks)
         let playlistTracks: any[] = [];
+        
+        // Fetch playlist tracks
         try {
           const tracksResponse = await fetchWithRetry(`https://api.spotify.com/v1/playlists/${playlist.id}/tracks?limit=50`, {
             headers: {
@@ -114,12 +116,21 @@ export async function GET(request: NextRequest) {
             }
           });
 
-          if (tracksResponse.ok) {
+          if (!tracksResponse.ok) {
+            if (tracksResponse.status === 403) {
+              console.warn(`🎵 User Listens API: 403 Forbidden for playlist "${playlist.name}" - skipping`);
+              // Skip this playlist if we don't have permission
+              continue;
+            }
+            console.warn(`🎵 User Listens API: Failed to fetch tracks for playlist "${playlist.name}" - status: ${tracksResponse.status}`);
+            // Continue with basic data
+          } else {
             const tracksData = await tracksResponse.json();
-            playlistTracks = tracksData.items.map((item: any) => item.track).filter(Boolean);
+            playlistTracks = tracksData.items.map((item: any) => item.track).filter((track: any) => track);
           }
         } catch (error) {
-          console.warn(`🎵 User Listens API: Failed to fetch tracks for playlist ${playlist.id}, using basic data`);
+          console.warn(`🎵 User Listens API: Error fetching tracks for playlist "${playlist.name}":`, error);
+          // Continue with basic data
         }
 
         // Count how many tracks from this playlist the user has recently played
@@ -148,22 +159,26 @@ export async function GET(request: NextRequest) {
 
         // Fallback: if we couldn't get detailed data, provide a basic score based on playlist properties
         if (actualListens === 0 && playlistTracks.length > 0) {
-          // Basic scoring based on playlist characteristics
           actualListens = Math.max(1, Math.floor(playlistTracks.length / 10)); // At least 1 listen per 10 tracks
         }
 
-        console.log(`🎵 User Listens API: Playlist "${playlist.name}" - Actual listens: ${actualListens}, Recent: ${recentlyPlayedFromPlaylist}, Top: ${topTracksFromPlaylist}`);
-
-        playlistsWithListens.push({
+        const playlistWithListens = {
           id: playlist.id,
           name: playlist.name,
-          image: playlist.images[0]?.url,
+          description: playlist.description,
+          image: playlist.images && playlist.images.length > 0 && playlist.images[0]?.url ? playlist.images[0].url : null,
           trackCount: playlistTracks.length,
           actualListens,
           recentlyPlayedFromPlaylist,
           topTracksFromPlaylist,
-          externalUrl: playlist.external_urls?.spotify
-        });
+          owner: playlist.owner,
+          public: playlist.public,
+          collaborative: playlist.collaborative,
+          followers: playlist.followers?.total || 0,
+          createdAt: playlist.created_at
+        };
+
+        playlistsWithListens.push(playlistWithListens);
 
         // Small delay to avoid rate limits
         await new Promise(resolve => setTimeout(resolve, 200));

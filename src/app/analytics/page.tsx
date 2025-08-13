@@ -34,6 +34,7 @@ interface MostListenedPlaylist {
   recentlyPlayedFromPlaylist: number;
   topTracksFromPlaylist: number;
   externalUrl?: string;
+  image?: string; // Added for new image field
 }
 
 interface GenreData {
@@ -489,9 +490,14 @@ export default function AnalyticsPage() {
                       {/* Playlist Image */}
                       <div className="flex-shrink-0">
                         <img
-                          src={playlist.images[0]?.url || '/logo.png'}
+                          src={playlist.image || '/logo.png'}
                           alt={playlist.name}
                           className="w-12 h-12 rounded-md object-cover"
+                          onError={(e) => {
+                            // Fallback to default image if the playlist image fails to load
+                            const target = e.target as HTMLImageElement;
+                            target.src = '/logo.png';
+                          }}
                         />
                       </div>
 
@@ -571,9 +577,14 @@ export default function AnalyticsPage() {
                       {/* Track Image */}
                       <div className="flex-shrink-0">
                         <img
-                          src={track.album.images[0]?.url || '/logo.png'}
+                          src={track.album?.images && track.album.images.length > 0 && track.album.images[0]?.url ? track.album.images[0].url : '/logo.png'}
                           alt={track.name}
                           className="w-12 h-12 rounded-md object-cover"
+                          onError={(e) => {
+                            // Fallback to default image if the track image fails to load
+                            const target = e.target as HTMLImageElement;
+                            target.src = '/logo.png';
+                          }}
                         />
                       </div>
 

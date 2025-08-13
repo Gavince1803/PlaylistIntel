@@ -70,23 +70,36 @@ export async function GET(request: NextRequest) {
       try {
         console.log(`🎵 Genres API: Processing playlist: ${playlist.name}`);
         
-        const tracksResponse = await fetchWithRetry(`https://api.spotify.com/v1/playlists/${playlist.id}/tracks?limit=50`, {
-          headers: {
-            'Authorization': `Bearer ${session.accessToken}`
-          }
-        });
+        // Get tracks from this playlist
+        try {
+          const tracksResponse = await fetchWithRetry(`https://api.spotify.com/v1/playlists/${playlist.id}/tracks?limit=50`, {
+            headers: {
+              'Authorization': `Bearer ${session.accessToken}`
+            }
+          });
 
-        if (tracksResponse.ok) {
+          if (!tracksResponse.ok) {
+            if (tracksResponse.status === 403) {
+              console.warn(`🎵 Genres API: 403 Forbidden for playlist "${playlist.name}" - skipping`);
+              continue; // Skip this playlist if we don't have permission
+            }
+            console.warn(`🎵 Genres API: Failed to fetch tracks for playlist "${playlist.name}" - status: ${tracksResponse.status}`);
+            continue;
+          }
+
           const tracksData = await tracksResponse.json();
-          const tracks = tracksData.items.map((item: any) => item.track).filter(Boolean);
-          
-          allTracks.push(...tracks.map((track: any) => ({
-            ...track,
-            playlistName: playlist.name,
-            playlistId: playlist.id
-          })));
-          
-          console.log(`🎵 Genres API: Added ${tracks.length} tracks from ${playlist.name}`);
+          const tracks = tracksData.items.map((item: any) => {
+            return {
+              ...item.track,
+              playlistName: playlist.name,
+              playlistId: playlist.id
+            };
+          }).filter((track: any) => track && track.id);
+
+          allTracks.push(...tracks);
+        } catch (error) {
+          console.warn(`🎵 Genres API: Error fetching tracks for playlist "${playlist.name}":`, error);
+          continue;
         }
         
         // Small delay to avoid rate limits
