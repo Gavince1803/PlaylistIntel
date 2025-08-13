@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import { useToast } from '@/components/Toast';
 import AnalyticsGenreTracksModal from '@/components/AnalyticsGenreTracksModal';
+import TopTracksModal from '@/components/TopTracksModal';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 interface AnalyticsData {
@@ -15,6 +16,21 @@ interface AnalyticsData {
   mostActiveMonth: string;
   favoriteArtists: Array<{ name: string; trackCount: number }>;
   moodDistribution: Array<{ mood: string; count: number }>;
+}
+
+interface MostListenedPlaylist {
+  id: string;
+  name: string;
+  description: string;
+  images: Array<{ url: string }>;
+  owner: { display_name: string };
+  public: boolean;
+  collaborative: boolean;
+  trackCount: number;
+  followers: number;
+  createdAt: string;
+  popularityScore: number;
+  estimatedListens: number;
 }
 
 interface GenreData {
@@ -32,15 +48,19 @@ export default function AnalyticsPage() {
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
   const [showGenreModal, setShowGenreModal] = useState(false);
   const [genreLoading, setGenreLoading] = useState(false);
+  const [mostListenedPlaylists, setMostListenedPlaylists] = useState<MostListenedPlaylist[]>([]);
+  const [showTopTracksModal, setShowTopTracksModal] = useState(false);
+  const [playlistsLoading, setPlaylistsLoading] = useState(false);
   const { showToast } = useToast();
 
   useEffect(() => {
     if (session?.accessToken) {
-      // Fetch analytics first, then genres
+      // Fetch analytics first, then genres and playlists
       fetchAnalytics().then(() => {
-        // Add a small delay to ensure analytics are loaded before fetching genres
+        // Add a small delay to ensure analytics are loaded before fetching other data
         setTimeout(() => {
           fetchGenres();
+          fetchMostListenedPlaylists();
         }, 500);
       });
     }
@@ -98,6 +118,34 @@ export default function AnalyticsPage() {
       setGenresData([]);
     } finally {
       setGenresLoading(false);
+    }
+  };
+
+  const fetchMostListenedPlaylists = async () => {
+    try {
+      setPlaylistsLoading(true);
+      console.log('📊 Fetching most listened playlists...');
+      
+      const response = await fetch('/api/analytics/playlists/most-listened');
+      if (!response.ok) {
+        throw new Error('Failed to fetch most listened playlists');
+      }
+      
+      const data = await response.json();
+      console.log('📊 Most listened playlists received:', data.playlists?.length || 0, 'playlists');
+      
+      if (data.playlists && Array.isArray(data.playlists)) {
+        setMostListenedPlaylists(data.playlists);
+      } else {
+        console.warn('📊 Most listened API returned invalid data format:', data);
+        setMostListenedPlaylists([]);
+      }
+    } catch (error) {
+      console.error('Error fetching most listened playlists:', error);
+      showToast('Failed to load most listened playlists', 'error');
+      setMostListenedPlaylists([]);
+    } finally {
+      setPlaylistsLoading(false);
     }
   };
 
@@ -335,6 +383,112 @@ export default function AnalyticsPage() {
                 </div>
               </section>
             </div>
+
+            {/* Most Listened Playlists */}
+            <section className="bg-gradient-to-br from-[#232323] to-[#2a2a2a] rounded-xl lg:rounded-2xl p-4 lg:p-6 border border-[#282828] shadow-xl">
+              <div className="flex items-center justify-between mb-4 lg:mb-6">
+                <h2 className="text-xl lg:text-2xl font-bold text-white">Most Listened Playlists</h2>
+                <div className="text-gray-400 text-sm">
+                  Based on popularity score
+                </div>
+              </div>
+              <div className="space-y-3 lg:space-y-4">
+                {playlistsLoading ? (
+                  <div className="text-center py-8">
+                    <LoadingSpinner size="sm" />
+                    <p className="text-gray-400 mt-2">Loading playlists...</p>
+                  </div>
+                ) : mostListenedPlaylists.length > 0 ? (
+                  mostListenedPlaylists.slice(0, 5).map((playlist, index) => (
+                    <div key={playlist.id} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-[#2a2a2a] transition-colors">
+                      {/* Rank */}
+                      <div className="flex-shrink-0">
+                        <span className={`text-lg font-bold ${
+                          index < 3 ? 'text-[#1DB954]' : 'text-gray-400'
+                        }`}>
+                          #{index + 1}
+                        </span>
+                      </div>
+
+                      {/* Playlist Image */}
+                      <div className="flex-shrink-0">
+                        <img
+                          src={playlist.images[0]?.url || '/logo.png'}
+                          alt={playlist.name}
+                          className="w-12 h-12 rounded-md object-cover"
+                        />
+                      </div>
+
+                      {/* Playlist Info */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-white font-medium truncate">{playlist.name}</h3>
+                        <p className="text-gray-400 text-sm truncate">
+                          {playlist.owner.display_name} • {playlist.trackCount} tracks
+                        </p>
+                        <p className="text-gray-500 text-xs truncate">
+                          {playlist.collaborative ? 'Collaborative' : playlist.public ? 'Public' : 'Private'}
+                        </p>
+                      </div>
+
+                      {/* Estimated Listens */}
+                      <div className="flex-shrink-0 text-center">
+                        <div className="text-[#1DB954] font-bold text-lg">
+                          {playlist.estimatedListens}
+                        </div>
+                        <div className="text-gray-400 text-xs">listens</div>
+                      </div>
+
+                      {/* Popularity Score */}
+                      <div className="flex-shrink-0">
+                        <div className="w-20 bg-[#404040] rounded-full h-2">
+                          <div 
+                            className="bg-[#1DB954] h-2 rounded-full transition-all duration-500"
+                            style={{ width: `${Math.min((playlist.popularityScore / 100) * 100, 100)}%` }}
+                          ></div>
+                        </div>
+                        <div className="text-gray-400 text-xs text-center mt-1">
+                          {playlist.popularityScore}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-400">No playlist data available</p>
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* Top 25 Most Played Tracks */}
+            <section className="bg-gradient-to-br from-[#232323] to-[#2a2a2a] rounded-xl lg:rounded-2xl p-4 lg:p-6 border border-[#282828] shadow-xl">
+              <div className="flex items-center justify-between mb-4 lg:mb-6">
+                <h2 className="text-xl lg:text-2xl font-bold text-white">Top 25 Most Played Tracks</h2>
+                <button
+                  onClick={() => setShowTopTracksModal(true)}
+                  className="px-4 py-2 bg-[#1DB954] hover:bg-[#1ed760] text-white rounded-lg text-sm font-medium transition-colors"
+                >
+                  View All 25
+                </button>
+              </div>
+              <div className="text-center py-8">
+                <div className="w-16 h-16 bg-[#1DB954]/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-[#1DB954]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                  </svg>
+                </div>
+                <p className="text-white font-medium mb-2">Discover Your Most Played Tracks</p>
+                <p className="text-gray-400 text-sm mb-4">
+                  See which songs appear in the most playlists and get insights into your listening habits
+                </p>
+                <button
+                  onClick={() => setShowTopTracksModal(true)}
+                  className="px-6 py-3 bg-[#1DB954] hover:bg-[#1ed760] text-white rounded-lg font-medium transition-colors"
+                >
+                  Explore Top Tracks
+                </button>
+              </div>
+            </section>
           </div>
         ) : (
           <div className="text-center py-12">
@@ -348,6 +502,12 @@ export default function AnalyticsPage() {
         isOpen={showGenreModal}
         onClose={() => setShowGenreModal(false)}
         selectedGenre={selectedGenre || ''}
+      />
+
+      {/* Top Tracks Modal */}
+      <TopTracksModal
+        isOpen={showTopTracksModal}
+        onClose={() => setShowTopTracksModal(false)}
       />
     </div>
   );
