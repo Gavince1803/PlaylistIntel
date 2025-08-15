@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get recently played tracks to see which playlists are most active
-    const recentlyPlayedResponse = await fetch('https://api.spotify.com/v1/me/player/recently-played?limit=50', {
+            const recentlyPlayedResponse = await fetch('https://api.spotify.com/v1/me/player/recently-played?limit=10', {
       headers: {
         'Authorization': `Bearer ${session.accessToken}`
       }

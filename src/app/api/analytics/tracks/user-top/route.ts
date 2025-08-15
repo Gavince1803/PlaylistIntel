@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 
     // Get user's top tracks from Spotify (real data, not estimates)
     const topTracksResponse = await fetch(
-      `https://api.spotify.com/v1/me/top/tracks?time_range=${timeRange}&limit=50`,
+      `https://api.spotify.com/v1/me/top/tracks?time_range=${timeRange}&limit=10`,
       {
         headers: {
           'Authorization': `Bearer ${session.accessToken}`
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
         
         // Retry once
         const retryResponse = await fetch(
-          `https://api.spotify.com/v1/me/top/tracks?time_range=${timeRange}&limit=50`,
+          `https://api.spotify.com/v1/me/top/tracks?time_range=${timeRange}&limit=10`,
           {
             headers: {
               'Authorization': `Bearer ${session.accessToken}`

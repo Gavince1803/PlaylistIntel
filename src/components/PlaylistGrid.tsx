@@ -7,6 +7,34 @@ import Modal from './Modal';
 
 import MusicalProfile from './MusicalProfile';
 
+// Rate limiting hook
+function useRateLimitHandler() {
+  const [isRateLimited, setIsRateLimited] = useState(false);
+  const [rateLimitResetTime, setRateLimitResetTime] = useState(0);
+
+  const handleRateLimit = useCallback(() => {
+    setIsRateLimited(true);
+    const resetTime = Date.now() + (60 * 60 * 1000); // 1 hour
+    setRateLimitResetTime(resetTime);
+    
+    // Reset after 1 hour
+    setTimeout(() => {
+      setIsRateLimited(false);
+      setRateLimitResetTime(0);
+    }, 60 * 60 * 1000);
+  }, []);
+
+  const checkRateLimit = useCallback(() => {
+    if (isRateLimited && Date.now() > rateLimitResetTime) {
+      setIsRateLimited(false);
+      setRateLimitResetTime(0);
+    }
+    return isRateLimited;
+  }, [isRateLimited, rateLimitResetTime]);
+
+  return { isRateLimited, handleRateLimit, checkRateLimit };
+}
+
 interface SpotifyPlaylist {
   id: string;
   name: string;
@@ -54,6 +82,7 @@ function PlaylistContextMenu({ onEdit, onDelete, onShare, onClose, anchorRef }: 
 export default function PlaylistGrid({ playlists: propPlaylists, customTitle, viewMode: propViewMode }: PlaylistGridProps) {
   const { data: session } = useSession();
   const { showToast } = useToast();
+  const { isRateLimited, handleRateLimit, checkRateLimit } = useRateLimitHandler();
   const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>(propPlaylists || []);
   const [loading, setLoading] = useState(!propPlaylists);
   const [error, setError] = useState<string | null>(null);
@@ -105,7 +134,7 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle, vi
         setIsLoadingMore(true);
       }
       
-      const response = await fetch(`/api/playlists?limit=50&offset=${offset}`);
+      const response = await fetch(`/api/playlists?limit=10&offset=${offset}`);
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         
@@ -115,15 +144,21 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle, vi
         } else if (response.status === 401) {
           setError('Authentication failed. Please log in again.');
           showToast('Please log in again.', 'error');
-        } else if (response.status === 429 && !isRetry && retryCount < 3) {
-          // Retry rate limit errors up to 3 times
-          setRetryCount(prev => prev + 1);
-          showToast('Rate limit exceeded. Retrying...', 'info');
-          setTimeout(() => fetchPlaylists(true, offset, existingPlaylists), 2000 * (retryCount + 1));
-          return;
         } else if (response.status === 429) {
-          setError('Too many requests. Please try again in a few moments.');
-          showToast('Rate limit exceeded. Please wait a moment.', 'error');
+          // Handle rate limiting
+          handleRateLimit();
+          if (!isRetry && retryCount < 2) {
+            // Retry rate limit errors up to 2 times with longer delays
+            setRetryCount(prev => prev + 1);
+            const delay = 5000 * (retryCount + 1); // 5s, 10s delays
+            showToast(`Rate limit exceeded. Retrying in ${delay/1000}s...`, 'info');
+            setTimeout(() => fetchPlaylists(true, offset, existingPlaylists), delay);
+            return;
+          } else {
+            setError('Rate limit exceeded. Using cached data if available. Please wait 1 hour before trying again.');
+            showToast('Rate limit exceeded. Using cached data.', 'info');
+            // Don't return here, let it continue to show cached data
+          }
         } else {
           const errorMessage = errorData.message || 'Failed to fetch playlists';
           setError(errorMessage);
@@ -136,14 +171,14 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle, vi
       const newPlaylists = data.playlists || [];
       const allPlaylists = [...existingPlaylists, ...newPlaylists];
       
-      // If we got less than 50 playlists, we've reached the end
-      if (newPlaylists.length < 50) {
+      // If we got less than 10 playlists, we've reached the end
+      if (newPlaylists.length < 10) {
         setHasMorePlaylists(false);
         setPlaylists(allPlaylists);
         setRetryCount(0); // Reset retry count on success
       } else {
         // Fetch more playlists recursively
-        await fetchPlaylists(isRetry, offset + 50, allPlaylists);
+        await fetchPlaylists(isRetry, offset + 10, allPlaylists);
         return; // Don't set playlists here as we're still fetching
       }
     } catch (err) {

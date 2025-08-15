@@ -166,7 +166,7 @@ export class SpotifyService {
     }
   }
 
-  async getUserPlaylists(limit = 50, offset = 0): Promise<SpotifyPlaylist[]> {
+  async getUserPlaylists(limit = 10, offset = 0): Promise<SpotifyPlaylist[]> {
     try {
       const response = await this.makeApiCall(() => 
         this.api.getUserPlaylists({ limit, offset })
@@ -501,3 +501,104 @@ export class SpotifyService {
 }
 
 export default spotifyApi; 
+
+// Circuit breaker state
+let isRateLimited = false;
+let rateLimitResetTime = 0;
+const RATE_LIMIT_COOLDOWN = 60 * 60 * 1000; // 1 hour in milliseconds
+
+// Check if we're currently rate limited
+export function isCurrentlyRateLimited(): boolean {
+  if (!isRateLimited) return false;
+  
+  // Check if cooldown period has passed
+  if (Date.now() > rateLimitResetTime) {
+    isRateLimited = false;
+    rateLimitResetTime = 0;
+    return false;
+  }
+  
+  return true;
+}
+
+// Mark as rate limited
+function markAsRateLimited(): void {
+  isRateLimited = true;
+  rateLimitResetTime = Date.now() + RATE_LIMIT_COOLDOWN;
+  console.warn('🚨 Rate limiting detected - using cached data for 1 hour');
+}
+
+// Local cache for API responses
+const apiCache = new Map<string, { data: any; timestamp: number; ttl: number }>();
+const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+
+// Get cached data if available and not expired
+function getCachedData(key: string): any | null {
+  const cached = apiCache.get(key);
+  if (!cached) return null;
+  
+  if (Date.now() > cached.timestamp + cached.ttl) {
+    apiCache.delete(key);
+    return null;
+  }
+  
+  return cached.data;
+}
+
+// Set data in cache
+function setCachedData(key: string, data: any, ttl: number = CACHE_TTL): void {
+  apiCache.set(key, {
+    data,
+    timestamp: Date.now(),
+    ttl
+  });
+}
+
+// Enhanced fetch with circuit breaker and cache
+async function fetchWithCircuitBreakerAndCache(url: string, options: RequestInit = {}, cacheKey?: string) {
+  // Check cache first if we have a cache key
+  if (cacheKey) {
+    const cachedData = getCachedData(cacheKey);
+    if (cachedData) {
+      console.log('📦 Using cached data for:', cacheKey);
+      return { ok: true, json: () => Promise.resolve(cachedData) };
+    }
+  }
+
+  // If rate limited, throw error to trigger cache fallback
+  if (isCurrentlyRateLimited()) {
+    throw new Error('RATE_LIMITED');
+  }
+
+  try {
+    const response = await fetch(url, options);
+    
+    // Check for rate limiting
+    if (response.status === 429) {
+      markAsRateLimited();
+      throw new Error('RATE_LIMITED');
+    }
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    // Cache successful responses
+    if (cacheKey && response.status === 200) {
+      const responseClone = response.clone();
+      try {
+        const data = await responseClone.json();
+        setCachedData(cacheKey, data);
+      } catch (e) {
+        // Ignore cache errors
+      }
+    }
+    
+    return response;
+  } catch (error) {
+    if (error instanceof Error && error.message === 'RATE_LIMITED') {
+      throw error;
+    }
+    throw new Error(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+} 

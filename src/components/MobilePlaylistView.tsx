@@ -53,7 +53,7 @@ export default function MobilePlaylistView() {
         setError(null);
       }
       
-      const response = await fetch(`/api/playlists?limit=50&offset=${offset}`);
+              const response = await fetch(`/api/playlists?limit=10&offset=${offset}`);
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         

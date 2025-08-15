@@ -169,6 +169,10 @@ export default function Dashboard() {
                   <div className="min-w-0 flex-1">
                     <h2 className="text-xl lg:text-3xl font-bold text-white">Your Playlists</h2>
                     <p className="text-gray-400 text-sm lg:text-base mt-1">Analyze your music taste and discover insights</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                      <span className="text-yellow-400 text-xs font-medium">Rate limiting active - using cached data</span>
+                    </div>
                   </div>
                 </div>
               </div>

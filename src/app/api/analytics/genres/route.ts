@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
         
         // Get tracks from this playlist
         try {
-          const tracksResponse = await fetchWithRetry(`https://api.spotify.com/v1/playlists/${playlist.id}/tracks?limit=50`, {
+          const tracksResponse = await fetchWithRetry(`https://api.spotify.com/v1/playlists/${playlist.id}/tracks?limit=10`, {
             headers: {
               'Authorization': `Bearer ${session.accessToken}`
             }

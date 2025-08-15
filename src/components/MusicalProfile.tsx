@@ -223,7 +223,7 @@ export default function MusicalProfile({ playlistId, onClose }: MusicalProfilePr
   const fetchUserPlaylists = async () => {
     try {
       setLoadingPlaylists(true);
-      const response = await fetch('/api/playlists?limit=50');
+              const response = await fetch('/api/playlists?limit=10');
       if (!response.ok) {
         throw new Error('Failed to fetch playlists');
       }
