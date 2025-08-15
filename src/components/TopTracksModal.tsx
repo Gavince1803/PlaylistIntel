@@ -47,9 +47,20 @@ export default function TopTracksModal({ isOpen, onClose }: TopTracksModalProps)
       }
       
       const data = await response.json();
-      const sortedTracks = (data.tracks || []).sort((a: Track, b: Track) => 
-        (b.estimatedPlays || 0) - (a.estimatedPlays || 0)
-      );
+      
+      // Sort tracks by estimatedPlays in descending order (highest first)
+      const sortedTracks = (data.tracks || []).sort((a: Track, b: Track) => {
+        const aPlays = a.estimatedPlays || 0;
+        const bPlays = b.estimatedPlays || 0;
+        return bPlays - aPlays; // Descending order
+      });
+      
+      console.log('🎵 Top Tracks sorted by estimatedPlays:', sortedTracks.map((t: Track) => ({
+        name: t.name,
+        estimatedPlays: t.estimatedPlays,
+        rank: t.rank
+      })));
+      
       setTracks(sortedTracks);
     } catch (error) {
       console.error('Error fetching top tracks:', error);
@@ -110,12 +121,12 @@ export default function TopTracksModal({ isOpen, onClose }: TopTracksModalProps)
                   className="flex items-center space-x-4 p-4 rounded-xl hover:bg-[#2a2a2a] transition-all duration-200 cursor-pointer group border border-transparent hover:border-[#404040]"
                   onClick={() => openInSpotify(track.external_urls.spotify)}
                 >
-                  {/* Rank - Better styling */}
+                  {/* Rank - Fixed to show consistent 1, 2, 3, 4, 5... */}
                   <div className="flex-shrink-0">
                     <span className={`text-xl font-bold ${
                       index < 3 ? 'text-[#1DB954]' : 'text-gray-400'
                     }`}>
-                      #{track.rank || index + 1}
+                      #{index + 1}
                     </span>
                   </div>
 

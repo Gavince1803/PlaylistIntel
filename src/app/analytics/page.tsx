@@ -29,10 +29,13 @@ interface MostListenedPlaylist {
   trackCount: number;
   followers?: number;
   createdAt?: string;
-  // New properties for actual user listens
-  actualListens: number;
-  recentlyPlayedFromPlaylist: number;
-  topTracksFromPlaylist: number;
+  // Original working fields
+  popularityScore: number;
+  estimatedListens: number;
+  // New properties for actual user listens (keeping for compatibility)
+  actualListens?: number;
+  recentlyPlayedFromPlaylist?: number;
+  topTracksFromPlaylist?: number;
   externalUrl?: string;
   image?: string; // Added for new image field
 }
@@ -65,37 +68,61 @@ export default function AnalyticsPage() {
   const { showToast } = useToast();
 
   useEffect(() => {
+    console.log('🔄 Analytics useEffect triggered:', {
+      hasSession: !!session,
+      hasAccessToken: !!session?.accessToken,
+      sessionData: session
+    });
+
     if (session?.accessToken) {
+      console.log('✅ Session has access token, starting data fetch...');
       // Fetch analytics first, then genres and playlists
       fetchAnalytics().then(() => {
+        console.log('📊 Analytics fetched successfully, starting other data fetches...');
         // Add a small delay to ensure analytics are loaded before fetching other data
         setTimeout(() => {
+          console.log('⏰ Delay completed, fetching remaining data...');
           fetchGenres();
-          fetchUserPlaylistActivity();
-          fetchUserTopTracks();
-          fetchListeningHistory();
+          fetchMostListenedPlaylists(); // Changed back to original API
+          fetchMostPlayedTracks(); // Changed back to original API
         }, 500);
+      }).catch((error) => {
+        console.error('❌ Error in analytics fetch chain:', error);
+      });
+    } else {
+      console.warn('⚠️ No session or access token available:', {
+        session: session,
+        accessToken: session?.accessToken
       });
     }
   }, [session]);
 
   const fetchAnalytics = async () => {
     try {
+      console.log('📊 Starting fetchAnalytics...');
       setLoading(true);
       
+      console.log('📊 Fetching from /api/analytics/overview...');
       const response = await fetch('/api/analytics/overview');
+      console.log('📊 Overview API response status:', response.status);
+      console.log('📊 Overview API response headers:', Object.fromEntries(response.headers.entries()));
+      
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.error('📊 Overview API error response:', errorData);
         throw new Error(errorData.error || 'Failed to fetch analytics data');
       }
       
       const data = await response.json();
+      console.log('📊 Overview API data received:', data);
       setAnalyticsData(data);
+      console.log('📊 Analytics data set successfully');
     } catch (error) {
-      console.error('Error fetching analytics:', error);
+      console.error('❌ Error fetching analytics:', error);
       showToast('Failed to load analytics data', 'error');
     } finally {
       setLoading(false);
+      console.log('📊 fetchAnalytics completed');
     }
   };
 
@@ -136,89 +163,79 @@ export default function AnalyticsPage() {
     }
   };
 
-  const fetchUserPlaylistActivity = async () => {
+  const fetchMostListenedPlaylists = async () => {
     try {
       setPlaylistsLoading(true);
-      console.log('📊 Fetching user playlist activity...');
+      console.log('📊 Starting fetchMostListenedPlaylists...');
       
-      const response = await fetch('/api/analytics/playlists/user-listens');
+      console.log('📊 Fetching from /api/analytics/playlists/most-listened...');
+      const response = await fetch('/api/analytics/playlists/most-listened');
+      console.log('📊 Most-listened API response status:', response.status);
+      console.log('📊 Most-listened API response headers:', Object.fromEntries(response.headers.entries()));
+      
       if (!response.ok) {
-        throw new Error('Failed to fetch user playlist activity');
+        const errorText = await response.text();
+        console.error('📊 Most-listened API error response:', errorText);
+        throw new Error('Failed to fetch most listened playlists');
       }
       
       const data = await response.json();
-      console.log('📊 User playlist activity received:', data.playlists?.length || 0, 'playlists');
+      console.log('📊 Most-listened API data received:', data);
+      console.log('📊 Most listened playlists received:', data.playlists?.length || 0, 'playlists');
       
       if (data.playlists && Array.isArray(data.playlists)) {
         setMostListenedPlaylists(data.playlists);
         setPlaylistsFallback(data.fallback || false);
+        console.log('📊 Playlists data set successfully');
       } else {
-        console.warn('📊 User playlist activity API returned invalid data format:', data);
+        console.warn('📊 Most-listened API returned invalid data format:', data);
         setMostListenedPlaylists([]);
         setPlaylistsFallback(false);
       }
     } catch (error) {
-      console.error('Error fetching user playlist activity:', error);
-      showToast('Failed to load playlist activity data', 'error');
+      console.error('❌ Error fetching most listened playlists:', error);
+      showToast('Failed to load most listened playlists data', 'error');
       setMostListenedPlaylists([]);
     } finally {
       setPlaylistsLoading(false);
+      console.log('📊 fetchMostListenedPlaylists completed');
     }
   };
 
-  const fetchUserTopTracks = async () => {
+  const fetchMostPlayedTracks = async () => {
     try {
       setTopTracksLoading(true);
-      console.log('🎵 Fetching user top tracks...');
+      console.log('🎵 Starting fetchMostPlayedTracks...');
       
-      const response = await fetch('/api/analytics/tracks/user-top?time_range=medium_term');
+      console.log('🎵 Fetching from /api/analytics/tracks/most-played...');
+      const response = await fetch('/api/analytics/tracks/most-played');
+      console.log('🎵 Most-played API response status:', response.status);
+      console.log('🎵 Most-played API response headers:', Object.fromEntries(response.headers.entries()));
+      
       if (!response.ok) {
-        throw new Error('Failed to fetch user top tracks');
+        const errorText = await response.text();
+        console.error('🎵 Most-played API error response:', errorText);
+        throw new Error('Failed to fetch most played tracks');
       }
       
       const data = await response.json();
-      console.log('🎵 User top tracks received:', data.tracks?.length || 0, 'tracks');
+      console.log('🎵 Most-played API data received:', data);
+      console.log('🎵 Most played tracks received:', data.tracks?.length || 0, 'tracks');
       
       if (data.tracks && Array.isArray(data.tracks)) {
         setUserTopTracks(data.tracks);
+        console.log('🎵 Top tracks data set successfully');
       } else {
-        console.warn('🎵 User top tracks API returned invalid data format:', data);
+        console.warn('🎵 Most-played API returned invalid data format:', data);
         setUserTopTracks([]);
       }
     } catch (error) {
-      console.error('Error fetching user top tracks:', error);
-      showToast('Failed to load user top tracks data', 'error');
+      console.error('❌ Error fetching most played tracks:', error);
+      showToast('Failed to load most played tracks data', 'error');
       setUserTopTracks([]);
     } finally {
       setTopTracksLoading(false);
-    }
-  };
-
-  const fetchListeningHistory = async () => {
-    try {
-      setHistoryLoading(true);
-      console.log('📚 Fetching listening history...');
-      
-      const response = await fetch('/api/analytics/listening-history?limit=50');
-      if (!response.ok) {
-        throw new Error('Failed to fetch listening history');
-      }
-      
-      const data = await response.json();
-      console.log('📚 Listening history received:', data.tracks?.length || 0, 'tracks');
-      
-      if (data.tracks && Array.isArray(data.tracks)) {
-        setListeningHistory(data);
-      } else {
-        console.warn('📚 Listening history API returned invalid data format:', data);
-        setListeningHistory(null);
-      }
-    } catch (error) {
-      console.error('Error fetching listening history:', error);
-      showToast('Failed to load listening history data', 'error');
-      setListeningHistory(null);
-    } finally {
-      setHistoryLoading(false);
+      console.log('🎵 fetchMostPlayedTracks completed');
     }
   };
 
@@ -295,8 +312,8 @@ export default function AnalyticsPage() {
            <div className="bg-[#1DB954]/10 border border-[#1DB954]/20 rounded-lg p-3 mt-3">
              <p className="text-[#1DB954] text-sm font-medium">📊 Nota sobre las métricas:</p>
              <p className="text-gray-400 text-xs leading-relaxed">
-               • <strong>Top Tracks:</strong> Basado en tu historial real de reproducción de Spotify (endpoint /me/top/tracks)<br/>
-               • <strong>Reproducciones por Playlist:</strong> Calculado basado en tracks recientemente reproducidos y en tu top tracks<br/>
+               • <strong>Top Tracks:</strong> Basado en tracks que aparecen en múltiples playlists (endpoint /playlists/tracks)<br/>
+               • <strong>Playlists Populares:</strong> Estimación basada en track count, followers y actividad (endpoint /playlists/most-listened)<br/>
                • <strong>Top Genres:</strong> Análisis de géneros de tus playlists más activas. Si hay problemas de API, se muestra datos básicos
              </p>
            </div>
@@ -458,7 +475,7 @@ export default function AnalyticsPage() {
             <section className="bg-gradient-to-br from-[#232323] to-[#2a2a2a] rounded-xl lg:rounded-2xl p-4 lg:p-6 border border-[#282828] shadow-xl">
               <div className="flex items-center justify-between mb-4 lg:mb-6">
                 <div className="flex items-center gap-3">
-                  <h2 className="text-xl lg:text-2xl font-bold text-white">Your Most Listened Playlists</h2>
+                  <h2 className="text-xl lg:text-2xl font-bold text-white">Your Most Popular Playlists</h2>
                   {playlistsFallback && (
                     <div className="flex items-center gap-2 px-3 py-1 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
                       <span className="text-yellow-400 text-xs">⚠️ Fallback Data</span>
@@ -466,14 +483,14 @@ export default function AnalyticsPage() {
                   )}
                 </div>
                 <div className="text-gray-400 text-sm">
-                  Based on your actual listening activity
+                  Based on track count, followers, and activity
                 </div>
               </div>
               <div className="space-y-3 lg:space-y-4">
                 {playlistsLoading ? (
                   <div className="text-center py-8">
                     <LoadingSpinner size="sm" />
-                    <p className="text-gray-400 mt-2">Loading your playlist listens...</p>
+                    <p className="text-gray-400 mt-2">Loading your most popular playlists...</p>
                   </div>
                 ) : mostListenedPlaylists.length > 0 ? (
                   mostListenedPlaylists.slice(0, 5).map((playlist, index) => (
@@ -508,33 +525,33 @@ export default function AnalyticsPage() {
                           {playlist.trackCount} tracks
                         </p>
                         <p className="text-gray-500 text-xs truncate">
-                          Recently played: {playlist.recentlyPlayedFromPlaylist} tracks
+                          {playlist.followers || 0} followers
                         </p>
                       </div>
 
                       {/* Actual User Listens */}
                       <div className="flex-shrink-0 text-center">
                         <div className="text-[#1DB954] font-bold text-lg">
-                          {playlist.actualListens}
+                          {playlist.estimatedListens || 0}
                         </div>
-                        <div className="text-gray-400 text-xs">times listened</div>
+                        <div className="text-gray-400 text-xs">estimated listens</div>
                       </div>
 
-                      {/* Top Tracks from Playlist */}
+                      {/* Popularity Score */}
                       <div className="flex-shrink-0 text-center">
                         <div className="text-[#1DB954] font-bold text-lg">
-                          {playlist.topTracksFromPlaylist}
+                          {playlist.popularityScore || 0}
                         </div>
-                        <div className="text-gray-400 text-xs">in top tracks</div>
+                        <div className="text-gray-400 text-xs">popularity score</div>
                       </div>
                     </div>
                   ))
                 ) : (
                   <div className="text-center py-8">
-                    <p className="text-gray-400">No playlist listens data available</p>
+                    <p className="text-gray-400">No playlist data available</p>
                     <p className="text-gray-500 text-sm mt-2">This might be because:</p>
                     <ul className="text-gray-500 text-sm mt-1 space-y-1">
-                      <li>• You haven't played any tracks recently</li>
+                      <li>• You don't have enough playlists</li>
                       <li>• Some playlists might be private</li>
                       <li>• Try refreshing the page</li>
                     </ul>
@@ -623,37 +640,6 @@ export default function AnalyticsPage() {
                 )}
               </div>
             </section>
-
-            {/* Recent Listening History */}
-            {listeningHistory && (
-              <section className="bg-gradient-to-br from-[#232323] to-[#2a2a2a] rounded-xl lg:rounded-2xl p-4 lg:p-6 border border-[#282828] shadow-xl">
-                <div className="flex items-center justify-between mb-4 lg:mb-6">
-                  <h2 className="text-xl lg:text-2xl font-bold text-white">Recent Listening Activity</h2>
-                  <div className="text-gray-400 text-sm">
-                    Last 50 tracks
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="bg-[#2a2a2a] rounded-lg p-4">
-                    <div className="text-[#1DB954] text-2xl font-bold">{listeningHistory.timeGroups?.lastHour || 0}</div>
-                    <div className="text-gray-400 text-sm">Last Hour</div>
-                  </div>
-                  <div className="bg-[#2a2a2a] rounded-lg p-4">
-                    <div className="text-[#1DB954] text-2xl font-bold">{listeningHistory.timeGroups?.lastDay || 0}</div>
-                    <div className="text-gray-400 text-sm">Last 24 Hours</div>
-                  </div>
-                  <div className="bg-[#2a2a2a] rounded-lg p-4">
-                    <div className="text-[#1DB954] text-2xl font-bold">{listeningHistory.timeGroups?.lastWeek || 0}</div>
-                    <div className="text-gray-400 text-sm">This Week</div>
-                  </div>
-                </div>
-                <div className="mt-4 text-center">
-                  <p className="text-gray-400 text-sm">
-                    Most active period: <span className="text-[#1DB954] font-medium">{listeningHistory.listeningInsights?.mostActivePeriod || 'Unknown'}</span>
-                  </p>
-                </div>
-              </section>
-            )}
           </div>
         ) : (
           <div className="text-center py-12">
