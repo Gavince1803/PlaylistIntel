@@ -53,24 +53,49 @@ export default function MobilePlaylistView() {
         setError(null);
       }
       
-              const response = await fetch(`/api/playlists?limit=10&offset=${offset}`);
+      const response = await fetch(`/api/playlists?limit=10&offset=${offset}`);
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         
         if (response.status === 403) {
-          setError('Access forbidden. Your Spotify app is in Development Mode. Please add your email as a test user or contact support.');
-          showToast('Access forbidden. Check Spotify app settings.', 'error');
+          const errorMessage = '🚫 Access Forbidden: Your Spotify app is in Development Mode. Only test users can access it. To fix this: 1) Go to Spotify Developer Dashboard, 2) Add your email as a test user, or 3) Switch to Production Mode (requires business verification).';
+          setError(errorMessage);
+          showToast('Development Mode restriction detected', 'error');
+          
+          // Dispatch custom event for RateLimitStatus component
+          window.dispatchEvent(new CustomEvent('forbidden-error', { 
+            detail: { statusCode: 403, message: errorMessage } 
+          }));
         } else if (response.status === 401) {
-          setError('Authentication failed. Please log in again.');
-          showToast('Please log in again.', 'error');
+          const errorMessage = '🔐 Authentication Failed: Your Spotify session has expired. Please refresh the page and sign in again.';
+          setError(errorMessage);
+          showToast('Session expired - please sign in again', 'error');
+          
+          // Dispatch custom event for RateLimitStatus component
+          window.dispatchEvent(new CustomEvent('auth-error', { 
+            detail: { statusCode: 401, message: errorMessage } 
+          }));
         } else if (response.status === 429 && !isRetry && retryCount < 3) {
           setRetryCount(prev => prev + 1);
-          showToast('Rate limit exceeded. Retrying...', 'info');
-          setTimeout(() => fetchPlaylists(true, offset, existingPlaylists), 2000 * (retryCount + 1));
+          const retryDelay = 2000 * (retryCount + 1);
+          showToast(`Rate limit exceeded. Retrying in ${retryDelay/1000}s...`, 'info');
+          
+          // Dispatch custom event for RateLimitStatus component
+          window.dispatchEvent(new CustomEvent('rate-limit-error', { 
+            detail: { statusCode: 429, message: 'Rate limit exceeded' } 
+          }));
+          
+          setTimeout(() => fetchPlaylists(true, offset, existingPlaylists), retryDelay);
           return;
         } else if (response.status === 429) {
-          setError('Too many requests. Please try again in a few moments.');
-          showToast('Rate limit exceeded. Please wait a moment.', 'error');
+          const errorMessage = '⏰ Rate Limit Exceeded: Spotify API rate limit exceeded. The app will automatically retry with delays. Please wait a moment or refresh the page.';
+          setError(errorMessage);
+          showToast('Rate limit exceeded - waiting for reset', 'info');
+          
+          // Dispatch custom event for RateLimitStatus component
+          window.dispatchEvent(new CustomEvent('rate-limit-error', { 
+            detail: { statusCode: 429, message: 'Rate limit exceeded' } 
+          }));
         } else {
           const errorMessage = errorData.message || 'Failed to fetch playlists';
           setError(errorMessage);
@@ -639,19 +664,19 @@ export default function MobilePlaylistView() {
                 Cancel
               </button>
             </div>
-                     </div>
-         </div>
-       )}
+          </div>
+        </div>
+      )}
 
-       {/* Genres Modal */}
-       {selectedPlaylist && (
-         <PlaylistGenresModal
-           isOpen={showGenresModal}
-           onClose={() => setShowGenresModal(false)}
-           playlistId={selectedPlaylist.id}
-           playlistName={selectedPlaylist.name}
-         />
-       )}
-     </>
-   );
- } 
+      {/* Genres Modal */}
+      {selectedPlaylist && (
+        <PlaylistGenresModal
+          isOpen={showGenresModal}
+          onClose={() => setShowGenresModal(false)}
+          playlistId={selectedPlaylist.id}
+          playlistName={selectedPlaylist.name}
+        />
+      )}
+    </>
+  );
+} 

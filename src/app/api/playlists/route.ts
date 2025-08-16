@@ -36,35 +36,48 @@ export async function GET(request: NextRequest) {
     } catch (error: any) {
       console.error('Error in getUserPlaylists:', error && (error.body || error.message || error));
       
-      // Handle specific error types
-      if (error.message?.includes('Access forbidden')) {
+      // Handle specific error types with better messages
+      if (error.statusCode === 403 || error.message?.includes('Access forbidden')) {
+        console.log('🚫 403 Forbidden error detected');
         return NextResponse.json(
           { 
             error: 'Access forbidden', 
-            message: 'Your Spotify app is in Development Mode. Please add your email as a test user or contact support.',
-            code: 'FORBIDDEN'
+            message: 'Your Spotify app is in Development Mode. This means only test users can access it. To fix this: 1) Go to Spotify Developer Dashboard, 2) Add your email as a test user, or 3) Switch to Production Mode (requires business verification).',
+            code: 'FORBIDDEN',
+            solution: 'Add test users or switch to Production Mode in Spotify Developer Dashboard'
           },
           { status: 403 }
         );
-      } else if (error.message?.includes('Authentication failed')) {
+      } else if (error.statusCode === 401 || error.message?.includes('Authentication failed')) {
+        console.log('🔐 401 Authentication error detected');
         return NextResponse.json(
           { 
             error: 'Authentication failed', 
-            message: 'Please log in again.',
-            code: 'AUTH_FAILED'
+            message: 'Your Spotify session has expired. Please log in again.',
+            code: 'AUTH_FAILED',
+            solution: 'Refresh the page and sign in again'
           },
           { status: 401 }
         );
-      } else if (error.statusCode === 429) {
+      } else if (error.statusCode === 429 || error.message?.includes('rate limit')) {
+        console.log('⏰ 429 Rate limit error detected');
         return NextResponse.json(
           { 
             error: 'Rate limit exceeded', 
-            message: 'Too many requests. Please try again in a few moments.',
-            code: 'RATE_LIMIT'
+            message: 'Spotify API rate limit exceeded. The app will automatically retry with delays. Please wait a moment.',
+            code: 'RATE_LIMIT',
+            solution: 'Wait a few minutes for rate limits to reset, or refresh the page'
           },
           { status: 429 }
         );
       }
+      
+      // Log unknown errors for debugging
+      console.log('❌ Unknown error type:', {
+        statusCode: error.statusCode,
+        message: error.message,
+        body: error.body
+      });
       
       throw error;
     }

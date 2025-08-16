@@ -1,48 +1,96 @@
 import SpotifyWebApi from 'spotify-web-api-node';
 
-// Rate limiting utility
+// Enhanced Rate Limiter with better Spotify API compliance
 class RateLimiter {
   private lastCall = 0;
-  private minInterval = 300; // Increased to 300ms between calls to be more conservative
+  private minInterval = 500; // Increased to 500ms to be more conservative with Spotify's limits
   private consecutiveErrors = 0;
-  private maxConsecutiveErrors = 3;
+  private maxConsecutiveErrors = 5;
   private globalErrorCount = 0;
-  private maxGlobalErrors = 10;
+  private maxGlobalErrors = 15;
+  private rateLimitResetTime = 0;
+  private currentWindowRequests = 0;
+  private maxRequestsPerWindow = 100; // Conservative estimate for Spotify's rate limits
 
   async waitForNextCall() {
     const now = Date.now();
+    
+    // Check if we're in a new rate limit window
+    if (now > this.rateLimitResetTime) {
+      this.currentWindowRequests = 0;
+      this.rateLimitResetTime = now + (60 * 1000); // Reset every minute
+    }
+    
+    // If we're approaching the rate limit, wait longer
+    if (this.currentWindowRequests > this.maxRequestsPerWindow * 0.8) {
+      const waitTime = Math.max(1000, this.minInterval * 2);
+      console.log(`⚠️ Approaching rate limit, waiting ${waitTime}ms`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+    
     const timeSinceLastCall = now - this.lastCall;
     
     // Add exponential backoff if we've had consecutive errors
-    const backoffMultiplier = Math.min(2 ** this.consecutiveErrors, 16);
+    const backoffMultiplier = Math.min(2 ** this.consecutiveErrors, 32);
     const adjustedInterval = this.minInterval * backoffMultiplier;
     
     if (timeSinceLastCall < adjustedInterval) {
-      await new Promise(resolve => setTimeout(resolve, adjustedInterval - timeSinceLastCall));
+      const waitTime = adjustedInterval - timeSinceLastCall;
+      console.log(`⏳ Rate limiting: waiting ${waitTime}ms before next API call`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
     }
     
     this.lastCall = Date.now();
+    this.currentWindowRequests++;
   }
 
-  recordError() {
+  recordError(error: any) {
     this.consecutiveErrors = Math.min(this.consecutiveErrors + 1, this.maxConsecutiveErrors);
     this.globalErrorCount = Math.min(this.globalErrorCount + 1, this.maxGlobalErrors);
     
+    // Handle specific error types
+    if (error.statusCode === 429) {
+      // Rate limit exceeded - increase interval significantly
+      this.minInterval = Math.min(this.minInterval * 2, 2000);
+      console.log(`🚫 Rate limit exceeded, increased interval to ${this.minInterval}ms`);
+      
+      // If we get rate limited, wait for the reset window
+      if (this.rateLimitResetTime < Date.now()) {
+        this.rateLimitResetTime = Date.now() + (60 * 1000);
+      }
+    } else if (error.statusCode === 403) {
+      // Forbidden - this might be due to development mode restrictions
+      console.log(`🚫 403 Forbidden - possible development mode restriction`);
+    }
+    
     // If we've had too many global errors, increase the base interval
-    if (this.globalErrorCount > 5) {
-      this.minInterval = Math.min(this.minInterval * 1.5, 1000);
+    if (this.globalErrorCount > 8) {
+      this.minInterval = Math.min(this.minInterval * 1.5, 1500);
+      console.log(`⚠️ Too many errors, increased base interval to ${this.minInterval}ms`);
     }
   }
 
   recordSuccess() {
     this.consecutiveErrors = 0;
+    
     // Gradually decrease the interval back to normal
     if (this.globalErrorCount > 0) {
       this.globalErrorCount = Math.max(this.globalErrorCount - 1, 0);
-      if (this.globalErrorCount <= 3) {
-        this.minInterval = Math.max(this.minInterval * 0.9, 300);
+      if (this.globalErrorCount <= 5) {
+        this.minInterval = Math.max(this.minInterval * 0.95, 500);
       }
     }
+  }
+
+  // Get current status for debugging
+  getStatus() {
+    return {
+      minInterval: this.minInterval,
+      consecutiveErrors: this.consecutiveErrors,
+      globalErrorCount: this.globalErrorCount,
+      currentWindowRequests: this.currentWindowRequests,
+      rateLimitResetTime: this.rateLimitResetTime
+    };
   }
 }
 
@@ -133,7 +181,7 @@ export class SpotifyService {
     }
   }
 
-  // Helper method to make rate-limited API calls
+  // Enhanced helper method to make rate-limited API calls with better error handling
   private async makeApiCall<T>(apiCall: () => Promise<T>): Promise<T> {
     await this.rateLimiter.waitForNextCall();
     
@@ -142,25 +190,46 @@ export class SpotifyService {
       this.rateLimiter.recordSuccess();
       return result;
     } catch (error: any) {
-      this.rateLimiter.recordError();
+      this.rateLimiter.recordError(error);
       
       if (error.statusCode === 429) {
         // Rate limit exceeded, wait longer and retry with exponential backoff
-        const retryDelay = Math.min(2000 * (2 ** this.rateLimiter['consecutiveErrors']), 10000);
-        console.log(`Rate limit exceeded, waiting ${retryDelay}ms before retry...`);
+        const retryDelay = Math.min(3000 * (2 ** this.rateLimiter['consecutiveErrors']), 15000);
+        console.log(`🚫 Rate limit exceeded, waiting ${retryDelay}ms before retry...`);
+        
+        // Log rate limiter status for debugging
+        console.log('📊 Rate limiter status:', this.rateLimiter.getStatus());
+        
         await new Promise(resolve => setTimeout(resolve, retryDelay));
         await this.rateLimiter.waitForNextCall();
-        return await apiCall();
+        
+        // Try one more time after waiting
+        try {
+          return await apiCall();
+        } catch (retryError: any) {
+          console.log('❌ Retry failed after rate limit wait');
+          throw retryError;
+        }
       } else if (error.statusCode === 403) {
         // Forbidden - likely due to development mode restrictions or permission issues
-        console.log('403 Forbidden - This may be due to Spotify app being in Development Mode or permission issues');
-        // Don't throw error for 403, just return empty result to avoid breaking the app
+        console.log('🚫 403 Forbidden - This may be due to Spotify app being in Development Mode or permission issues');
+        console.log('💡 Solution: Add your email as a test user in Spotify Developer Dashboard or switch to Production Mode');
+        
+        // For 403 errors, we'll return empty results to avoid breaking the app
+        // but log the issue for debugging
         return [] as T;
       } else if (error.statusCode === 401) {
         // Unauthorized - token may be invalid
-        console.log('401 Unauthorized - Token may be invalid or expired');
+        console.log('🔐 401 Unauthorized - Token may be invalid or expired');
         throw new Error('Authentication failed. Please log in again.');
       }
+      
+      // Log other errors for debugging
+      console.log('❌ API call failed with error:', {
+        statusCode: error.statusCode,
+        message: error.message,
+        body: error.body
+      });
       
       throw error;
     }

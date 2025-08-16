@@ -139,24 +139,43 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle, vi
         const errorData = await response.json().catch(() => ({}));
         
         if (response.status === 403) {
-          setError('Access forbidden. Your Spotify app is in Development Mode. Please add your email as a test user or contact support.');
-          showToast('Access forbidden. Check Spotify app settings.', 'error');
+          const errorMessage = '🚫 Access Forbidden: Your Spotify app is in Development Mode. Only test users can access it. To fix this: 1) Go to Spotify Developer Dashboard, 2) Add your email as a test user, or 3) Switch to Production Mode (requires business verification).';
+          setError(errorMessage);
+          showToast('Development Mode restriction detected', 'error');
+          
+          // Dispatch custom event for RateLimitStatus component
+          window.dispatchEvent(new CustomEvent('forbidden-error', { 
+            detail: { statusCode: 403, message: errorMessage } 
+          }));
         } else if (response.status === 401) {
-          setError('Authentication failed. Please log in again.');
-          showToast('Please log in again.', 'error');
+          const errorMessage = '🔐 Authentication Failed: Your Spotify session has expired. Please refresh the page and sign in again.';
+          setError(errorMessage);
+          showToast('Session expired - please sign in again', 'error');
+          
+          // Dispatch custom event for RateLimitStatus component
+          window.dispatchEvent(new CustomEvent('auth-error', { 
+            detail: { statusCode: 401, message: errorMessage } 
+          }));
         } else if (response.status === 429) {
-          // Handle rate limiting
+          // Handle rate limiting with better user feedback
           handleRateLimit();
+          
+          // Dispatch custom event for RateLimitStatus component
+          window.dispatchEvent(new CustomEvent('rate-limit-error', { 
+            detail: { statusCode: 429, message: 'Rate limit exceeded' } 
+          }));
+          
           if (!isRetry && retryCount < 2) {
             // Retry rate limit errors up to 2 times with longer delays
             setRetryCount(prev => prev + 1);
             const delay = 5000 * (retryCount + 1); // 5s, 10s delays
-            showToast(`Rate limit exceeded. Retrying in ${delay/1000}s...`, 'info');
+            showToast(`⏰ Rate limit exceeded. Retrying in ${delay/1000}s...`, 'info');
             setTimeout(() => fetchPlaylists(true, offset, existingPlaylists), delay);
             return;
           } else {
-            setError('Rate limit exceeded. Using cached data if available. Please wait 1 hour before trying again.');
-            showToast('Rate limit exceeded. Using cached data.', 'info');
+            const errorMessage = '⏰ Rate Limit Exceeded: Spotify API rate limit exceeded. Using cached data if available. The app will automatically retry after 1 hour, or you can refresh the page.';
+            setError(errorMessage);
+            showToast('Rate limit exceeded - using cached data', 'info');
             // Don't return here, let it continue to show cached data
           }
         } else {

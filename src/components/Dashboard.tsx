@@ -6,6 +6,7 @@ import Sidebar from './Sidebar';
 import Header from './Header';
 import PlaylistGrid from './PlaylistGrid';
 import MobilePlaylistView from './MobilePlaylistView';
+import RateLimitStatus from './RateLimitStatus';
 import { useToast } from './Toast';
 
 export default function Dashboard() {
@@ -97,6 +98,9 @@ export default function Dashboard() {
         {/* Main content area */}
         <main className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-8 custom-scrollbar pt-20 lg:pt-24">
           <div className="max-w-7xl mx-auto">
+            {/* Rate Limit Status */}
+            <RateLimitStatus className="mb-4" />
+            
             {/* Welcome section */}
             <section className="mb-6 lg:mb-12">
               <div className="bg-gradient-to-r from-[#1DB954]/10 to-[#1ed760]/10 rounded-2xl lg:rounded-3xl p-4 lg:p-8 border border-[#1DB954]/20">
