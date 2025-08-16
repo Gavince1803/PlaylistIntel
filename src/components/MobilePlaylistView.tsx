@@ -62,28 +62,17 @@ export default function MobilePlaylistView() {
           setError(errorMessage);
           showToast('Development Mode restriction detected', 'error');
           
-          // Dispatch custom event for RateLimitStatus component
-          window.dispatchEvent(new CustomEvent('forbidden-error', { 
-            detail: { statusCode: 403, message: errorMessage } 
-          }));
+
         } else if (response.status === 401) {
           const errorMessage = '🔐 Authentication Failed: Your Spotify session has expired. Please refresh the page and sign in again.';
           setError(errorMessage);
           showToast('Session expired - please sign in again', 'error');
           
-          // Dispatch custom event for RateLimitStatus component
-          window.dispatchEvent(new CustomEvent('auth-error', { 
-            detail: { statusCode: 401, message: errorMessage } 
-          }));
+
         } else if (response.status === 429 && !isRetry && retryCount < 3) {
           setRetryCount(prev => prev + 1);
           const retryDelay = 2000 * (retryCount + 1);
           showToast(`Rate limit exceeded. Retrying in ${retryDelay/1000}s...`, 'info');
-          
-          // Dispatch custom event for RateLimitStatus component
-          window.dispatchEvent(new CustomEvent('rate-limit-error', { 
-            detail: { statusCode: 429, message: 'Rate limit exceeded' } 
-          }));
           
           setTimeout(() => fetchPlaylists(true, offset, existingPlaylists), retryDelay);
           return;
@@ -92,10 +81,7 @@ export default function MobilePlaylistView() {
           setError(errorMessage);
           showToast('Rate limit exceeded - waiting for reset', 'info');
           
-          // Dispatch custom event for RateLimitStatus component
-          window.dispatchEvent(new CustomEvent('rate-limit-error', { 
-            detail: { statusCode: 429, message: 'Rate limit exceeded' } 
-          }));
+
         } else {
           const errorMessage = errorData.message || 'Failed to fetch playlists';
           setError(errorMessage);

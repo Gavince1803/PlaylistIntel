@@ -6,7 +6,7 @@ import Sidebar from './Sidebar';
 import Header from './Header';
 import PlaylistGrid from './PlaylistGrid';
 import MobilePlaylistView from './MobilePlaylistView';
-import RateLimitStatus from './RateLimitStatus';
+
 import { useToast } from './Toast';
 
 export default function Dashboard() {
@@ -98,8 +98,7 @@ export default function Dashboard() {
         {/* Main content area */}
         <main className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-8 custom-scrollbar pt-20 lg:pt-24">
           <div className="max-w-7xl mx-auto">
-            {/* Rate Limit Status */}
-            <RateLimitStatus className="mb-4" />
+
             
             {/* Welcome section */}
             <section className="mb-6 lg:mb-12">
@@ -173,10 +172,7 @@ export default function Dashboard() {
                   <div className="min-w-0 flex-1">
                     <h2 className="text-xl lg:text-3xl font-bold text-white">Your Playlists</h2>
                     <p className="text-gray-400 text-sm lg:text-base mt-1">Analyze your music taste and discover insights</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
-                      <span className="text-yellow-400 text-xs font-medium">Rate limiting active - using cached data</span>
-                    </div>
+
                   </div>
                 </div>
               </div>

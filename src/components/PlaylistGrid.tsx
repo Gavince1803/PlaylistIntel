@@ -7,33 +7,7 @@ import Modal from './Modal';
 
 import MusicalProfile from './MusicalProfile';
 
-// Rate limiting hook
-function useRateLimitHandler() {
-  const [isRateLimited, setIsRateLimited] = useState(false);
-  const [rateLimitResetTime, setRateLimitResetTime] = useState(0);
 
-  const handleRateLimit = useCallback(() => {
-    setIsRateLimited(true);
-    const resetTime = Date.now() + (60 * 60 * 1000); // 1 hour
-    setRateLimitResetTime(resetTime);
-    
-    // Reset after 1 hour
-    setTimeout(() => {
-      setIsRateLimited(false);
-      setRateLimitResetTime(0);
-    }, 60 * 60 * 1000);
-  }, []);
-
-  const checkRateLimit = useCallback(() => {
-    if (isRateLimited && Date.now() > rateLimitResetTime) {
-      setIsRateLimited(false);
-      setRateLimitResetTime(0);
-    }
-    return isRateLimited;
-  }, [isRateLimited, rateLimitResetTime]);
-
-  return { isRateLimited, handleRateLimit, checkRateLimit };
-}
 
 interface SpotifyPlaylist {
   id: string;
@@ -82,7 +56,7 @@ function PlaylistContextMenu({ onEdit, onDelete, onShare, onClose, anchorRef }: 
 export default function PlaylistGrid({ playlists: propPlaylists, customTitle, viewMode: propViewMode }: PlaylistGridProps) {
   const { data: session } = useSession();
   const { showToast } = useToast();
-  const { isRateLimited, handleRateLimit, checkRateLimit } = useRateLimitHandler();
+
   const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>(propPlaylists || []);
   const [loading, setLoading] = useState(!propPlaylists);
   const [error, setError] = useState<string | null>(null);
@@ -143,27 +117,17 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle, vi
           setError(errorMessage);
           showToast('Development Mode restriction detected', 'error');
           
-          // Dispatch custom event for RateLimitStatus component
-          window.dispatchEvent(new CustomEvent('forbidden-error', { 
-            detail: { statusCode: 403, message: errorMessage } 
-          }));
+
         } else if (response.status === 401) {
           const errorMessage = '🔐 Authentication Failed: Your Spotify session has expired. Please refresh the page and sign in again.';
           setError(errorMessage);
           showToast('Session expired - please sign in again', 'error');
           
-          // Dispatch custom event for RateLimitStatus component
-          window.dispatchEvent(new CustomEvent('auth-error', { 
-            detail: { statusCode: 401, message: errorMessage } 
-          }));
+
         } else if (response.status === 429) {
-          // Handle rate limiting with better user feedback
-          handleRateLimit();
+
           
-          // Dispatch custom event for RateLimitStatus component
-          window.dispatchEvent(new CustomEvent('rate-limit-error', { 
-            detail: { statusCode: 429, message: 'Rate limit exceeded' } 
-          }));
+
           
           if (!isRetry && retryCount < 2) {
             // Retry rate limit errors up to 2 times with longer delays
