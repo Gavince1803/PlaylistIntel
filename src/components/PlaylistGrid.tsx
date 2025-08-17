@@ -108,7 +108,8 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle, vi
         setIsLoadingMore(true);
       }
       
-      const response = await fetch(`/api/playlists?limit=10&offset=${offset}`);
+      // Use full pagination to get ALL playlists at once
+      const response = await fetch(`/api/playlists?full=true`);
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         
@@ -151,19 +152,12 @@ export default function PlaylistGrid({ playlists: propPlaylists, customTitle, vi
       }
       
       const data = await response.json();
-      const newPlaylists = data.playlists || [];
-      const allPlaylists = [...existingPlaylists, ...newPlaylists];
+      const allPlaylists = data.playlists || [];
       
-      // If we got less than 10 playlists, we've reached the end
-      if (newPlaylists.length < 10) {
-        setHasMorePlaylists(false);
-        setPlaylists(allPlaylists);
-        setRetryCount(0); // Reset retry count on success
-      } else {
-        // Fetch more playlists recursively
-        await fetchPlaylists(isRetry, offset + 10, allPlaylists);
-        return; // Don't set playlists here as we're still fetching
-      }
+      // Since we're getting ALL playlists at once, no need for recursive pagination
+      setHasMorePlaylists(false);
+      setPlaylists(allPlaylists);
+      setRetryCount(0); // Reset retry count on success
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'An error occurred';
       setError(msg);

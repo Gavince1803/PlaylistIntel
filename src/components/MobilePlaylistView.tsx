@@ -53,7 +53,8 @@ export default function MobilePlaylistView() {
         setError(null);
       }
       
-      const response = await fetch(`/api/playlists?limit=10&offset=${offset}`);
+      // Use full pagination to get ALL playlists at once
+      const response = await fetch(`/api/playlists?full=true`);
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         
@@ -91,18 +92,11 @@ export default function MobilePlaylistView() {
       }
       
       const data = await response.json();
-      const newPlaylists = data.playlists || [];
-      const allPlaylists = [...existingPlaylists, ...newPlaylists];
+      const allPlaylists = data.playlists || [];
       
-      // If we got less than 50 playlists, we've reached the end
-      if (newPlaylists.length < 50) {
-        setPlaylists(allPlaylists);
-        setRetryCount(0);
-      } else {
-        // Fetch more playlists recursively
-        await fetchPlaylists(isRetry, offset + 50, allPlaylists);
-        return;
-      }
+      // Since we're getting ALL playlists at once, no need for recursive pagination
+      setPlaylists(allPlaylists);
+      setRetryCount(0);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'An error occurred';
       setError(msg);

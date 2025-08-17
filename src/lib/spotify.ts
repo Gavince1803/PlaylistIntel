@@ -261,6 +261,52 @@ export class SpotifyService {
     }
   }
 
+  // New method to get ALL user playlists using pagination
+  async getAllUserPlaylists(maxPlaylists = 1000): Promise<SpotifyPlaylist[]> {
+    try {
+      console.log(`🔄 Starting getAllUserPlaylists with maxPlaylists: ${maxPlaylists}`);
+      const allPlaylists: SpotifyPlaylist[] = [];
+      let offset = 0;
+      const limit = 50; // Spotify's max limit per request
+      let batchCount = 0;
+
+      while (allPlaylists.length < maxPlaylists) {
+        batchCount++;
+        console.log(`📥 Batch ${batchCount}: Fetching playlists with offset: ${offset}, limit: ${limit}, current total: ${allPlaylists.length}`);
+        
+        try {
+          const playlists = await this.getUserPlaylists(limit, offset);
+          console.log(`📊 Batch ${batchCount}: Received ${playlists.length} playlists in this batch`);
+          
+          if (playlists.length === 0) {
+            console.log(`🛑 Batch ${batchCount}: No more playlists found, breaking loop`);
+            break;
+          }
+          
+          allPlaylists.push(...playlists);
+          console.log(`📈 Batch ${batchCount}: Total playlists so far: ${allPlaylists.length}`);
+          offset += limit;
+          
+          if (playlists.length < limit) {
+            console.log(`🛑 Batch ${batchCount}: Received fewer playlists than limit (${playlists.length} < ${limit}), breaking loop`);
+            break;
+          }
+        } catch (error) {
+          console.error(`❌ Batch ${batchCount}: Error fetching playlists at offset ${offset}:`, error);
+          throw error;
+        }
+      }
+
+      console.log(`✅ getAllUserPlaylists completed. Total playlists fetched: ${allPlaylists.length}`);
+      const finalPlaylists = allPlaylists.slice(0, maxPlaylists);
+      console.log(`🎯 Final result: ${finalPlaylists.length} playlists (after maxPlaylists limit)`);
+      return finalPlaylists;
+    } catch (error) {
+      console.error('Error fetching all user playlists:', error);
+      throw error;
+    }
+  }
+
   async getPlaylistTracks(playlistId: string, limit = 100, offset = 0): Promise<SpotifyTrack[]> {
     try {
       console.log(`🎵 getPlaylistTracks called with playlistId: ${playlistId}, limit: ${limit}, offset: ${offset}`);

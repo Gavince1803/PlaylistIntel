@@ -17,16 +17,25 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
+    const useFullPagination = searchParams.get('full') === 'true';
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    console.log('Fetching playlists from Spotify with limit:', limit, 'offset:', offset);
+    console.log('Fetching playlists from Spotify:', { useFullPagination, limit, offset });
     const spotifyService = new SpotifyService(session.accessToken);
     
     let playlists;
     try {
-      playlists = await spotifyService.getUserPlaylists(limit, offset);
-      console.log('Fetched playlists:', playlists.length);
+      if (useFullPagination) {
+        // Get ALL playlists using pagination
+        playlists = await spotifyService.getAllUserPlaylists(1000);
+        console.log('Fetched ALL playlists using pagination:', playlists.length);
+      } else {
+        // Get paginated playlists (for backward compatibility)
+        playlists = await spotifyService.getUserPlaylists(limit, offset);
+        console.log('Fetched paginated playlists:', playlists.length);
+      }
+      
       console.log('First playlist sample:', playlists[0] ? {
         id: playlists[0].id,
         name: playlists[0].name,
