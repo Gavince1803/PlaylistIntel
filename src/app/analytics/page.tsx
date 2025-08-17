@@ -31,13 +31,18 @@ interface MostListenedPlaylist {
   createdAt?: string;
   // Original working fields
   popularityScore: number;
-  estimatedListens: number;
+  plays: number; // Changed from estimatedListens to plays
   // New properties for actual user listens (keeping for compatibility)
   actualListens?: number;
   recentlyPlayedFromPlaylist?: number;
   topTracksFromPlaylist?: number;
   externalUrl?: string;
   image?: string; // Added for new image field
+  // Additional debug fields
+  topTracksInPlaylist?: number;
+  trackCountPlays?: number;
+  followerBonus?: number;
+  activityBonus?: number;
 }
 
 interface GenreData {
@@ -313,8 +318,9 @@ export default function AnalyticsPage() {
              <p className="text-[#1DB954] text-sm font-medium">📊 Nota sobre las métricas:</p>
              <p className="text-gray-400 text-xs leading-relaxed">
                • <strong>Top Tracks:</strong> Basado en tracks que aparecen en múltiples playlists (endpoint /playlists/tracks)<br/>
-               • <strong>Playlists Populares:</strong> Estimación basada en track count, followers y actividad (endpoint /playlists/most-listened)<br/>
-               • <strong>Top Genres:</strong> Análisis de géneros de tus playlists más activas. Si hay problemas de API, se muestra datos básicos
+               • <strong>Playlists Populares:</strong> Los "plays" se calculan basándose en cuántos de tus top tracks están en cada playlist, track count y followers<br/>
+               • <strong>Top Genres:</strong> Análisis de géneros de tus playlists más activas. Si hay problemas de API, se muestra datos básicos<br/>
+               • <strong>⚠️ Importante:</strong> Los "estimated plays" en Top Tracks son aproximaciones basadas en ranking y popularidad, NO son datos reales de Spotify. Los "plays" en playlists se basan en la frecuencia de tus top tracks.
              </p>
            </div>
         </div>
@@ -532,9 +538,9 @@ export default function AnalyticsPage() {
                       {/* Actual User Listens */}
                       <div className="flex-shrink-0 text-center">
                         <div className="text-[#1DB954] font-bold text-lg">
-                          {playlist.estimatedListens || 0}
+                          {playlist.plays || 0}
                         </div>
-                        <div className="text-gray-400 text-xs">estimated listens</div>
+                        <div className="text-gray-400 text-xs">plays</div>
                       </div>
 
                       {/* Popularity Score */}
@@ -542,7 +548,7 @@ export default function AnalyticsPage() {
                         <div className="text-[#1DB954] font-bold text-lg">
                           {playlist.popularityScore || 0}
                         </div>
-                        <div className="text-gray-400 text-xs">popularity score</div>
+                        <div className="text-gray-400 text-xs">score</div>
                       </div>
                     </div>
                   ))
@@ -623,7 +629,7 @@ export default function AnalyticsPage() {
                         <div className="text-[#1DB954] font-bold text-lg">
                           {track.estimatedPlays}
                         </div>
-                        <div className="text-gray-400 text-xs">plays</div>
+                        <div className="text-gray-400 text-xs">estimated</div>
                       </div>
                     </div>
                   ))

@@ -82,8 +82,8 @@ export default function TopTracksModal({ isOpen, onClose }: TopTracksModalProps)
 
   return (
     <Modal open={isOpen} onClose={onClose} title="Your Top Tracks from Spotify">
-      {/* Back Button - Repositioned to not collide with header */}
-      <div className="absolute top-6 left-6 z-10">
+      {/* Back Button - Repositioned to avoid header overlap */}
+      <div className="absolute top-4 left-4 z-10">
         <button
           onClick={onClose}
           className="p-2 text-gray-400 hover:text-white hover:bg-[#282828] rounded-lg transition-colors"
@@ -96,7 +96,7 @@ export default function TopTracksModal({ isOpen, onClose }: TopTracksModalProps)
       </div>
 
       {/* Main Content - Better spacing and removed bottom tab */}
-      <div className="pt-12 pb-6 px-2">
+      <div className="pt-16 pb-6 px-4">
         <div className="max-h-[65vh] overflow-y-auto pr-2">
           {loading ? (
             <div className="text-center py-12">
@@ -122,7 +122,7 @@ export default function TopTracksModal({ isOpen, onClose }: TopTracksModalProps)
                   onClick={() => openInSpotify(track.external_urls.spotify)}
                 >
                   {/* Rank - Fixed to show consistent 1, 2, 3, 4, 5... */}
-                  <div className="flex-shrink-0">
+                  <div className="flex-shrink-0 w-12 text-center">
                     <span className={`text-xl font-bold ${
                       index < 3 ? 'text-[#1DB954]' : 'text-gray-400'
                     }`}>
@@ -144,9 +144,9 @@ export default function TopTracksModal({ isOpen, onClose }: TopTracksModalProps)
                   </div>
 
                   {/* Track Info - Better text handling and spacing */}
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 pr-4">
                     <h3 className="text-white font-semibold text-base leading-tight group-hover:text-[#1DB954] transition-colors" title={track.name}>
-                      {track.name.length > 40 ? `${track.name.substring(0, 40)}...` : track.name}
+                      {track.name.length > 35 ? `${track.name.substring(0, 35)}...` : track.name}
                     </h3>
                     <p className="text-gray-300 text-sm leading-tight mt-1 font-medium">
                       {track.artists.map(artist => artist.name).join(', ')}
@@ -156,13 +156,13 @@ export default function TopTracksModal({ isOpen, onClose }: TopTracksModalProps)
                     </p>
                   </div>
 
-                  {/* Estimated Plays - Better styling */}
-                  <div className="flex-shrink-0 text-center">
-                    <div className="text-[#1DB954] font-bold text-xl">
+                  {/* Estimated Plays - Better styling and spacing */}
+                  <div className="flex-shrink-0 text-center w-20">
+                    <div className="text-[#1DB954] font-bold text-lg">
                       {track.estimatedPlays || track.playCount || 0}
                     </div>
                     <div className="text-gray-400 text-xs font-medium">
-                      plays
+                      estimated
                     </div>
                   </div>
 
@@ -187,7 +187,7 @@ export default function TopTracksModal({ isOpen, onClose }: TopTracksModalProps)
         {tracks.length > 0 && (
           <div className="mt-6 pt-4 border-t border-[#404040]">
             <p className="text-gray-400 text-sm text-center">
-              💡 Click on any track to open it in Spotify
+              💡 Click on any track to open it in Spotify • Play counts are estimated approximations based on ranking and popularity, not actual listening data
             </p>
           </div>
         )}

@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 
     // Get user's top tracks from Spotify (real data, not estimates)
     const topTracksResponse = await fetch(
-      `https://api.spotify.com/v1/me/top/tracks?time_range=${timeRange}&limit=10`,
+      `https://api.spotify.com/v1/me/top/tracks?time_range=${timeRange}&limit=50`,
       {
         headers: {
           'Authorization': `Bearer ${session.accessToken}`
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
         
         // Retry once
         const retryResponse = await fetch(
-          `https://api.spotify.com/v1/me/top/tracks?time_range=${timeRange}&limit=10`,
+          `https://api.spotify.com/v1/me/top/tracks?time_range=${timeRange}&limit=50`,
           {
             headers: {
               'Authorization': `Bearer ${session.accessToken}`
@@ -68,14 +68,23 @@ export async function GET(request: NextRequest) {
       rank: index + 1,
       // Add time range context
       timeRange: timeRange,
-      // Calculate estimated play count based on rank and popularity
-      estimatedPlays: Math.max(1, Math.round((51 - (index + 1)) * (track.popularity / 100) * 2))
+      // Calculate more realistic estimated play count based on rank and popularity
+      // This is NOT real Spotify data - it's a more reasonable approximation
+      estimatedPlays: Math.max(1, Math.round(
+        // Base plays: higher rank = more plays (inverse relationship)
+        (51 - (index + 1)) * 0.8 + 
+        // Popularity bonus: higher popularity = slight increase
+        (track.popularity / 100) * 5 +
+        // Recency bonus: newer tracks get slight boost
+        Math.min(3, (index + 1) * 0.1)
+      ))
     }));
 
     return NextResponse.json({
       tracks: enrichedTracks,
       timeRange: timeRange,
-      total: tracks.length
+      total: tracks.length,
+      note: "Play counts are estimated approximations based on ranking and popularity, not actual Spotify listening data"
     });
 
   } catch (error) {

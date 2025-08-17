@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../../auth/authOptions';
+import { SpotifyService } from '@/lib/spotify';
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,81 +11,84 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user's playlists
-    const getPlaylists = async () => {
-      const allPlaylists = [];
-      let offset = 0;
-      const limit = 50;
-      const maxPlaylists = 200; // Limit to avoid rate limits
-      
-      while (allPlaylists.length < maxPlaylists) {
-        const playlistsResponse = await fetch(`https://api.spotify.com/v1/me/playlists?limit=${limit}&offset=${offset}`, {
-          headers: {
-            'Authorization': `Bearer ${session.accessToken}`
-          }
-        });
+    // Create SpotifyService instance with the user's access token
+    const spotifyService = new SpotifyService(session.accessToken);
 
-        if (!playlistsResponse.ok) {
-          if (playlistsResponse.status === 429) {
-            console.warn('Rate limit hit while fetching playlists, waiting and retrying...');
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            continue;
-          }
-          throw new Error('Failed to fetch playlists');
-        }
+    console.log('📊 Most Listened Playlists: Starting analysis...');
 
-        const playlistsData = await playlistsResponse.json();
-        const playlists = playlistsData.items;
-        
-        if (playlists.length === 0) break;
-        
-        allPlaylists.push(...playlists);
-        offset += limit;
-        
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        if (playlists.length < limit) break;
-      }
-      
-      return allPlaylists;
-    };
-
-    const playlists = await getPlaylists();
+    // Get ALL user playlists using the new service method
+    const playlists = await spotifyService.getAllUserPlaylists(1000);
     console.log(`📊 Most Listened: Fetched ${playlists.length} playlists`);
     
     if (playlists.length === 0) {
       return NextResponse.json({ playlists: [] });
     }
 
-    // Get playlist details with follower count and track count as proxy for popularity
-    const playlistsWithDetails = await Promise.all(
-      playlists.map(async (playlist: any) => {
-        try {
-          // Get playlist tracks count
-          const tracksResponse = await fetch(`https://api.spotify.com/v1/playlists/${playlist.id}?fields=tracks.total`, {
-            headers: {
-              'Authorization': `Bearer ${session.accessToken}`
-            }
-          });
+    // Get user's top tracks to calculate more realistic play counts
+    let topTracks: any[] = [];
+    try {
+      const topTracksResponse = await fetch(
+        `https://api.spotify.com/v1/me/top/tracks?time_range=medium_term&limit=50`,
+        {
+          headers: {
+            'Authorization': `Bearer ${session.accessToken}`
+          }
+        }
+      );
+      
+      if (topTracksResponse.ok) {
+        const topTracksData = await topTracksResponse.json();
+        topTracks = topTracksData.items || [];
+        console.log(`📊 Most Listened: Fetched ${topTracks.length} top tracks for play count calculation`);
+      }
+    } catch (error) {
+      console.warn('Failed to fetch top tracks for play count calculation:', error);
+    }
 
-          let trackCount = 0;
-          if (tracksResponse.ok) {
-            const playlistData = await tracksResponse.json();
-            trackCount = playlistData.tracks?.total || 0;
+    // Get playlist details with better metrics and realistic play counts
+    const playlistsWithDetails = await Promise.all(
+      playlists.map(async (playlist: any, index: number) => {
+        try {
+          console.log(`📊 Processing playlist ${index + 1}/${playlists.length}: ${playlist.name}`);
+          
+          // Get playlist tracks using the service method
+          const tracks = await spotifyService.getAllPlaylistTracks(playlist.id, 2000);
+          const trackCount = tracks.length;
+
+          // Calculate realistic play count based on:
+          // 1. How many top tracks are in this playlist
+          // 2. Track count (more tracks = more variety = likely more listened)
+          // 3. Follower count and other factors
+          const topTracksInPlaylist = topTracks.filter(topTrack => 
+            tracks.some(playlistTrack => playlistTrack.id === topTrack.id)
+          ).length;
+
+          // Base play count: if playlist has top tracks, it's been listened to more
+          let basePlayCount = 0;
+          if (topTracksInPlaylist > 0) {
+            // Each top track in playlist adds realistic plays
+            basePlayCount = topTracksInPlaylist * 8; // 8 plays per top track
           }
 
-          // Use a combination of factors to estimate "listening popularity":
-          // 1. Track count (more tracks = more variety = likely more listened)
-          // 2. Follower count (more followers = more popular)
-          // 3. Whether it's collaborative or public
-          // 4. Creation date (newer playlists might be more active)
-          
+          // Add plays based on track count (more tracks = more variety = more listens)
+          const trackCountPlays = Math.min(15, Math.floor(trackCount / 10)); // Max 15 plays from track count
+
+          // Add small bonus for followers and other factors
+          const followerBonus = Math.min(5, Math.floor((playlist.followers?.total || 0) / 100));
+          const activityBonus = (playlist.collaborative ? 3 : 0) + (playlist.public ? 2 : 0);
+
+          // Calculate total realistic plays
+          const totalPlays = Math.max(1, basePlayCount + trackCountPlays + followerBonus + activityBonus);
+
+          // Calculate popularity score for ranking
           const popularityScore = (
-            (trackCount * 0.4) + // Track count weight
-            ((playlist.followers?.total || 0) * 0.3) + // Follower count weight
-            (playlist.collaborative ? 20 : 0) + // Collaborative bonus
-            (playlist.public ? 10 : 0) + // Public bonus
-            (new Date().getTime() - new Date(playlist.created_at).getTime()) / (1000 * 60 * 60 * 24 * 30) // Recency bonus (months)
+            (trackCount * 0.3) + // Track count weight (30%)
+            ((playlist.followers?.total || 0) * 0.25) + // Follower count weight (25%)
+            (playlist.collaborative ? 15 : 0) + // Collaborative bonus
+            (playlist.public ? 8 : 0) + // Public bonus
+            (playlist.description ? 5 : 0) + // Has description bonus
+            (playlist.images && playlist.images.length > 0 ? 3 : 0) + // Has images bonus
+            Math.min(20, Math.max(0, (new Date().getTime() - new Date(playlist.created_at).getTime()) / (1000 * 60 * 60 * 24 * 30))) // Recency bonus (max 20 points)
           );
 
           return {
@@ -99,7 +103,15 @@ export async function GET(request: NextRequest) {
             followers: playlist.followers?.total || 0,
             createdAt: playlist.created_at,
             popularityScore: Math.round(popularityScore),
-            estimatedListens: Math.round(popularityScore * 0.8) // Convert score to estimated listen count
+            // Realistic play count based on actual usage patterns
+            plays: totalPlays,
+            // Add image field for compatibility
+            image: playlist.images && playlist.images.length > 0 ? playlist.images[0].url : null,
+            // Additional info for debugging
+            topTracksInPlaylist,
+            trackCountPlays,
+            followerBonus,
+            activityBonus
           };
         } catch (error) {
           console.warn(`Failed to get details for playlist ${playlist.id}:`, error);
@@ -120,7 +132,8 @@ export async function GET(request: NextRequest) {
     console.log(`📊 Most Listened: Processed ${validPlaylists.length} playlists`);
 
     return NextResponse.json({
-      playlists: validPlaylists
+      playlists: validPlaylists,
+      note: "Play counts are calculated based on how many of your top tracks appear in each playlist, track count, and other factors"
     });
 
   } catch (error) {

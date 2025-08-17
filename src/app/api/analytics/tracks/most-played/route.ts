@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../../auth/authOptions';
+import { SpotifyService } from '@/lib/spotify';
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,108 +11,96 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user's playlists first
-    const getPlaylists = async () => {
-      const allPlaylists = [];
-      let offset = 0;
-      const limit = 50;
-      const maxPlaylists = 100; // Limit to avoid rate limits
-      
-      while (allPlaylists.length < maxPlaylists) {
-        const playlistsResponse = await fetch(`https://api.spotify.com/v1/me/playlists?limit=${limit}&offset=${offset}`, {
-          headers: {
-            'Authorization': `Bearer ${session.accessToken}`
-          }
-        });
+    // Create SpotifyService instance with the user's access token
+    const spotifyService = new SpotifyService(session.accessToken);
 
-        if (!playlistsResponse.ok) {
-          if (playlistsResponse.status === 429) {
-            console.warn('Rate limit hit while fetching playlists, waiting and retrying...');
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            continue;
-          }
-          throw new Error('Failed to fetch playlists');
-        }
+    console.log('📊 Most Played Tracks: Starting analysis...');
 
-        const playlistsData = await playlistsResponse.json();
-        const playlists = playlistsData.items;
-        
-        if (playlists.length === 0) break;
-        
-        allPlaylists.push(...playlists);
-        offset += limit;
-        
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        if (playlists.length < limit) break;
-      }
-      
-      return allPlaylists;
-    };
-
-    const playlists = await getPlaylists();
+    // Get ALL user playlists using the new service method
+    const playlists = await spotifyService.getAllUserPlaylists(1000);
     console.log(`📊 Most Played Tracks: Fetched ${playlists.length} playlists`);
     
     if (playlists.length === 0) {
       return NextResponse.json({ tracks: [] });
     }
 
-    // Get all tracks from all playlists
+    // Get all tracks from all playlists with better rate limiting
     const allTracks: { [key: string]: any } = {};
+    let processedPlaylists = 0;
     
     for (const playlist of playlists) {
       try {
-        const tracksResponse = await fetch(`https://api.spotify.com/v1/playlists/${playlist.id}/tracks?limit=100`, {
-          headers: {
-            'Authorization': `Bearer ${session.accessToken}`
+        console.log(`📊 Processing playlist ${processedPlaylists + 1}/${playlists.length}: ${playlist.name}`);
+        
+        // Use the service method that handles rate limiting
+        const tracks = await spotifyService.getAllPlaylistTracks(playlist.id, 2000);
+        
+        tracks.forEach((track: any) => {
+          if (track?.id) {
+            if (allTracks[track.id]) {
+              // Track already exists, increment count and add playlist info
+              allTracks[track.id].playCount++;
+              allTracks[track.id].playlists.push({
+                id: playlist.id,
+                name: playlist.name
+              });
+            } else {
+              // New track
+              allTracks[track.id] = {
+                id: track.id,
+                name: track.name,
+                artists: track.artists,
+                album: track.album,
+                duration_ms: track.duration_ms,
+                popularity: track.popularity,
+                playCount: 1,
+                playlists: [{
+                  id: playlist.id,
+                  name: playlist.name
+                }],
+                external_urls: track.external_urls
+              };
+            }
           }
         });
-
-        if (tracksResponse.ok) {
-          const tracksData = await tracksResponse.json();
-          const tracks = tracksData.items.map((item: any) => item.track).filter(Boolean);
-          
-          tracks.forEach((track: any) => {
-            if (track?.id) {
-              if (allTracks[track.id]) {
-                // Track already exists, increment count
-                allTracks[track.id].playCount++;
-                allTracks[track.id].playlists.push(playlist.id);
-              } else {
-                // New track
-                allTracks[track.id] = {
-                  id: track.id,
-                  name: track.name,
-                  artists: track.artists,
-                  album: track.album,
-                  duration_ms: track.duration_ms,
-                  popularity: track.popularity,
-                  playCount: 1,
-                  playlists: [playlist.id],
-                  external_urls: track.external_urls
-                };
-              }
-            }
-          });
-        }
+        
+        processedPlaylists++;
         
         // Add delay to respect rate limits
-        await new Promise(resolve => setTimeout(resolve, 50));
+        await new Promise(resolve => setTimeout(resolve, 100));
         
       } catch (error) {
         console.warn(`Failed to get tracks for playlist ${playlist.id}:`, error);
+        processedPlaylists++;
       }
     }
 
-    // Convert to array and sort by play count
+    console.log(`📊 Most Played Tracks: Processed ${processedPlaylists} playlists, found ${Object.keys(allTracks).length} unique tracks`);
+
+    // Convert to array and sort by play count (frequency across playlists)
     const tracksArray = Object.values(allTracks)
       .sort((a, b) => b.playCount - a.playCount)
-      .slice(0, 25); // Top 25
+      .slice(0, 25) // Top 25
+      .map((track, index) => ({
+        ...track,
+        rank: index + 1,
+        // Calculate more realistic estimated plays based on frequency and popularity
+        // This represents how often the track appears across playlists, not actual listening
+        estimatedPlays: Math.max(1, Math.round(
+          // Base: frequency across playlists (more playlists = higher plays)
+          track.playCount * 2 +
+          // Small popularity bonus (max 10 additional plays)
+          Math.min(10, (track.popularity / 100) * 10) +
+          // Rank bonus: top tracks get slight boost
+          Math.max(0, (25 - index) * 0.5)
+        ))
+      }));
 
-    console.log(`📊 Most Played Tracks: Found ${tracksArray.length} unique tracks`);
+    console.log(`📊 Most Played Tracks: Returning top ${tracksArray.length} tracks`);
 
     return NextResponse.json({
-      tracks: tracksArray
+      tracks: tracksArray,
+      note: "Play counts represent how many playlists each track appears in, not actual Spotify listening data"
     });
 
   } catch (error) {
