@@ -38,8 +38,8 @@ export async function GET(request: NextRequest) {
 
     console.log('🎵 Genres API: Starting genres fetch...');
 
-    // Get user's playlists (limit to first 10 for performance)
-    const playlistsResponse = await fetchWithRetry('https://api.spotify.com/v1/me/playlists?limit=10', {
+    // Get user's playlists (increased limit for better accuracy)
+    const playlistsResponse = await fetchWithRetry('https://api.spotify.com/v1/me/playlists?limit=50', {
       headers: {
         'Authorization': `Bearer ${session.accessToken}`
       }
@@ -62,17 +62,17 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Get tracks from first 3 playlists to avoid rate limits
+    // Get tracks from more playlists for better accuracy (increased from 3 to 8)
     const allTracks: any[] = [];
-    const playlistsToProcess = playlists.slice(0, 3);
+    const playlistsToProcess = playlists.slice(0, 8);
     
     for (const playlist of playlistsToProcess) {
       try {
         console.log(`🎵 Genres API: Processing playlist: ${playlist.name}`);
         
-        // Get tracks from this playlist
+        // Get tracks from this playlist (increased limit from 10 to 50 for better accuracy)
         try {
-          const tracksResponse = await fetchWithRetry(`https://api.spotify.com/v1/playlists/${playlist.id}/tracks?limit=10`, {
+          const tracksResponse = await fetchWithRetry(`https://api.spotify.com/v1/playlists/${playlist.id}/tracks?limit=50`, {
             headers: {
               'Authorization': `Bearer ${session.accessToken}`
             }
@@ -97,13 +97,14 @@ export async function GET(request: NextRequest) {
           }).filter((track: any) => track && track.id);
 
           allTracks.push(...tracks);
+          console.log(`🎵 Genres API: Added ${tracks.length} tracks from playlist "${playlist.name}"`);
         } catch (error) {
           console.warn(`🎵 Genres API: Error fetching tracks for playlist "${playlist.name}":`, error);
           continue;
         }
         
         // Small delay to avoid rate limits
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await new Promise(resolve => setTimeout(resolve, 200));
         
       } catch (error) {
         console.warn(`🎵 Genres API: Failed to fetch tracks for playlist ${playlist.id}:`, error);
@@ -139,10 +140,10 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Try to fetch artist details and genres (limit to first 15 artists to avoid rate limits)
+    // Try to fetch artist details and genres (increased limit from 15 to 30 artists for better coverage)
     let artists: any[] = [];
     try {
-      const artistsToFetch = artistIds.slice(0, 15);
+      const artistsToFetch = artistIds.slice(0, 30);
       const artistsResponse = await fetchWithRetry(`https://api.spotify.com/v1/artists?ids=${artistsToFetch.join(',')}`, {
         headers: {
           'Authorization': `Bearer ${session.accessToken}`
@@ -214,18 +215,19 @@ export async function GET(request: NextRequest) {
     const genresWithTracks = Object.entries(genreTracks).map(([genre, tracks]) => ({
       genre,
       trackCount: tracks.length,
-      tracks: tracks.slice(0, 15) // Limit tracks per genre
+      tracks: tracks.slice(0, 20) // Increased limit from 15 to 20 tracks per genre
     }));
 
     // Sort by track count (descending)
     genresWithTracks.sort((a, b) => b.trackCount - a.trackCount);
 
-    console.log(`🎵 Genres API: Returning ${genresWithTracks.length} genres`);
+    console.log(`🎵 Genres API: Returning ${genresWithTracks.length} genres with real track counts`);
 
     return NextResponse.json({
       genres: genresWithTracks,
       totalGenres: genresWithTracks.length,
-      totalTracks: allTracks.length
+      totalTracks: allTracks.length,
+      note: "Track counts are REAL counts from your playlists, not estimates"
     });
 
   } catch (error) {

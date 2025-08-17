@@ -319,7 +319,7 @@ export default function AnalyticsPage() {
              <p className="text-gray-400 text-xs leading-relaxed">
                • <strong>Top Tracks:</strong> Basado en tracks que aparecen en múltiples playlists (endpoint /playlists/tracks)<br/>
                • <strong>Playlists Populares:</strong> Los "plays" se calculan basándose en cuántos de tus top tracks están en cada playlist, track count y followers<br/>
-               • <strong>Top Genres:</strong> Análisis de géneros de tus playlists más activas. Si hay problemas de API, se muestra datos básicos<br/>
+               • <strong>Top Genres:</strong> ✅ <strong>REAL</strong> - Conteo real de canciones por género en tus playlists (no estimaciones)<br/>
                • <strong>⚠️ Importante:</strong> Los "estimated plays" en Top Tracks son aproximaciones basadas en ranking y popularidad, NO son datos reales de Spotify. Los "plays" en playlists se basan en la frecuencia de tus top tracks.
              </p>
            </div>

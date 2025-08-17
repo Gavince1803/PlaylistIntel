@@ -82,22 +82,22 @@ export default function TopTracksModal({ isOpen, onClose }: TopTracksModalProps)
 
   return (
     <Modal open={isOpen} onClose={onClose} title="Your Top Tracks from Spotify">
-      {/* Back Button - Repositioned to avoid header overlap */}
-      <div className="absolute top-4 left-4 z-10">
+      {/* Back Button - Better positioned and styled */}
+      <div className="absolute top-4 right-4 z-10">
         <button
           onClick={onClose}
           className="p-2 text-gray-400 hover:text-white hover:bg-[#282828] rounded-lg transition-colors"
-          aria-label="Go back"
+          aria-label="Close modal"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       </div>
 
-      {/* Main Content - Better spacing and removed bottom tab */}
-      <div className="pt-16 pb-6 px-4">
-        <div className="max-h-[65vh] overflow-y-auto pr-2">
+      {/* Main Content - Better spacing and no bottom tab */}
+      <div className="pt-16 pb-4 px-4">
+        <div className="max-h-[70vh] overflow-y-auto pr-2">
           {loading ? (
             <div className="text-center py-12">
               <LoadingSpinner size="lg" />
@@ -114,7 +114,7 @@ export default function TopTracksModal({ isOpen, onClose }: TopTracksModalProps)
               </button>
             </div>
           ) : tracks.length > 0 ? (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {tracks.map((track, index) => (
                 <div
                   key={track.id}
@@ -143,10 +143,10 @@ export default function TopTracksModal({ isOpen, onClose }: TopTracksModalProps)
                     />
                   </div>
 
-                  {/* Track Info - Better text handling and spacing */}
+                  {/* Track Info - Better text handling and spacing, removed duration */}
                   <div className="flex-1 min-w-0 pr-4">
                     <h3 className="text-white font-semibold text-base leading-tight group-hover:text-[#1DB954] transition-colors" title={track.name}>
-                      {track.name.length > 35 ? `${track.name.substring(0, 35)}...` : track.name}
+                      {track.name.length > 40 ? `${track.name.substring(0, 40)}...` : track.name}
                     </h3>
                     <p className="text-gray-300 text-sm leading-tight mt-1 font-medium">
                       {track.artists.map(artist => artist.name).join(', ')}
@@ -165,11 +165,6 @@ export default function TopTracksModal({ isOpen, onClose }: TopTracksModalProps)
                       estimated
                     </div>
                   </div>
-
-                  {/* Duration - Better styling */}
-                  <div className="flex-shrink-0 text-gray-400 text-sm font-medium bg-[#282828] px-3 py-1 rounded-lg">
-                    {formatDuration(track.duration_ms)}
-                  </div>
                 </div>
               ))}
             </div>
@@ -185,7 +180,7 @@ export default function TopTracksModal({ isOpen, onClose }: TopTracksModalProps)
 
         {/* Footer info - Integrated into main content, no separate tab */}
         {tracks.length > 0 && (
-          <div className="mt-6 pt-4 border-t border-[#404040]">
+          <div className="mt-4 pt-4 border-t border-[#404040]">
             <p className="text-gray-400 text-sm text-center">
               💡 Click on any track to open it in Spotify • Play counts are estimated approximations based on ranking and popularity, not actual listening data
             </p>
