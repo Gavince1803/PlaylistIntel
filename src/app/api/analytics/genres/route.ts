@@ -1,32 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/authOptions';
-
-// Utility function to fetch with retry and rate limit handling
-async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 3): Promise<Response> {
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      const response = await fetch(url, options);
-      
-      if (response.status === 429) {
-        // Rate limited - wait longer and retry
-        const retryAfter = response.headers.get('Retry-After');
-        const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : Math.pow(2, attempt) * 1000;
-        console.log(`🎵 Rate limited, waiting ${waitTime}ms before retry ${attempt}`);
-        await new Promise(resolve => setTimeout(resolve, waitTime));
-        continue;
-      }
-      
-      return response;
-    } catch (error) {
-      if (attempt === maxRetries) throw error;
-      console.log(`🎵 Fetch attempt ${attempt} failed, retrying...`);
-      await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
-    }
-  }
-  
-  throw new Error('Max retries exceeded');
-}
+import { SpotifyService } from '@/lib/spotify';
 
 export async function GET(request: NextRequest) {
   try {
@@ -36,22 +11,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Create SpotifyService instance with the user's access token
+    const spotifyService = new SpotifyService(session.accessToken);
+
     console.log('🎵 Genres API: Starting genres fetch...');
 
-    // Get user's playlists (increased limit for better accuracy)
-    const playlistsResponse = await fetchWithRetry('https://api.spotify.com/v1/me/playlists?limit=50', {
-      headers: {
-        'Authorization': `Bearer ${session.accessToken}`
-      }
-    });
-
-    if (!playlistsResponse.ok) {
-      console.error('🎵 Genres API: Failed to fetch playlists:', playlistsResponse.status);
-      throw new Error('Failed to fetch playlists');
-    }
-
-    const playlistsData = await playlistsResponse.json();
-    const playlists = playlistsData.items;
+    // Get user's playlists (reduced limit to avoid rate limits)
+    const playlists = await spotifyService.getAllUserPlaylists(20);
     console.log(`🎵 Genres API: Fetched ${playlists.length} playlists`);
 
     if (playlists.length === 0) {
@@ -62,49 +28,33 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Get tracks from more playlists for better accuracy (increased from 3 to 8)
+    // Get tracks from fewer playlists to avoid rate limits (reduced from 8 to 4)
     const allTracks: any[] = [];
-    const playlistsToProcess = playlists.slice(0, 8);
+    const playlistsToProcess = playlists.slice(0, 4);
     
     for (const playlist of playlistsToProcess) {
       try {
         console.log(`🎵 Genres API: Processing playlist: ${playlist.name}`);
         
-        // Get tracks from this playlist (increased limit from 10 to 50 for better accuracy)
+        // Get tracks from this playlist (reduced limit from 50 to 30 to avoid rate limits)
         try {
-          const tracksResponse = await fetchWithRetry(`https://api.spotify.com/v1/playlists/${playlist.id}/tracks?limit=50`, {
-            headers: {
-              'Authorization': `Bearer ${session.accessToken}`
-            }
-          });
+          const tracks = await spotifyService.getAllPlaylistTracks(playlist.id, 30);
+          
+          const tracksWithPlaylistInfo = tracks.map((track: any) => ({
+            ...track,
+            playlistName: playlist.name,
+            playlistId: playlist.id
+          }));
 
-          if (!tracksResponse.ok) {
-            if (tracksResponse.status === 403) {
-              console.warn(`🎵 Genres API: 403 Forbidden for playlist "${playlist.name}" - skipping`);
-              continue; // Skip this playlist if we don't have permission
-            }
-            console.warn(`🎵 Genres API: Failed to fetch tracks for playlist "${playlist.name}" - status: ${tracksResponse.status}`);
-            continue;
-          }
-
-          const tracksData = await tracksResponse.json();
-          const tracks = tracksData.items.map((item: any) => {
-            return {
-              ...item.track,
-              playlistName: playlist.name,
-              playlistId: playlist.id
-            };
-          }).filter((track: any) => track && track.id);
-
-          allTracks.push(...tracks);
+          allTracks.push(...tracksWithPlaylistInfo);
           console.log(`🎵 Genres API: Added ${tracks.length} tracks from playlist "${playlist.name}"`);
         } catch (error) {
           console.warn(`🎵 Genres API: Error fetching tracks for playlist "${playlist.name}":`, error);
           continue;
         }
         
-        // Small delay to avoid rate limits
-        await new Promise(resolve => setTimeout(resolve, 200));
+        // Longer delay to avoid rate limits
+        await new Promise(resolve => setTimeout(resolve, 500));
         
       } catch (error) {
         console.warn(`🎵 Genres API: Failed to fetch tracks for playlist ${playlist.id}:`, error);
@@ -140,15 +90,18 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Try to fetch artist details and genres (increased limit from 15 to 30 artists for better coverage)
+    // Try to fetch artist details and genres (reduced limit from 30 to 20 artists to avoid rate limits)
     let artists: any[] = [];
     try {
-      const artistsToFetch = artistIds.slice(0, 30);
-      const artistsResponse = await fetchWithRetry(`https://api.spotify.com/v1/artists?ids=${artistsToFetch.join(',')}`, {
-        headers: {
-          'Authorization': `Bearer ${session.accessToken}`
+      const artistsToFetch = artistIds.slice(0, 20);
+      const artistsResponse = await fetch(
+        `https://api.spotify.com/v1/artists?ids=${artistsToFetch.join(',')}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${session.accessToken}`
+          }
         }
-      });
+      );
 
       if (artistsResponse.ok) {
         const artistsData = await artistsResponse.json();
@@ -199,29 +152,33 @@ export async function GET(request: NextRequest) {
     allTracks.forEach((track: any) => {
       const trackGenres = track.artists.flatMap((artist: any) => artistGenres[artist.id] || []);
       
-      trackGenres.forEach((genre: string) => {
-        if (genre && genre.trim()) {
-          if (!genreTracks[genre]) {
-            genreTracks[genre] = [];
-          }
-          genreTracks[genre].push(track);
+      if (trackGenres.length > 0) {
+        // Use the first genre for simplicity
+        const primaryGenre = trackGenres[0];
+        if (!genreTracks[primaryGenre]) {
+          genreTracks[primaryGenre] = [];
         }
-      });
+        genreTracks[primaryGenre].push(track);
+      } else {
+        // Fallback genre if no genres found
+        const fallbackGenre = 'Unknown';
+        if (!genreTracks[fallbackGenre]) {
+          genreTracks[fallbackGenre] = [];
+        }
+        genreTracks[fallbackGenre].push(track);
+      }
     });
 
-    console.log(`🎵 Genres API: Found ${Object.keys(genreTracks).length} unique genres`);
-
-    // Convert to array format with counts
+    // Convert to array and sort by track count
     const genresWithTracks = Object.entries(genreTracks).map(([genre, tracks]) => ({
       genre,
       trackCount: tracks.length,
       tracks: tracks.slice(0, 20) // Increased limit from 15 to 20 tracks per genre
     }));
 
-    // Sort by track count (descending)
     genresWithTracks.sort((a, b) => b.trackCount - a.trackCount);
 
-    console.log(`🎵 Genres API: Returning ${genresWithTracks.length} genres with real track counts`);
+    console.log(`🎵 Genres API: Successfully processed ${genresWithTracks.length} genres`);
 
     return NextResponse.json({
       genres: genresWithTracks,
@@ -231,9 +188,9 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('🎵 Genres API error:', error);
+    console.error('🎵 Genres API: Error:', error);
     return NextResponse.json({ 
-      error: 'Failed to fetch genres data',
+      error: 'Failed to fetch genres',
       details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }

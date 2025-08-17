@@ -3,14 +3,14 @@ import SpotifyWebApi from 'spotify-web-api-node';
 // Enhanced Rate Limiter with better Spotify API compliance
 class RateLimiter {
   private lastCall = 0;
-  private minInterval = 500; // Increased to 500ms to be more conservative with Spotify's limits
+  private minInterval = 1200; // Increased to 1200ms to be even more conservative with Spotify's limits
   private consecutiveErrors = 0;
   private maxConsecutiveErrors = 5;
   private globalErrorCount = 0;
   private maxGlobalErrors = 15;
   private rateLimitResetTime = 0;
   private currentWindowRequests = 0;
-  private maxRequestsPerWindow = 100; // Conservative estimate for Spotify's rate limits
+  private maxRequestsPerWindow = 30; // Even more conservative estimate for Spotify's rate limits
 
   async waitForNextCall() {
     const now = Date.now();
@@ -22,8 +22,8 @@ class RateLimiter {
     }
     
     // If we're approaching the rate limit, wait longer
-    if (this.currentWindowRequests > this.maxRequestsPerWindow * 0.8) {
-      const waitTime = Math.max(1000, this.minInterval * 2);
+    if (this.currentWindowRequests > this.maxRequestsPerWindow * 0.5) {
+      const waitTime = Math.max(2000, this.minInterval * 4);
       console.log(`⚠️ Approaching rate limit, waiting ${waitTime}ms`);
       await new Promise(resolve => setTimeout(resolve, waitTime));
     }
@@ -51,12 +51,12 @@ class RateLimiter {
     // Handle specific error types
     if (error.statusCode === 429) {
       // Rate limit exceeded - increase interval significantly
-      this.minInterval = Math.min(this.minInterval * 2, 2000);
+      this.minInterval = Math.min(this.minInterval * 3, 3000);
       console.log(`🚫 Rate limit exceeded, increased interval to ${this.minInterval}ms`);
       
       // If we get rate limited, wait for the reset window
       if (this.rateLimitResetTime < Date.now()) {
-        this.rateLimitResetTime = Date.now() + (60 * 1000);
+        this.rateLimitResetTime = Date.now() + (120 * 1000); // Wait 2 minutes instead of 1
       }
     } else if (error.statusCode === 403) {
       // Forbidden - this might be due to development mode restrictions
@@ -194,7 +194,7 @@ export class SpotifyService {
       
       if (error.statusCode === 429) {
         // Rate limit exceeded, wait longer and retry with exponential backoff
-        const retryDelay = Math.min(3000 * (2 ** this.rateLimiter['consecutiveErrors']), 15000);
+        const retryDelay = Math.min(5000 * (2 ** this.rateLimiter['consecutiveErrors']), 20000);
         console.log(`🚫 Rate limit exceeded, waiting ${retryDelay}ms before retry...`);
         
         // Log rate limiter status for debugging
@@ -215,9 +215,11 @@ export class SpotifyService {
         console.log('🚫 403 Forbidden - This may be due to Spotify app being in Development Mode or permission issues');
         console.log('💡 Solution: Add your email as a test user in Spotify Developer Dashboard or switch to Production Mode');
         
-        // For 403 errors, we'll return empty results to avoid breaking the app
-        // but log the issue for debugging
-        return [] as T;
+        // For 403 errors, we'll throw a custom error that can be handled by the calling method
+        const forbiddenError = new Error('Access forbidden') as any;
+        forbiddenError.statusCode = 403;
+        forbiddenError.message = 'Access forbidden';
+        throw forbiddenError;
       } else if (error.statusCode === 401) {
         // Unauthorized - token may be invalid
         console.log('🔐 401 Unauthorized - Token may be invalid or expired');
@@ -269,6 +271,8 @@ export class SpotifyService {
       let offset = 0;
       const limit = 50; // Spotify's max limit per request
       let batchCount = 0;
+      let consecutiveErrors = 0;
+      const maxConsecutiveErrors = 3;
 
       while (allPlaylists.length < maxPlaylists) {
         batchCount++;
@@ -286,14 +290,37 @@ export class SpotifyService {
           allPlaylists.push(...playlists);
           console.log(`📈 Batch ${batchCount}: Total playlists so far: ${allPlaylists.length}`);
           offset += limit;
+          consecutiveErrors = 0; // Reset error counter on success
           
           if (playlists.length < limit) {
             console.log(`🛑 Batch ${batchCount}: Received fewer playlists than limit (${playlists.length} < ${limit}), breaking loop`);
             break;
           }
-        } catch (error) {
+          
+          // Add delay between batches to avoid rate limits
+          if (batchCount < Math.ceil(maxPlaylists / limit)) {
+            console.log(`⏳ Adding delay between playlist batches to avoid rate limits...`);
+            await new Promise(resolve => setTimeout(resolve, 2000));
+          }
+        } catch (error: any) {
+          consecutiveErrors++;
           console.error(`❌ Batch ${batchCount}: Error fetching playlists at offset ${offset}:`, error);
-          throw error;
+          
+          // If we get too many consecutive errors, break to avoid infinite loops
+          if (consecutiveErrors >= maxConsecutiveErrors) {
+            console.warn(`⚠️ Too many consecutive errors (${consecutiveErrors}), stopping playlist fetch`);
+            break;
+          }
+          
+          // If it's a 403 error, skip this batch and continue
+          if (error.statusCode === 403) {
+            console.warn(`🚫 403 Forbidden for playlist batch at offset ${offset}, skipping and continuing...`);
+            offset += limit;
+            continue;
+          }
+          
+          // For other errors, wait a bit longer before retrying
+          await new Promise(resolve => setTimeout(resolve, 2000));
         }
       }
 
@@ -358,6 +385,8 @@ export class SpotifyService {
       let offset = 0;
       const limit = 100;
       let batchCount = 0;
+      let consecutiveErrors = 0;
+      const maxConsecutiveErrors = 3;
 
       while (allTracks.length < maxTracks) {
         batchCount++;
@@ -375,14 +404,36 @@ export class SpotifyService {
           allTracks.push(...tracks);
           console.log(`📈 Batch ${batchCount}: Total tracks so far: ${allTracks.length}`);
           offset += limit;
+          consecutiveErrors = 0; // Reset error counter on success
           
           if (tracks.length < limit) {
             console.log(`🛑 Batch ${batchCount}: Received fewer tracks than limit (${tracks.length} < ${limit}), breaking loop`);
             break;
           }
-        } catch (error) {
+          
+          // Add delay between batches to avoid rate limits
+          if (batchCount < Math.ceil(maxTracks / limit)) {
+            console.log(`⏳ Adding delay between track batches to avoid rate limits...`);
+            await new Promise(resolve => setTimeout(resolve, 1500));
+          }
+        } catch (error: any) {
+          consecutiveErrors++;
           console.error(`❌ Batch ${batchCount}: Error fetching tracks at offset ${offset}:`, error);
-          throw error;
+          
+          // If we get too many consecutive errors, break to avoid infinite loops
+          if (consecutiveErrors >= maxConsecutiveErrors) {
+            console.warn(`⚠️ Too many consecutive errors (${consecutiveErrors}), stopping track fetch for playlist ${playlistId}`);
+            break;
+          }
+          
+          // If it's a 403 error, this playlist is not accessible, return empty array
+          if (error.statusCode === 403) {
+            console.warn(`🚫 403 Forbidden for playlist ${playlistId}, returning empty tracks array`);
+            return [];
+          }
+          
+          // For other errors, wait a bit longer before retrying
+          await new Promise(resolve => setTimeout(resolve, 2000));
         }
       }
 

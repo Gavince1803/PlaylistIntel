@@ -96,8 +96,8 @@ export default function TopTracksModal({ isOpen, onClose }: TopTracksModalProps)
       </div>
 
       {/* Main Content - Better spacing and no bottom tab */}
-      <div className="pt-16 pb-4 px-4">
-        <div className="max-h-[70vh] overflow-y-auto pr-2">
+      <div className="pt-2 pb-6 px-4">
+        <div className="max-h-[75vh] overflow-y-auto pr-2">
           {loading ? (
             <div className="text-center py-12">
               <LoadingSpinner size="lg" />
@@ -180,7 +180,7 @@ export default function TopTracksModal({ isOpen, onClose }: TopTracksModalProps)
 
         {/* Footer info - Integrated into main content, no separate tab */}
         {tracks.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-[#404040]">
+          <div className="mt-6 pt-4 border-t border-[#404040]">
             <p className="text-gray-400 text-sm text-center">
               💡 Click on any track to open it in Spotify • Play counts are estimated approximations based on ranking and popularity, not actual listening data
             </p>
