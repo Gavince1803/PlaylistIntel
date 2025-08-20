@@ -16,9 +16,38 @@ export async function GET(request: NextRequest) {
 
     console.log('📊 Most Played Tracks: Starting analysis...');
 
-    // Get user playlists using the new service method (much more conservative limit)
-    const playlists = await spotifyService.getAllUserPlaylists(20);
-    console.log(`📊 Most Played Tracks: Fetched ${playlists.length} playlists`);
+    // Get user playlists using the new service method (reduced limit for better performance)
+    let playlists: any[] = [];
+    try {
+      playlists = await spotifyService.getAllUserPlaylists(20);
+      console.log(`📊 Most Played Tracks: Fetched ${playlists.length} playlists`);
+    } catch (error: any) {
+      console.error('📊 Most Played Tracks: Error fetching playlists:', error);
+      console.error('📊 Most Played Tracks: Error details:', {
+        message: error.message,
+        statusCode: error.statusCode,
+        stack: error.stack
+      });
+      
+      // Return fallback data instead of failing completely
+      return NextResponse.json({
+        tracks: [{
+          id: 'fallback-track-1',
+          name: 'Your Most Played Tracks',
+          artists: [{ name: 'Various Artists' }],
+          album: { name: 'Your Playlists', images: [] },
+          duration_ms: 0,
+          popularity: 50,
+          playCount: 1,
+          playlists: [{ id: 'fallback', name: 'Your Collection' }],
+          external_urls: { spotify: '#' },
+          rank: 1,
+          estimatedPlays: 25
+        }],
+        fallback: true,
+        note: "Using fallback data due to API limitations"
+      });
+    }
     
     if (playlists.length === 0) {
       return NextResponse.json({ tracks: [] });

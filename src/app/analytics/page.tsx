@@ -197,9 +197,23 @@ export default function AnalyticsPage() {
         setMostListenedPlaylists([]);
         setPlaylistsFallback(false);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error fetching most listened playlists:', error);
-      showToast('Failed to load most listened playlists data', 'error');
+      console.error('❌ Error details:', {
+        message: error.message,
+        name: error.name,
+        stack: error.stack
+      });
+      
+      // Show more specific error message
+      if (error.message?.includes('rate limit') || error.message?.includes('429')) {
+        showToast('Rate limit exceeded. Please wait a moment and try again.', 'info');
+      } else if (error.message?.includes('403') || error.message?.includes('forbidden')) {
+        showToast('Access denied. Some playlists may be private.', 'info');
+      } else {
+        showToast('Failed to load playlist data. Please try again.', 'error');
+      }
+      
       setMostListenedPlaylists([]);
       
       // Try to create fallback data from analytics data if available
@@ -278,9 +292,23 @@ export default function AnalyticsPage() {
         console.warn('🎵 Most-played API returned invalid data format:', data);
         setUserTopTracks([]);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error fetching most played tracks:', error);
-      showToast('Failed to load most played tracks data', 'error');
+      console.error('❌ Error details:', {
+        message: error.message,
+        name: error.name,
+        stack: error.stack
+      });
+      
+      // Show more specific error message
+      if (error.message?.includes('rate limit') || error.message?.includes('429')) {
+        showToast('Rate limit exceeded. Please wait a moment and try again.', 'info');
+      } else if (error.message?.includes('403') || error.message?.includes('forbidden')) {
+        showToast('Access denied. Some playlists may be private.', 'info');
+      } else {
+        showToast('Failed to load track data. Please try again.', 'error');
+      }
+      
       setUserTopTracks([]);
       
       // Try to create fallback data from analytics data if available
