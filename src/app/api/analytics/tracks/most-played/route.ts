@@ -16,8 +16,8 @@ export async function GET(request: NextRequest) {
 
     console.log('📊 Most Played Tracks: Starting analysis...');
 
-    // Get ALL user playlists using the new service method
-    const playlists = await spotifyService.getAllUserPlaylists(1000);
+    // Get user playlists using the new service method (reduced limit for better performance)
+    const playlists = await spotifyService.getAllUserPlaylists(50);
     console.log(`📊 Most Played Tracks: Fetched ${playlists.length} playlists`);
     
     if (playlists.length === 0) {
@@ -32,8 +32,8 @@ export async function GET(request: NextRequest) {
       try {
         console.log(`📊 Processing playlist ${processedPlaylists + 1}/${playlists.length}: ${playlist.name}`);
         
-        // Use the service method that handles rate limiting
-        const tracks = await spotifyService.getAllPlaylistTracks(playlist.id, 2000);
+        // Use the service method that handles rate limiting (reduced limit for better performance)
+        const tracks = await spotifyService.getAllPlaylistTracks(playlist.id, 100);
         
         tracks.forEach((track: any) => {
           if (track?.id) {

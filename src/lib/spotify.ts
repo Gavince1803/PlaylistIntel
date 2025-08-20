@@ -3,14 +3,14 @@ import SpotifyWebApi from 'spotify-web-api-node';
 // Enhanced Rate Limiter with better Spotify API compliance
 class RateLimiter {
   private lastCall = 0;
-  private minInterval = 1200; // Increased to 1200ms to be even more conservative with Spotify's limits
+  private minInterval = 800; // Reduced back to 800ms for better performance
   private consecutiveErrors = 0;
   private maxConsecutiveErrors = 5;
   private globalErrorCount = 0;
   private maxGlobalErrors = 15;
   private rateLimitResetTime = 0;
   private currentWindowRequests = 0;
-  private maxRequestsPerWindow = 30; // Even more conservative estimate for Spotify's rate limits
+  private maxRequestsPerWindow = 50; // Increased back to 50 for better performance
 
   async waitForNextCall() {
     const now = Date.now();
@@ -22,8 +22,8 @@ class RateLimiter {
     }
     
     // If we're approaching the rate limit, wait longer
-    if (this.currentWindowRequests > this.maxRequestsPerWindow * 0.5) {
-      const waitTime = Math.max(2000, this.minInterval * 4);
+    if (this.currentWindowRequests > this.maxRequestsPerWindow * 0.7) {
+      const waitTime = Math.max(1500, this.minInterval * 3);
       console.log(`⚠️ Approaching rate limit, waiting ${waitTime}ms`);
       await new Promise(resolve => setTimeout(resolve, waitTime));
     }
@@ -300,7 +300,7 @@ export class SpotifyService {
           // Add delay between batches to avoid rate limits
           if (batchCount < Math.ceil(maxPlaylists / limit)) {
             console.log(`⏳ Adding delay between playlist batches to avoid rate limits...`);
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            await new Promise(resolve => setTimeout(resolve, 1000));
           }
         } catch (error: any) {
           consecutiveErrors++;
@@ -414,7 +414,7 @@ export class SpotifyService {
           // Add delay between batches to avoid rate limits
           if (batchCount < Math.ceil(maxTracks / limit)) {
             console.log(`⏳ Adding delay between track batches to avoid rate limits...`);
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            await new Promise(resolve => setTimeout(resolve, 800));
           }
         } catch (error: any) {
           consecutiveErrors++;
@@ -667,104 +667,3 @@ export class SpotifyService {
 }
 
 export default spotifyApi; 
-
-// Circuit breaker state
-let isRateLimited = false;
-let rateLimitResetTime = 0;
-const RATE_LIMIT_COOLDOWN = 60 * 60 * 1000; // 1 hour in milliseconds
-
-// Check if we're currently rate limited
-export function isCurrentlyRateLimited(): boolean {
-  if (!isRateLimited) return false;
-  
-  // Check if cooldown period has passed
-  if (Date.now() > rateLimitResetTime) {
-    isRateLimited = false;
-    rateLimitResetTime = 0;
-    return false;
-  }
-  
-  return true;
-}
-
-// Mark as rate limited
-function markAsRateLimited(): void {
-  isRateLimited = true;
-  rateLimitResetTime = Date.now() + RATE_LIMIT_COOLDOWN;
-  console.warn('🚨 Rate limiting detected - using cached data for 1 hour');
-}
-
-// Local cache for API responses
-const apiCache = new Map<string, { data: any; timestamp: number; ttl: number }>();
-const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
-
-// Get cached data if available and not expired
-function getCachedData(key: string): any | null {
-  const cached = apiCache.get(key);
-  if (!cached) return null;
-  
-  if (Date.now() > cached.timestamp + cached.ttl) {
-    apiCache.delete(key);
-    return null;
-  }
-  
-  return cached.data;
-}
-
-// Set data in cache
-function setCachedData(key: string, data: any, ttl: number = CACHE_TTL): void {
-  apiCache.set(key, {
-    data,
-    timestamp: Date.now(),
-    ttl
-  });
-}
-
-// Enhanced fetch with circuit breaker and cache
-async function fetchWithCircuitBreakerAndCache(url: string, options: RequestInit = {}, cacheKey?: string) {
-  // Check cache first if we have a cache key
-  if (cacheKey) {
-    const cachedData = getCachedData(cacheKey);
-    if (cachedData) {
-      console.log('📦 Using cached data for:', cacheKey);
-      return { ok: true, json: () => Promise.resolve(cachedData) };
-    }
-  }
-
-  // If rate limited, throw error to trigger cache fallback
-  if (isCurrentlyRateLimited()) {
-    throw new Error('RATE_LIMITED');
-  }
-
-  try {
-    const response = await fetch(url, options);
-    
-    // Check for rate limiting
-    if (response.status === 429) {
-      markAsRateLimited();
-      throw new Error('RATE_LIMITED');
-    }
-    
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-    
-    // Cache successful responses
-    if (cacheKey && response.status === 200) {
-      const responseClone = response.clone();
-      try {
-        const data = await responseClone.json();
-        setCachedData(cacheKey, data);
-      } catch (e) {
-        // Ignore cache errors
-      }
-    }
-    
-    return response;
-  } catch (error) {
-    if (error instanceof Error && error.message === 'RATE_LIMITED') {
-      throw error;
-    }
-    throw new Error(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-} 
