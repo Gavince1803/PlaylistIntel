@@ -16,10 +16,10 @@ export async function GET(request: NextRequest) {
 
     console.log('📊 Most Listened Playlists: Starting analysis...');
 
-    // Get user playlists using the new service method (reduced limit for better performance)
+    // Get user playlists using the new service method (increased limit for better data)
     let playlists: any[] = [];
     try {
-      playlists = await spotifyService.getAllUserPlaylists(20);
+      playlists = await spotifyService.getAllUserPlaylists(50);
       console.log(`📊 Most Listened: Fetched ${playlists.length} playlists`);
     } catch (error: any) {
       console.error('📊 Most Listened: Error fetching playlists:', error);
@@ -58,6 +58,9 @@ export async function GET(request: NextRequest) {
     if (playlists.length === 0) {
       return NextResponse.json({ playlists: [] });
     }
+    
+    // Log successful playlist fetch
+    console.log(`📊 Most Listened: Successfully fetched ${playlists.length} playlists`);
 
     // Get user's top tracks to calculate more realistic play counts
     let topTracks: any[] = [];
