@@ -207,7 +207,7 @@ export default function AnalyticsPage() {
         console.log('📊 Creating fallback playlist data from analytics...');
         const fallbackPlaylists = [{
           id: 'fallback-1',
-          name: 'Your Playlists',
+          name: 'Your Most Popular Playlists',
           description: 'Based on available data',
           images: [],
           owner: { display_name: 'You' },
@@ -223,6 +223,24 @@ export default function AnalyticsPage() {
           trackCountPlays: Math.min(15, Math.floor(analyticsData.totalTracks / 10)),
           followerBonus: 0,
           activityBonus: 2
+        }, {
+          id: 'fallback-2',
+          name: 'Your Music Collection',
+          description: 'Based on available data',
+          images: [],
+          owner: { display_name: 'You' },
+          public: true,
+          collaborative: false,
+          trackCount: Math.round(analyticsData.totalTracks * 0.8),
+          followers: 0,
+          createdAt: new Date().toISOString(),
+          popularityScore: Math.round(analyticsData.totalTracks * 0.2),
+          plays: Math.max(1, Math.round(analyticsData.totalTracks / 15)),
+          image: undefined,
+          topTracksInPlaylist: 0,
+          trackCountPlays: Math.min(10, Math.floor(analyticsData.totalTracks / 15)),
+          followerBonus: 0,
+          activityBonus: 1
         }];
         setMostListenedPlaylists(fallbackPlaylists);
         setPlaylistsFallback(true);
@@ -270,7 +288,7 @@ export default function AnalyticsPage() {
         console.log('🎵 Creating fallback top tracks data from analytics...');
         const fallbackTracks = [{
           id: 'fallback-track-1',
-          name: 'Your Top Tracks',
+          name: 'Your Most Played Tracks',
           artists: [{ name: 'Various Artists' }],
           album: { name: 'Your Playlists', images: [] },
           duration_ms: 0,
@@ -281,6 +299,32 @@ export default function AnalyticsPage() {
           rank: 1,
           timeRange: 'medium_term',
           estimatedPlays: Math.max(1, Math.round(analyticsData.totalTracks / 20))
+        }, {
+          id: 'fallback-track-2',
+          name: 'Your Favorite Songs',
+          artists: [{ name: 'Various Artists' }],
+          album: { name: 'Your Collection', images: [] },
+          duration_ms: 0,
+          popularity: 45,
+          playCount: 0,
+          playlists: [],
+          external_urls: { spotify: '#' },
+          rank: 2,
+          timeRange: 'medium_term',
+          estimatedPlays: Math.max(1, Math.round(analyticsData.totalTracks / 25))
+        }, {
+          id: 'fallback-track-3',
+          name: 'Your Go-To Music',
+          artists: [{ name: 'Various Artists' }],
+          album: { name: 'Your Mixes', images: [] },
+          duration_ms: 0,
+          popularity: 40,
+          playCount: 0,
+          playlists: [],
+          external_urls: { spotify: '#' },
+          rank: 3,
+          timeRange: 'medium_term',
+          estimatedPlays: Math.max(1, Math.round(analyticsData.totalTracks / 30))
         }];
         setUserTopTracks(fallbackTracks);
       }

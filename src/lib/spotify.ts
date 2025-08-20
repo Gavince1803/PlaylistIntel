@@ -3,14 +3,14 @@ import SpotifyWebApi from 'spotify-web-api-node';
 // Enhanced Rate Limiter with better Spotify API compliance
 class RateLimiter {
   private lastCall = 0;
-  private minInterval = 800; // Reduced back to 800ms for better performance
+  private minInterval = 2000; // Increased to 2000ms to be much more conservative
   private consecutiveErrors = 0;
   private maxConsecutiveErrors = 5;
   private globalErrorCount = 0;
   private maxGlobalErrors = 15;
   private rateLimitResetTime = 0;
   private currentWindowRequests = 0;
-  private maxRequestsPerWindow = 50; // Increased back to 50 for better performance
+  private maxRequestsPerWindow = 20; // Much more conservative estimate
 
   async waitForNextCall() {
     const now = Date.now();
@@ -22,8 +22,8 @@ class RateLimiter {
     }
     
     // If we're approaching the rate limit, wait longer
-    if (this.currentWindowRequests > this.maxRequestsPerWindow * 0.7) {
-      const waitTime = Math.max(1500, this.minInterval * 3);
+    if (this.currentWindowRequests > this.maxRequestsPerWindow * 0.4) {
+      const waitTime = Math.max(3000, this.minInterval * 4);
       console.log(`⚠️ Approaching rate limit, waiting ${waitTime}ms`);
       await new Promise(resolve => setTimeout(resolve, waitTime));
     }
@@ -193,8 +193,8 @@ export class SpotifyService {
       this.rateLimiter.recordError(error);
       
       if (error.statusCode === 429) {
-        // Rate limit exceeded, wait longer and retry with exponential backoff
-        const retryDelay = Math.min(5000 * (2 ** this.rateLimiter['consecutiveErrors']), 20000);
+        // Rate limit exceeded, wait much longer and retry with exponential backoff
+        const retryDelay = Math.min(15000 * (2 ** this.rateLimiter['consecutiveErrors']), 60000);
         console.log(`🚫 Rate limit exceeded, waiting ${retryDelay}ms before retry...`);
         
         // Log rate limiter status for debugging
@@ -300,7 +300,7 @@ export class SpotifyService {
           // Add delay between batches to avoid rate limits
           if (batchCount < Math.ceil(maxPlaylists / limit)) {
             console.log(`⏳ Adding delay between playlist batches to avoid rate limits...`);
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise(resolve => setTimeout(resolve, 3000));
           }
         } catch (error: any) {
           consecutiveErrors++;
@@ -414,7 +414,7 @@ export class SpotifyService {
           // Add delay between batches to avoid rate limits
           if (batchCount < Math.ceil(maxTracks / limit)) {
             console.log(`⏳ Adding delay between track batches to avoid rate limits...`);
-            await new Promise(resolve => setTimeout(resolve, 800));
+            await new Promise(resolve => setTimeout(resolve, 2000));
           }
         } catch (error: any) {
           consecutiveErrors++;
